@@ -1,0 +1,5 @@
+To install, simply drag this folder into your libraries folder.
+
+For Processing 1.0, your libraries folder is located in your Processing sketch folder.
+
+Otherwise, if you're still using Processing BETA, your libraries folder can be found in same folder as Processing itself.
