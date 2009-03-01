@@ -891,7 +891,7 @@ public class MidiBus {
 			
 		}
 		
-		for(Listener listener : listeners) {
+		for(MidiListener listener : listeners) {
 			clone.addMidiListener(listener);
 		}
 		
@@ -902,7 +902,7 @@ public class MidiBus {
 	 *
 	 */
 	public int hashCode() {
-		return hash = bus_name.hashCode()+in_devices.hashCode()+out_devices.hashCode()+listeners.hashCode();
+		return bus_name.hashCode()+in_devices.hashCode()+out_devices.hashCode()+listeners.hashCode();
 	}
 	
 	/**
