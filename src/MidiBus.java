@@ -290,20 +290,22 @@ public class MidiBus {
 	 * @see #addOutput(String out_device_name)
 	 * @see #list()
 	*/
-	public void addInput(int in_device_num) {
+	public boolean addInput(int in_device_num) {
 		if(in_device_num != -1) {
 			MidiDevice.Info[] available_devices = MidiSystem.getMidiDeviceInfo();
 		
 			if(in_device_num >= available_devices.length || in_device_num < 0) {
 				System.err.println("\nWarning: The chosen input device numbered ["+in_device_num+"] was not added because it doesn't exist");
+				return false;
 			} else {
 		  		try {
 					MidiDevice in_device = MidiSystem.getMidiDevice(available_devices[in_device_num]);
 					if(in_device.getMaxTransmitters() == 0) {
 						System.err.println("\nWarning: The chosen input device ["+in_device_num+"] \""+available_devices[in_device_num].getName()+"\" was not added because it is output only");
+						return false;
 					} else {
 						for(MidiDevice device : in_devices) {
-							if(in_device == device) return;
+							if(in_device == device) return false;
 						}
 					
 						in_device.open();
@@ -316,11 +318,14 @@ public class MidiBus {
 						in_receivers.add(receiver);
 						in_devices.add(in_device);
 					}
+					return true;
 				} catch (MidiUnavailableException e) {
 					System.err.println("\nWarning: The chosen input device ["+in_device_num+"] \""+available_devices[in_device_num].getName()+"\" was not added because a MidiUnavailableException was thrown");
+					return false;
 				}
 			}
 		}
+		return false;
 	}
 	
 	/**
@@ -334,8 +339,8 @@ public class MidiBus {
 	 * @see #addOutput(String out_device_name)
 	 * @see #list()
 	*/
-	public void addInput(String in_device_name) {
-		addInput(inputDeviceNameToNumber(in_device_name));	
+	public boolean addInput(String in_device_name) {
+		return addInput(inputDeviceNameToNumber(in_device_name));	
 	}
 	
 	/**
@@ -347,20 +352,22 @@ public class MidiBus {
 	 * @see #addInput(String in_device_name)
 	 * @see #list()
 	*/
-	public void addOutput(int out_device_num) {
+	public boolean addOutput(int out_device_num) {
 		if(out_device_num != -1) {
 			MidiDevice.Info[] available_devices = MidiSystem.getMidiDeviceInfo();
-		
+			
 			if(out_device_num >= available_devices.length || out_device_num < 0) {
 				System.err.println("\nWarning: The chosen output device numbered ["+out_device_num+"] was not added because it doesn't exist");
+				return false;
 			} else {
 				try {
 					MidiDevice out_device = MidiSystem.getMidiDevice(available_devices[out_device_num]);
 					if(out_device.getMaxReceivers() == 0) {
 						System.err.println("\nWarning: The chosen output device ["+out_device_num+"] \""+available_devices[out_device_num].getName()+"\" was not added because it is input only");
+						return false;
 					} else {
 						for(MidiDevice device : out_devices) {
-							if(out_device == device) return;
+							if(out_device == device) return false;
 						}
 					
 						out_device.open();
@@ -368,11 +375,14 @@ public class MidiBus {
 						out_receivers.add(out_device.getReceiver());
 						out_devices.add(out_device);
 					}
+					return true;
 				} catch (MidiUnavailableException e) {
 					System.err.println("\nWarning: The chosen output device ["+out_device_num+"] \""+available_devices[out_device_num].getName()+"\" was not added because a MidiUnavailableException was thrown");
+					return false;
 				}
 			}
 		}
+		return false;
 	}
 	
 	/**
@@ -386,8 +396,8 @@ public class MidiBus {
 	 * @see #addInput(String in_device_name)
 	 * @see #list()
 	*/
-	public void addOutput(String out_device_name) {
-		addOutput(outputDeviceNameToNumber(out_device_name));	
+	public boolean addOutput(String out_device_name) {
+		return addOutput(outputDeviceNameToNumber(out_device_name));	
 	}
 	
 	/**
