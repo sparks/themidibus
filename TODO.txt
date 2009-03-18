@@ -1,0 +1,51 @@
+For Revision 4
+	remove input/output
+	resolve list properly
+	add object methods
+	change warning messages
+	fix related javadocs
+	
+
+	public boolean addOutput(int out_device_num) {
+		if(out_device_num != -1) {
+			MidiDevice.Info[] available_devices = MidiSystem.getMidiDeviceInfo();
+			
+			if(out_device_num >= available_devices.length || out_device_num < 0) {
+				System.err.println("\nWarning: The chosen output device numbered ["+out_device_num+"] was not added because it doesn't exist");
+				return false;
+			} else {
+				try {
+					System.out.println("-----");
+					System.out.println("1");
+					MidiDevice out_device = MidiSystem.getMidiDevice(available_devices[out_device_num]);
+					System.out.println("Is open?" + out_device.isOpen());
+					System.out.println("Max Receivers?" + out_device.getMaxReceivers());
+					System.out.println("Max Transmitters?" + out_device.getMaxTransmitters());
+					System.out.println("2");
+					if(out_device.getMaxReceivers() == 0) {
+						System.err.println("\nWarning: The chosen output device ["+out_device_num+"] \""+available_devices[out_device_num].getName()+"\" was not added because it is input only");
+						return false;
+					} else {
+						System.out.println("3");
+						for(MidiDevice device : out_devices) {
+							if(out_device.getDeviceInfo() == device.getDeviceInfo()) return true;
+						}
+						System.out.println("4");
+						out_device.open();
+						System.out.println("5");
+
+						out_receivers.add(out_device.getReceiver());
+						System.out.println("6");
+						out_devices.add(out_device);
+						System.out.println("7");
+						System.out.println("-----");
+					}
+					return true;
+				} catch (MidiUnavailableException e) {
+					System.err.println("\nWarning: The chosen output device ["+out_device_num+"] \""+available_devices[out_device_num].getName()+"\" was not added because a MidiUnavailableException was thrown");
+					return false;
+				}
+			}
+		}
+		return false;
+	}

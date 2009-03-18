@@ -305,7 +305,7 @@ public class MidiBus {
 						return false;
 					} else {
 						for(MidiDevice device : in_devices) {
-							if(in_device == device) return false;
+							if(in_device.getDeviceInfo() == device.getDeviceInfo()) return true;
 						}
 					
 						in_device.open();
@@ -367,9 +367,8 @@ public class MidiBus {
 						return false;
 					} else {
 						for(MidiDevice device : out_devices) {
-							if(out_device == device) return false;
+							if(out_device.getDeviceInfo() == device.getDeviceInfo()) return true;
 						}
-					
 						out_device.open();
 
 						out_receivers.add(out_device.getReceiver());
@@ -894,10 +893,11 @@ public class MidiBus {
 		MidiBus clone = new MidiBus(parent, -1, -1, bus_name);
 		
 		for(MidiDevice device : in_devices) {
-			
+			//Do some stuff to add inputs
 		}
 		
 		for(MidiDevice device : out_devices) {
+			//Do some stuff to add outputs
 			
 		}
 		
