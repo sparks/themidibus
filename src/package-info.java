@@ -15,7 +15,7 @@
 
  * You should have received a copy of the GNU General Public License
  * along with themidibus.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
 /**
  * This package provides simplified ways to access and use to installed MIDI system resources and is designed specifically to be used in a <a target="_blank" href="http://www.processing.org">Processing</a> sketch, although it could just as easily be used within any standard java program.

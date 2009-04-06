@@ -8,7 +8,7 @@
 #Also if your copy of Processing is not installed in /Applications/ you might want to change line 44
 
 echo
-echo Compile Script for midi library
+echo Compile Script for themidibus library
 echo -------------------------------
 cd `dirname $0`
 

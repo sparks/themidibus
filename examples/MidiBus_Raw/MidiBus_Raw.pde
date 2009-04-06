@@ -19,6 +19,16 @@ void draw() {
 	myBus.sendNoteOn(channel, pitch, velocity); // Send a Midi noteOn
 	delay(200);
 	myBus.sendNoteOff(channel, pitch, velocity); // Send a Midi nodeOff
+	delay(100);
+
+	//Or for something different we could send a custom Midi message ...
+	
+	int status_byte = 0xC0; // For instance let us send aftertouch
+	int channel_byte = 0; // On channel 0 again
+	int first_byte = 64; // The same note;
+	int second_byte = 80; // But with less velocity
+	
+	myBus.sendMessage(status_byte, channel_byte, first_byte, second_byte);
 	delay(2000);
 }
 
@@ -37,8 +47,8 @@ void rawMidi(byte[] data) { // You can also use rawMidi(byte[] data, String bus_
 	println("Status Byte/MIDI Command:"+(int)(data[0] & 0xFF));
 	// N.B. In some cases (noteOn, noteOff, controllerChange, etc) the first half of the status byte is the command and the second half if the channel
 	// In these cases (data[0] & 0xF0) gives you the command and (data[0] & 0x0F) gives you the channel
-	println("Param 1: "+(int)(data[1] & 0xFF));
-	println("Param 2: "+(int)(data[2] & 0xFF));
+	if(data.length > 1) println("Param 1: "+(int)(data[1] & 0xFF));
+	if(data.length > 2) println("Param 2: "+(int)(data[2] & 0xFF));
 }
 
 void midiMessage(MidiMessage message) { // You can also use midiMessage(MidiMessage message, String bus_name)
@@ -49,6 +59,6 @@ void midiMessage(MidiMessage message) { // You can also use midiMessage(MidiMess
 	println("MidiMessage Data:");
 	println("--------");
 	println("Status Byte/MIDI Command:"+message.getStatus());
-	println("Param 1: "+(int)(message.getMessage()[1] & 0xFF));
-	println("Param 2: "+(int)(message.getMessage()[2] & 0xFF));
+	if(message.getMessage().length > 1) println("Param 1: "+(int)(message.getMessage()[1] & 0xFF));
+	if(message.getMessage().length > 2) println("Param 2: "+(int)(message.getMessage()[2] & 0xFF));
 }

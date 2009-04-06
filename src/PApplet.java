@@ -15,7 +15,7 @@
 
  * You should have received a copy of the GNU General Public License
  * along with themidibus.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
 package themidibus;
 import javax.sound.midi.MidiMessage;
@@ -32,7 +32,7 @@ import javax.sound.midi.MidiMessage;
  * @see RawMidiListener
  * @see StandardMidiListener
  * @see SimpleMidiListener
- */
+*/
 public class PApplet{	
 	
 	/**

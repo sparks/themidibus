@@ -1,10 +1,28 @@
-For Revision 4
-	remove input/output
-	resolve list properly
-	add object methods
-	change warning messages
-	fix related javadocs
+-Revision 4
+
+	Add functions to remove Inputs/Outputs
 	
+	Allow sending of Meta and System messages easily, should simply work within sendMessage
+
+	Properly verify Inputs/Ouputs for list() or returnList()
+
+	-Override the object class methods
+	Write javadocs for object class methods
+
+	-Clarify the Midi Bus warning messages
+
+	Expand javadocs, look over @see, clarify data relevance for sendMessage, check all @return are there
+	
+	-Should outputDeviceNameToNumber and inputDeviceNameToNumber be public ?
+
+	-Allow sending of MidiMessage objects, perhaps?
+	-Create more overloads of sendMessage(), eg sendMessage(status, data)
+	-Constrain or warn when data is obviously outside of the valid range for sendMessage
+	Warn user data has been constrained??
+	
+	-Add zipping script
+
+-Notes
 
 	public boolean addOutput(int out_device_num) {
 		if(out_device_num != -1) {
@@ -49,3 +67,4 @@ For Revision 4
 		}
 		return false;
 	}
+	
