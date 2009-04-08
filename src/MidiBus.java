@@ -416,6 +416,10 @@ public class MidiBus {
 			transmitter.close();
 		}
 		
+		for(MReceiver receiver : in_receivers) {
+			receiver.close();
+		}
+		
 		for(MidiDevice device : in_devices) {
 			try {
 				device.close();
