@@ -29,7 +29,7 @@
  * As with all things Processing, getting basic core functionallity of themidibus up and running in a sketch is a matter of only a few line. The {@link themidibus.MidiBus} class provides everything needed to recieve and send MIDI inside a processing sketch, all the rest is fluff, padding and extras. To get to the short and sweet and jump right into themidibus, either refer to the paragraph titled "Typical Implementation, Simple" in the description for the {@link themidibus.MidiBus} class, or go download the code examples available at <a href="http://www.smallbutdigital.com/themidibus.php">http://www.smallbutdigital.com/themidibus.php</a>.
  * <p>
  * Although it takes almost no effort to get started with this package, building more advanced applications requires a good understanding of the package's bus system. Although the bus system used by MidiBus is very simple, powerful and efficient, it may not immediately make sense. Possibly useful and/or confusing explanations as well as examples  <a href="http://www.smallbutdigital.com/themidibus.php">can be found online</a>. Please take the time to check them out.
- * @version 003
+ * @version 004
  * @author Severin Smith
 */
 

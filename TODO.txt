@@ -21,6 +21,8 @@
 	Warn user data has been constrained??
 	
 	-Add zipping script
+	
+	-Reconsider input/output selection
 
 -Notes
 

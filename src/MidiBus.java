@@ -22,6 +22,7 @@ package themidibus;
 import javax.sound.midi.*;
 import java.util.Vector;
 import java.util.Formatter;
+
 import processing.core.PApplet;
 import java.lang.reflect.Method;
 
@@ -42,7 +43,7 @@ import java.lang.reflect.Method;
  * <p>
  * Although the bus system used by MidiBus is very simple, powerful and efficient, it may not immediately make sense. Possibly useful and/or confusing explanations as well as examples  <a href="http://www.smallbutdigital.com/themidibus.php">can be found online</a>. Please take the time to check them out.
  *
- * @version 003
+ * @version 004
  * @author Severin Smith
  * @see PApplet
  * @see MidiListener
@@ -56,17 +57,13 @@ public class MidiBus {
 	
 	String bus_name;
 	
-	Vector<MidiDevice> in_devices;
-	Vector<Receiver> in_receivers;
-	Vector<Transmitter> in_transmitters;
+	public static final int INPUT = 1;
+	public static final int OUTPUT = 2;
 	
-	Vector<MidiDevice> out_devices;
-	Vector<Receiver> out_receivers;
-	
+	Vector<InputDeviceContainer> input_devices;
+	Vector<OutputDeviceContainer> output_devices;
+
 	Vector<MidiListener> listeners;
-	Vector<RawMidiListener> raw_listeners;
-	Vector<SimpleMidiListener> simple_listeners;
-	Vector<StandardMidiListener> standard_listeners;
 	
 	PApplet parent;
 	
@@ -85,7 +82,7 @@ public class MidiBus {
 	 * @param parent the Processing PApplet to which this MidiBus is attached
 	*/
 	public MidiBus(PApplet parent) {
-		init(parent,-1,-1);
+		init(parent);
 	}
 	
 	/**
@@ -101,7 +98,9 @@ public class MidiBus {
 	 * @param out_device_num the index of the MIDI output device to be opened
 	*/
 	public MidiBus(PApplet parent, int in_device_num, int out_device_num) {		
-		init(parent, in_device_num, out_device_num);
+		init(parent);
+		addInput(in_device_num);
+		addOutput(out_device_num);
 	}
 	
 	/**
@@ -118,7 +117,9 @@ public class MidiBus {
 	 * @param bus_name the String which which identifies this MidiBus
 	*/
 	public MidiBus(PApplet parent, int in_device_num, int out_device_num, String bus_name) {		
-		init(parent, in_device_num, out_device_num, bus_name);
+		init(parent, bus_name);
+		addInput(in_device_num);
+		addOutput(out_device_num);
 	}
 	
 	/**
@@ -132,7 +133,7 @@ public class MidiBus {
 	 * @param bus_name the String which which identifies this MidiBus
 	*/
 	public MidiBus(PApplet parent, String bus_name) {
-		init(parent,-1,-1, bus_name);
+		init(parent, bus_name);
 	}
 	
 	/**
@@ -150,7 +151,9 @@ public class MidiBus {
 	 * @param out_device_name the name of the MIDI output device to be opened
 	*/
 	public MidiBus(PApplet parent, String in_device_name, String out_device_name) {
-		init(parent, inputDeviceNameToNumber(in_device_name), outputDeviceNameToNumber(out_device_name));
+		init(parent);
+		addInput(in_device_name);
+		addOutput(out_device_name);
 	}
 	
 	/**
@@ -169,7 +172,9 @@ public class MidiBus {
 	 * @param bus_name the String which which identifies this MidiBus
 	*/
 	public MidiBus(PApplet parent, String in_device_name, String out_device_name, String bus_name) {
-		init(parent, inputDeviceNameToNumber(in_device_name), outputDeviceNameToNumber(out_device_name), bus_name);
+		init(parent, bus_name);
+		addInput(in_device_name);
+		addOutput(out_device_name);
 	}
 	
 	/* -- Constructor Functions -- */
@@ -178,15 +183,15 @@ public class MidiBus {
 	 * Creates a new (hopefully/probably) unique bus_name value for new MidiBus objects that weren't given one and then calls the regular init() function. 
 	 * N.B. If two MidiBus object were to have the same name, this would be bad, but not fatal, so there's no point in spending too much time worrying about it
 	*/
-	private void init(PApplet parent, int in_device_num, int out_device_num) {
+	private void init(PApplet parent) {
 		String id = new Formatter().format("%08d", System.currentTimeMillis()%100000000).toString();
-		init(parent, in_device_num, out_device_num, "MidiBus_"+id);
+		init(parent, "MidiBus_"+id);
 	}
 	
 	/**
 	 * Perfoms the initialisation of new MidiBus objects, is private for a reason, and is only ever called within the constructors. This method exists only for the purpose of cleaner and easier to maintain code.
 	*/
-	private void init(PApplet parent, int in_device_num, int out_device_num, String bus_name) {
+	private void init(PApplet parent, String bus_name) {
 		this.parent = parent;
 	
 		parent.registerDispose(this);
@@ -257,27 +262,10 @@ public class MidiBus {
 	
 		/* -- */
 		
-		in_devices = new Vector<MidiDevice>();
-		in_receivers = new Vector<Receiver>();
-		in_transmitters = new Vector<Transmitter>();
-		
-		out_devices = new Vector<MidiDevice>();
-		out_receivers = new Vector<Receiver>();
+		input_devices = new Vector<MidiDeviceContainer>();
+		output_devices = new Vector<MidiDeviceContainer>();
 		
 		listeners = new Vector<MidiListener>();
-		raw_listeners = new Vector<RawMidiListener>();
-		simple_listeners = new Vector<SimpleMidiListener>();
-		standard_listeners = new Vector<StandardMidiListener>();
-	
-		/* -- */
-						
-		if(in_device_num != -1) {
-			addInput(in_device_num);
-		}
-	
-		if(out_device_num != -1) {
-    		addOutput(out_device_num);
-		}
 	}
 
 	/* -- Receiver/Transmitter/Device Handling -- */
@@ -292,41 +280,17 @@ public class MidiBus {
 	 * @see #addOutput(String out_device_name)
 	 * @see #list()
 	*/
-	public boolean addInput(int in_device_num) {
-		if(in_device_num == -1) return false;
-		
-		MidiDevice.Info[] available_devices = MidiSystem.getMidiDeviceInfo();
-	
-		if(in_device_num >= available_devices.length || in_device_num < 0) {
-			System.err.println("\nMidiBus Warning: The chosen input device numbered ["+in_device_num+"] was not added because it doesn't exist");
-			return false;
-		} else {
-	  		try {
-				MidiDevice in_device = MidiSystem.getMidiDevice(available_devices[in_device_num]);
-				if(in_device.getMaxTransmitters() == 0) {
-					System.err.println("\nMidiBus Warning: The chosen input device ["+in_device_num+"] \""+available_devices[in_device_num].getName()+"\" was not added because it is output only");
-					return false;
-				} else {
-					for(MidiDevice device : in_devices) {
-						if(in_device.getDeviceInfo() == device.getDeviceInfo()) return false;
-					}
-				
-					in_device.open();
-				
-					MReceiver receiver = new MReceiver();
-					Transmitter transmitter = in_device.getTransmitter();
-					transmitter.setReceiver(receiver);
+	public boolean addInput(int device_num) {
+		if(device_num == -1) return false;
 
-					in_transmitters.add(transmitter);
-					in_receivers.add(receiver);
-					in_devices.add(in_device);
-				}
-				return true;
-			} catch (MidiUnavailableException e) {
-				System.err.println("\nMidiBus Warning: The chosen input device ["+in_device_num+"] \""+available_devices[in_device_num].getName()+"\" was not added because a MidiUnavailableException was thrown and caught");
-				return false;
-			}
+		MidiDevice.Info[] available_devices = MidiSystem.getMidiDeviceInfo();
+		
+		if(device_num >= available_devices.length || device_num < 0) {
+			System.err.println("\nThe MidiBus Warning: The chosen input device numbered ["+device_num+"] was not added because it doesn't exist");
+			return false;
 		}
+		
+		return addInput(available_devices[device_num]);
 	}
 	
 	/**
@@ -341,8 +305,53 @@ public class MidiBus {
 	 * @see #addOutput(String out_device_name)
 	 * @see #list()
 	*/
-	public boolean addInput(String in_device_name) {
-		return addInput(inputDeviceNameToNumber(in_device_name));	
+	public boolean addInput(String device_name) {
+		if(!device_name.equals("")) return false;
+		
+		MidiDevice.Info[] available_devices = MidiSystem.getMidiDeviceInfo();
+		
+		for(int i = 0;i < available_devices.length;i++) {
+			try {
+				if(available_devices[i].getName().equals(device_name) && MidiSystem.getMidiDevice(available_devices[i]).getMaxTransmitters() != 0) return addInput(available_devices[i]);
+			} catch (MidiUnavailableException e) {
+				System.err.println("\nThe MidiBus Warning: device ["+i+"] \""+available_devices[i].getName()+"\" is unavailable");
+			}
+		}
+		
+		System.err.println("\nThe MidiBus Warning: No available input MIDI devices named: \""+device_name+"\" were found");
+		return false;	
+	}
+	
+	boolean addInput(MidiDevice.Info device_info) {
+		try {
+			MidiDevice new_device = MidiSystem.getMidiDevice(device_info);
+		
+			if(in_device.getMaxTransmitters() == 0) {
+				System.err.println("\nThe MidiBus Warning: The chosen input device \""device_info.getName()+"\" was not added because it is output only");
+				return false;
+			}
+			
+			for(InputDeviceContainer container : input_devices) {
+				if(new_device == container.device) return false;
+			}
+
+			new_device.open();
+
+			MReceiver receiver = new MReceiver();
+			Transmitter transmitter = new_device.getTransmitter();
+			transmitter.setReceiver(receiver);
+			
+			InputDeviceContainer new_container = new InputDeviceContainer(new_device);
+			new_container.transmitter = transmitter;
+			new_container.receiver = receiver;
+			
+			input_devices.add(new_container);
+			
+			return true;
+		} catch (MidiUnavailableException e) {
+			System.err.println("\nThe MidiBus Warning: The chosen input device \n"device_info.getName()+"\" was not added because it is unavailable");
+			return false;
+		}
 	}
 	
 	/**
@@ -355,35 +364,17 @@ public class MidiBus {
 	 * @see #addInput(String in_device_name)
 	 * @see #list()
 	*/
-	public boolean addOutput(int out_device_num) {
-		if(out_device_num == -1) return false;
+	public boolean addOutput(int device_num) {
+		if(device_num == -1) return false;
 		
 		MidiDevice.Info[] available_devices = MidiSystem.getMidiDeviceInfo();
 		
-		if(out_device_num >= available_devices.length || out_device_num < 0) {
-			System.err.println("\nMidiBus Warning: The chosen output device numbered ["+out_device_num+"] was not added because it doesn't exist");
+		if(device_num >= available_devices.length || device_num < 0) {
+			System.err.println("\nThe MidiBus Warning: The chosen output device numbered ["+device_num+"] was not added because it doesn't exist");
 			return false;
-		} else {
-			try {
-				MidiDevice out_device = MidiSystem.getMidiDevice(available_devices[out_device_num]);
-				if(out_device.getMaxReceivers() == 0) {
-					System.err.println("\nMidiBus Warning: The chosen output device ["+out_device_num+"] \""+available_devices[out_device_num].getName()+"\" was not added because it is input only");
-					return false;
-				} else {
-					for(MidiDevice device : out_devices) {
-						if(out_device.getDeviceInfo() == device.getDeviceInfo()) return false;
-					}
-					out_device.open();
-
-					out_receivers.add(out_device.getReceiver());
-					out_devices.add(out_device);
-				}
-				return true;
-			} catch (MidiUnavailableException e) {
-				System.err.println("\nMidiBus Warning: The chosen output device ["+out_device_num+"] \""+available_devices[out_device_num].getName()+"\" was not added because a MidiUnavailableException was thrown and caught");
-				return false;
-			}
 		}
+		
+		return addOutput(available_devices[device_num]);		
 	}
 	
 	/**
@@ -398,8 +389,48 @@ public class MidiBus {
 	 * @see #addInput(String in_device_name)
 	 * @see #list()
 	*/
-	public boolean addOutput(String out_device_name) {
-		return addOutput(outputDeviceNameToNumber(out_device_name));	
+	public boolean addOutput(String device_name) {
+		if(!device_name.equals("")) return false;
+		
+		MidiDevice.Info[] available_devices = MidiSystem.getMidiDeviceInfo();
+		
+		for(int i = 0;i < available_devices.length;i++) {
+			try {
+				if(available_devices[i].getName().equals(device_name) && MidiSystem.getMidiDevice(available_devices[i]).getMaxReceivers() != 0) return addOutput(available_devices[i]);
+			} catch (MidiUnavailableException e) {
+				System.err.println("\nThe MidiBus Warning: device ["+i+"] \""+available_devices[i].getName()+"\" is unavailable");
+			}
+		}
+		
+		System.err.println("\nThe MidiBus Warning: No available output MIDI devices named: \""+device_name+"\" were found");
+		return false;	
+	}
+	
+	boolean addOutput(MidiDevice.Info device_info) {
+		try {
+			MidiDevice new_device = MidiSystem.getMidiDevice(device_info);
+		
+			if(in_device.getMaxReceivers() == 0) {
+				System.err.println("\nThe MidiBus Warning: The chosen output device \""device_info.getName()+"\" was not added because it is input only");
+				return false;
+			}
+			
+			for(OutputDeviceContainer container : output_devices) {
+				if(new_device == container.device) return false;
+			}
+
+			new_device.open();
+			
+			OutputDeviceContainer new_container = new OutputDeviceContainer(new_device);
+			new_container.receiver = new_device.getReceiver();
+						
+			output_devices.add(new_container);
+			
+			return true;
+		} catch (MidiUnavailableException e) {
+			System.err.println("\nThe MidiBus Warning: The chosen output device \n"device_info.getName()+"\" was not added because it is unavailable");
+			return false;
+		}
 	}
 	
 	/**
@@ -412,25 +443,13 @@ public class MidiBus {
 	 * @see #dispose()
 	*/
 	public void clearInputs() {
-		for(Transmitter transmitter : in_transmitters) {
-			transmitter.close();
+		for(InputDeviceContainer container : input_devices) {
+			container.transmitter.close();
+			container.receiver.close();
+			container.device.close();
 		}
 		
-		for(MReceiver receiver : in_receivers) {
-			receiver.close();
-		}
-		
-		for(MidiDevice device : in_devices) {
-			try {
-				device.close();
-			} catch(Exception e) {
-				System.err.println("\nMidiBus Warning: Mystery error during clearInputs()");
-			}
-		}
-		
-		in_transmitters.clear();
-		in_receivers.clear();
-		in_devices.clear();
+		input_devices.clear();
 	}
 	
 	/**
@@ -443,20 +462,12 @@ public class MidiBus {
 	 * @see #dispose()
 	*/
 	public void clearOutputs() {
-		for(Receiver receiver : out_receivers) {
-			receiver.close();
+		for(OutputDeviceContainer container : output_devices) {
+			container.receiver.close();
+			container.device.close();
 		}
 		
-		for(MidiDevice device : out_devices) {
-			try {
-				device.close();
-			} catch(Exception e) {
-				System.err.println("\nMidiBus Warning: Mystery error during clearOutputs()");
-			}
-		}
-		
-		out_receivers.clear();
-		out_devices.clear();
+		output_devices.clear();
 	}
 	
 	/**
@@ -495,7 +506,7 @@ public class MidiBus {
 				receiver.send(message, -1);
 			}
 		} catch(InvalidMidiDataException e) {
-			System.err.println("\nMidiBus Warning: Message not sent, InvalidMidiDataException thrown");
+			System.err.println("\nThe MidiBus Warning: Message not sent, InvalidMidiDataException thrown");
 		}
 	}
 	
@@ -538,7 +549,7 @@ public class MidiBus {
 				receiver.send(message, -1);
 			}
 		} catch(InvalidMidiDataException e) {
-			System.err.println("\nMidiBus Warning: Message not sent, InvalidMidiDataException thrown");
+			System.err.println("\nThe MidiBus Warning: Message not sent, InvalidMidiDataException thrown");
 		}
 	}
 	
@@ -564,7 +575,7 @@ public class MidiBus {
 				receiver.send(message, -1);
 			}
 		} catch(InvalidMidiDataException e) {
-			System.err.println("\nMidiBus Warning: Message not sent, InvalidMidiDataException thrown");
+			System.err.println("\nThe MidiBus Warning: Message not sent, InvalidMidiDataException thrown");
 		}
 	}
 	
@@ -608,7 +619,7 @@ public class MidiBus {
 				receiver.send(message, -1);
 			}
 		} catch(InvalidMidiDataException e) {
-			System.err.println("\nMidiBus Warning: Message not sent, InvalidMidiDataException thrown");
+			System.err.println("\nThe MidiBus Warning: Message not sent, InvalidMidiDataException thrown");
 		}
 	}
 	
@@ -634,7 +645,7 @@ public class MidiBus {
 				receiver.send(message, -1);
 			}
 		} catch(InvalidMidiDataException e) {
-			System.err.println("\nMidiBus Warning: Message not sent, InvalidMidiDataException thrown");
+			System.err.println("\nThe MidiBus Warning: Message not sent, InvalidMidiDataException thrown");
 		}
 	}
 	
@@ -660,7 +671,7 @@ public class MidiBus {
 				receiver.send(message, -1);
 			}
 		} catch(InvalidMidiDataException e) {
-			System.err.println("\nMidiBus Warning: Message not sent, InvalidMidiDataException thrown");
+			System.err.println("\nThe MidiBus Warning: Message not sent, InvalidMidiDataException thrown");
 		}
 	}
 	
@@ -674,32 +685,36 @@ public class MidiBus {
 	void notifyListeners(MidiMessage message) {
 		byte[] data = message.getMessage();
 		
-		/* -- RawMidiListener -- */
+		for(MidiListener listener : listeners) {
 		
-		for(RawMidiListener raw_listener : raw_listeners) {
- 			raw_listener.rawMidiMessage(data);
-		}
+			/* -- RawMidiListener -- */
 		
-		/* -- SimpleMidiListener -- */
+			if(listener instanceof RawMidiListener) {
+	 			((RawMidiListener)listener).rawMidiMessage(data);
+			}
+		
+			/* -- SimpleMidiListener -- */
 			
-		if((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_ON) {
-			for(SimpleMidiListener simple_listener : simple_listeners) {
-				simple_listener.noteOn((int)(data[0] & 0x0F),(int)(data[1] & 0xFF),(int)(data[2] & 0xFF));
+			if((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_ON) {
+				if(listener instanceof SimpleMidiListener) {
+					((SimpleMidiListener)listener).noteOn((int)(data[0] & 0x0F),(int)(data[1] & 0xFF),(int)(data[2] & 0xFF));
+				}
+			} else if((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_OFF) {
+				if(listener instanceof SimpleMidiListener) {
+					((SimpleMidiListener)listener).noteOff((int)(data[0] & 0x0F),(int)(data[1] & 0xFF),(int)(data[2] & 0xFF));
+				}
+			} else if((int)((byte)data[0] & 0xF0) == ShortMessage.CONTROL_CHANGE) {
+				if(listener instanceof SimpleMidiListener) {
+					((SimpleMidiListener)listener).controllerChange((int)(data[0] & 0x0F),(int)(data[1] & 0xFF),(int)(data[2] & 0xFF));
+				}
 			}
-		} else if((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_OFF) {
-			for(SimpleMidiListener simple_listener : simple_listeners) {
-				simple_listener.noteOff((int)(data[0] & 0x0F),(int)(data[1] & 0xFF),(int)(data[2] & 0xFF));
-			}
-		} else if((int)((byte)data[0] & 0xF0) == ShortMessage.CONTROL_CHANGE) {
-			for(SimpleMidiListener simple_listener : simple_listeners) {
-				simple_listener.controllerChange((int)(data[0] & 0x0F),(int)(data[1] & 0xFF),(int)(data[2] & 0xFF));
-			}
-		}
 		
-		/* -- StandardMidiListener -- */
+			/* -- StandardMidiListener -- */
 		
-		for(StandardMidiListener standard_listener : standard_listeners) {
-			standard_listener.midiMessage(message);
+			if(listener instanceof StandardMidiListener) {
+				((StandardMidiListener)listener).midiMessage(message);
+			}
+			
 		}
 	}
 	
@@ -716,7 +731,7 @@ public class MidiBus {
 				try {
 					eventMethod_noteOn.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF) });
 				} catch (Exception e) {
-					System.err.println("\nMidiBus Warning: Disabling noteOn() because an unkown exception was thrown and caught");
+					System.err.println("\nThe MidiBus Warning: Disabling noteOn() because an unkown exception was thrown and caught");
 					e.printStackTrace();
 					eventMethod_noteOn = null;
 				}
@@ -725,7 +740,7 @@ public class MidiBus {
 				try {
 					eventMethod_noteOn_withBusName.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), bus_name });
 				} catch (Exception e) {
-					System.err.println("\nMidiBus Warning: Disabling noteOn() with bus_name because an unkown exception was thrown and caught");
+					System.err.println("\nThe MidiBus Warning: Disabling noteOn() with bus_name because an unkown exception was thrown and caught");
 					e.printStackTrace();
 					eventMethod_noteOn_withBusName = null;
 				}
@@ -735,7 +750,7 @@ public class MidiBus {
 				try {
 					eventMethod_noteOff.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF) });
 				} catch (Exception e) {
-					System.err.println("\nMidiBus Warning: Disabling noteOff() because an unkown exception was thrown and caught");
+					System.err.println("\nThe MidiBus Warning: Disabling noteOff() because an unkown exception was thrown and caught");
 					e.printStackTrace();
 					eventMethod_noteOff = null;
 				}
@@ -744,7 +759,7 @@ public class MidiBus {
 				try {
 					eventMethod_noteOff_withBusName.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), bus_name });
 				} catch (Exception e) {
-					System.err.println("\nMidiBus Warning: Disabling noteOff() with bus_name because an unkown exception was thrown and caught");
+					System.err.println("\nThe MidiBus Warning: Disabling noteOff() with bus_name because an unkown exception was thrown and caught");
 					e.printStackTrace();
 					eventMethod_noteOff_withBusName = null;
 				}
@@ -754,7 +769,7 @@ public class MidiBus {
 				try {
 					eventMethod_controllerChange.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF) });
 				} catch (Exception e) {
-					System.err.println("\nMidiBus Warning: Disabling controllerChange() because an unkown exception was thrown and caught");
+					System.err.println("\nThe MidiBus Warning: Disabling controllerChange() because an unkown exception was thrown and caught");
 					e.printStackTrace();
 					eventMethod_controllerChange = null;
 				}
@@ -763,7 +778,7 @@ public class MidiBus {
 				try {
 					eventMethod_controllerChange_withBusName.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), bus_name });
 				} catch (Exception e) {
-					System.err.println("\nMidiBus Warning: Disabling controllerChange() with bus_name because an unkown exception was thrown and caught");
+					System.err.println("\nThe MidiBus Warning: Disabling controllerChange() with bus_name because an unkown exception was thrown and caught");
 					e.printStackTrace();
 					eventMethod_controllerChange_withBusName = null;
 				}
@@ -774,7 +789,7 @@ public class MidiBus {
 			try {
 				eventMethod_rawMidi.invoke(parent, new Object[] { data });
 			} catch (Exception e) {
-				System.err.println("\nMidiBus Warning: Disabling rawMidi() because an unkown exception was thrown and caught");
+				System.err.println("\nThe MidiBus Warning: Disabling rawMidi() because an unkown exception was thrown and caught");
 				e.printStackTrace();
 				eventMethod_rawMidi = null;
 			}
@@ -783,7 +798,7 @@ public class MidiBus {
 			try {
 				eventMethod_rawMidi_withBusName.invoke(parent, new Object[] { data, bus_name });
 			} catch (Exception e) {
-				System.err.println("\nMidiBus Warning: Disabling rawMidi() with bus_name because an unkown exception was thrown and caught");
+				System.err.println("\nThe MidiBus Warning: Disabling rawMidi() with bus_name because an unkown exception was thrown and caught");
 				e.printStackTrace();
 				eventMethod_rawMidi_withBusName = null;
 			}
@@ -793,16 +808,16 @@ public class MidiBus {
 			try {
 				eventMethod_midiMessage.invoke(parent, new Object[] { message });
 			} catch (Exception e) {
-				System.err.println("\nMidiBus Warning: Disabling midiMessage() because an unkown exception was thrown and caught");
+				System.err.println("\nThe MidiBus Warning: Disabling midiMessage() because an unkown exception was thrown and caught");
 				e.printStackTrace();
 				eventMethod_midiMessage = null;
 			}
 		}
 		if(eventMethod_midiMessage_withBusName != null) {
 			try {
-				eventMethod_midiMessage_withBusName.invoke(parent, new Object[] { message });
+				eventMethod_midiMessage_withBusName.invoke(parent, new Object[] { message, bus_name });
 			} catch (Exception e) {
-				System.err.println("\nMidiBus Warning: Disabling midiMessage() with bus_name because an unkown exception was thrown and caught");
+				System.err.println("\nThe MidiBus Warning: Disabling midiMessage() with bus_name because an unkown exception was thrown and caught");
 				e.printStackTrace();
 				eventMethod_midiMessage_withBusName = null;
 			}
@@ -823,11 +838,7 @@ public class MidiBus {
 		for(MidiListener current : listeners) if(current == listener) return false;
 		
 		listeners.add(listener);
-		
-		if(listener instanceof RawMidiListener) raw_listeners.add((RawMidiListener)listener);
-		else if(listener instanceof SimpleMidiListener) simple_listeners.add((SimpleMidiListener)listener);
-		else if(listener instanceof StandardMidiListener)  standard_listeners.add((StandardMidiListener)listener);
-		
+				
 		return true;
 	}
 	
@@ -842,10 +853,6 @@ public class MidiBus {
 		for(MidiListener current : listeners) {
 			if(current == listener) {
 				listeners.remove(listener);
-
-				if(listener instanceof RawMidiListener) raw_listeners.remove((RawMidiListener)listener);
-				else if(listener instanceof SimpleMidiListener) simple_listeners.remove((SimpleMidiListener)listener);
-				else if(listener instanceof StandardMidiListener)  standard_listeners.remove((StandardMidiListener)listener);
 				return true;
 			}
 		}
@@ -900,12 +907,12 @@ public class MidiBus {
 					try {
 						if(available_devices[i].getName().equals(device_name) && MidiSystem.getMidiDevice(available_devices[i]).getMaxReceivers() == 0) return i;
 					} catch (MidiUnavailableException e) {
-						System.err.println("\nMidiBus Warning: device ["+i+"] \""+available_devices[i].getName()+"\" could not be gotten during inputDeviceNameToNumber(), MidiUnavailableException thrown");
+						System.err.println("\nThe MidiBus Warning: device ["+i+"] \""+available_devices[i].getName()+"\" could not be gotten during inputDeviceNameToNumber(), MidiUnavailableException thrown");
 					}
 				}
 				
 			
-			System.err.println("MidiBus Warning: No input MIDI devices named: \""+device_name+"\" were found");		
+			System.err.println("\nThe MidiBus Warning: No input MIDI devices named: \""+device_name+"\" were found");		
 		}
 		return -1;
 	}
@@ -926,12 +933,12 @@ public class MidiBus {
 					try {
 						if(available_devices[i].getName().equals(device_name) && MidiSystem.getMidiDevice(available_devices[i]).getMaxTransmitters() == 0) return i;
 					} catch (MidiUnavailableException e) {
-						System.err.println("\nMidiBus Warning: device ["+i+"] \""+available_devices[i].getName()+"\" could not be gotten during outputDeviceNameToNumber(), MidiUnavailableException thrown");
+						System.err.println("\nThe MidiBus Warning: device ["+i+"] \""+available_devices[i].getName()+"\" could not be gotten during outputDeviceNameToNumber(), MidiUnavailableException thrown");
 					}
 				}
 		
 			
-			System.err.println("MidiBus Warning: No output MIDI devices named: \""+device_name+"\" were found");		
+			System.err.println("\nThe MidiBus Warning: No output MIDI devices named: \""+device_name+"\" were found");		
 		}
 		return -1;
 	}
@@ -1054,7 +1061,7 @@ public class MidiBus {
 					System.out.println("["+i+"] \""+available_devices[i].getName()+"\" [Input/Output]");
 				}
 			} catch (MidiUnavailableException e) {
-				System.err.println("\nMidiBus Warning: device ["+i+"] \""+available_devices[i].getName()+"\" could not be gotten during list(), MidiUnavailableException thrown");
+				System.err.println("\nThe MidiBus Warning: device ["+i+"] \""+available_devices[i].getName()+"\" could not be gotten during list(), MidiUnavailableException thrown");
 			}
 		}
 	}
@@ -1083,7 +1090,7 @@ public class MidiBus {
 					device_names[i][1] = "Input/Output";
 				}
 			} catch (MidiUnavailableException e) {
-				System.err.println("\nMidiBus Warning: device ["+i+"] \""+available_devices[i].getName()+"\" could not be gotten during returnList(), MidiUnavailableException thrown");
+				System.err.println("\nThe MidiBus Warning: device ["+i+"] \""+available_devices[i].getName()+"\" could not be gotten during returnList(), MidiUnavailableException thrown");
 			}
 		}
 		
@@ -1102,7 +1109,7 @@ public class MidiBus {
 			out_receivers.remove(this);
 		}
 		
-		public void send(MidiMessage message, long timeStamp) {
+	 	public void send(MidiMessage message, long timeStamp) {
 			
 			if(message.getStatus() == ShortMessage.NOTE_ON && message.getMessage()[2] == 0) {
 				try {
@@ -1110,7 +1117,7 @@ public class MidiBus {
 					tmp_message.setMessage(ShortMessage.NOTE_OFF, tmp_message.getData1(), tmp_message.getData2());
 					message = tmp_message;
 				} catch (Exception e) {
-					System.err.println("\nMidiBus Warning: Mystery error during noteOn (0 velocity) to noteOff conversion");
+					System.err.println("\nThe MidiBus Warning: Mystery error during noteOn (0 velocity) to noteOff conversion");
 				}
 			}
 			
@@ -1118,5 +1125,31 @@ public class MidiBus {
 			notifyPApplet(message);
 		}
 		
+	}	
+	
+	private class InputDeviceContainer {
+		
+		MidiDevice device;
+		
+		Transmitter transmitter;
+		Receiver receiver;
+		
+		MidiDeviceContainer(MidiDevice device) {
+			this.device = device;
+		}
+		
 	}
+	
+	private class OutputDeviceContainer {
+		
+		MidiDevice device;
+		
+		Receiver receiver;
+		
+		MidiDeviceContainer(MidiDevice device) {
+			this.device = device;
+		}
+
+	}
+	
 }
