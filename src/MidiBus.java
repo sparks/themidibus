@@ -283,14 +283,14 @@ public class MidiBus {
 	public boolean addInput(int device_num) {
 		if(device_num == -1) return false;
 
-		MidiDevice.Info[] available_devices = MidiSystem.getMidiDeviceInfo();
+		MidiDevice.Info[] devices = availableInputsMidiDeviceInfo();
 		
-		if(device_num >= available_devices.length || device_num < 0) {
+		if(device_num >= devices.length || device_num < 0) {
 			System.err.println("\nThe MidiBus Warning: The chosen input device numbered ["+device_num+"] was not added because it doesn't exist");
 			return false;
 		}
 		
-		return addInput(available_devices[device_num]);
+		return addInput(devices[device_num]);
 	}
 	
 	/**
@@ -308,18 +308,14 @@ public class MidiBus {
 	public boolean addInput(String device_name) {
 		if(device_name.equals("")) return false;
 		
-		MidiDevice.Info[] available_devices = MidiSystem.getMidiDeviceInfo();
+		MidiDevice.Info[] devices = availableInputsMidiDeviceInfo();
 		
-		for(int i = 0;i < available_devices.length;i++) {
-			try {
-				if(available_devices[i].getName().equals(device_name) && MidiSystem.getMidiDevice(available_devices[i]).getMaxTransmitters() != 0) return addInput(available_devices[i]);
-			} catch (MidiUnavailableException e) {
-				System.err.println("\nThe MidiBus Warning: device ["+i+"] \""+available_devices[i].getName()+"\" is unavailable");
-			}
+		for(int i = 0;i < devices.length;i++) {
+			if(devices[i].getName().equals(device_name)) return addOutput(devices[i]);
 		}
 		
 		System.err.println("\nThe MidiBus Warning: No available input Midi devices named: \""+device_name+"\" were found");
-		return false;	
+		return false;
 	}
 	
 	public boolean addInput(MidiDevice.Info device_info) {
@@ -332,7 +328,7 @@ public class MidiBus {
 			}
 			
 			for(InputDeviceContainer container : input_devices) {
-				if(new_device == container.device) return false;
+				if(device_info.equals(container.info)) return false;
 			}
 
 			new_device.open();
@@ -349,7 +345,7 @@ public class MidiBus {
 			
 			return true;
 		} catch (MidiUnavailableException e) {
-			System.err.println("\nThe MidiBus Warning: The chosen input device \n"+device_info.getName()+"\" was not added because it is unavailable");
+			System.err.println("\nThe MidiBus Warning: The chosen input device \""+device_info.getName()+"\" was not added because it is unavailable");
 			return false;
 		}
 	}
@@ -366,15 +362,15 @@ public class MidiBus {
 	*/
 	public boolean addOutput(int device_num) {
 		if(device_num == -1) return false;
+
+		MidiDevice.Info[] devices = availableOutputsMidiDeviceInfo();
 		
-		MidiDevice.Info[] available_devices = MidiSystem.getMidiDeviceInfo();
-		
-		if(device_num >= available_devices.length || device_num < 0) {
+		if(device_num >= devices.length || device_num < 0) {
 			System.err.println("\nThe MidiBus Warning: The chosen output device numbered ["+device_num+"] was not added because it doesn't exist");
 			return false;
 		}
 		
-		return addOutput(available_devices[device_num]);		
+		return addInput(devices[device_num]);		
 	}
 	
 	/**
@@ -392,17 +388,13 @@ public class MidiBus {
 	public boolean addOutput(String device_name) {
 		if(device_name.equals("")) return false;
 		
-		MidiDevice.Info[] available_devices = MidiSystem.getMidiDeviceInfo();
+		MidiDevice.Info[] devices = availableOutputsMidiDeviceInfo();
 		
-		for(int i = 0;i < available_devices.length;i++) {
-			try {
-				if(available_devices[i].getName().equals(device_name) && MidiSystem.getMidiDevice(available_devices[i]).getMaxReceivers() != 0) return addOutput(available_devices[i]);
-			} catch (MidiUnavailableException e) {
-				System.err.println("\nThe MidiBus Warning: device ["+i+"] \""+available_devices[i].getName()+"\" is unavailable");
-			}
+		for(int i = 0;i < devices.length;i++) {
+			if(devices[i].getName().equals(device_name)) return addOutput(devices[i]);
 		}
 		
-		System.err.println("\nThe MidiBus Warning: No available output Midi devices named: \""+device_name+"\" were found");
+		System.err.println("\nThe MidiBus Warning: No available input Midi devices named: \""+device_name+"\" were found");
 		return false;	
 	}
 	
@@ -416,7 +408,7 @@ public class MidiBus {
 			}
 			
 			for(OutputDeviceContainer container : output_devices) {
-				if(new_device == container.device) return false;
+				if(device_info.equals(container.info)) return false;
 			}
 
 			new_device.open();
@@ -428,9 +420,65 @@ public class MidiBus {
 			
 			return true;
 		} catch (MidiUnavailableException e) {
-			System.err.println("\nThe MidiBus Warning: The chosen output device \n"+device_info.getName()+"\" was not added because it is unavailable");
+			System.err.println("\nThe MidiBus Warning: The chosen output device \""+device_info.getName()+"\" was not added because it is unavailable");
 			return false;
 		}
+	}
+	
+	public boolean removeInput(int device_num) {
+		try {
+			InputDeviceContainer container = input_devices.get(device_num);
+		
+			container.transmitter.close();
+			container.receiver.close();
+			container.device.close();
+		
+			input_devices.remove(container);
+			return true;
+		} catch(ArrayIndexOutOfBoundsException e) {
+			return false;
+		}
+	}
+	
+	public boolean removeInput(String device_name) {
+		for(InputDeviceContainer container : input_devices) {
+			if(container.info.getName().equals(device_name)) {
+				container.transmitter.close();
+				container.receiver.close();
+				container.device.close();
+
+				input_devices.remove(container);
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean removeOutput(int device_num) {
+		try {
+			OutputDeviceContainer container = output_devices.get(device_num);
+		
+			container.receiver.close();
+			container.device.close();
+		
+			output_devices.remove(container);
+			return true;
+		} catch(ArrayIndexOutOfBoundsException e) {
+			return false;
+		}
+	}
+	
+	public boolean removeOutput(String device_name) {
+		for(OutputDeviceContainer container : output_devices) {
+			if(container.info.getName().equals(device_name)) {
+				container.receiver.close();
+				container.device.close();
+
+				output_devices.remove(container);
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/**
@@ -976,64 +1024,133 @@ public class MidiBus {
 	 * @see #returnList()
 	*/
 	static public void list() {
-		MidiDevice.Info[] available_devices = MidiSystem.getMidiDeviceInfo();
-		MidiDevice device;
-				
-		System.out.println("\nAvailable Midi Devices:");
-		System.out.println("-----------------------");
+		String[] available_inputs = availableInputs();
+		String[] available_outputs = availableOutputs();
 		
-		for(int i = 0;i < available_devices.length;i++) {
-			try {
-				device = MidiSystem.getMidiDevice(available_devices[i]);
-				if (device.getMaxReceivers() == 0) {
-					System.out.print("["+i+"] \""+available_devices[i].getName()+"\" [Input] ");
-				} else if (device.getMaxTransmitters() == 0) {
-					System.out.print("["+i+"] \""+available_devices[i].getName()+"\" [Output] ");
-				} else {
-					System.out.print("["+i+"] \""+available_devices[i].getName()+"\" [Input/Output] ");
-				}
-				device.open();
-				System.out.println("[Available]");
-				device.close();
-			} catch (MidiUnavailableException e) {
-				System.out.println("[Unavailable]");
-			}
+		if(available_inputs.length == 0 && available_outputs.length == 0) return;
+		
+		System.out.println("\nAvailable Midi Devices:");
+		if(available_inputs.length != 0) {
+			System.out.println("----------Input----------");
+			for(int i = 0;i < available_inputs.length;i++) System.out.println("["+i+"] \""+available_inputs[i]+"\"");
 		}
+		if(available_outputs.length != 0) {
+			System.out.println("----------Output----------");
+			for(int i = 0;i < available_outputs.length;i++) System.out.println("["+i+"] \""+available_outputs[i]+"\"");
+		}
+			//	System.out.println("----------Unavailable----------");
 	}
 	
-	/**
-	 * Returns a 2D array containing the names and types of each available MidiDevice according to their index. Suppose the returned array is <code>String[][]</code> device_names. Then <code>device_names[i][0]</code> contains the name of the device with the index <code>i</code> and <code>device_names[i][1]</code> contains the type of the device with the index <code>i</code> (either "Input", "Output" or "Input/Output").
-	 *
-	 * @return the 2D array of MidiDevice names and types.
-	 * @see #list()
-	*/
-	static public String[][] returnList() {
+	static public String[] availableInputs() {
+		MidiDevice.Info[] devices_info = availableInputsMidiDeviceInfo();
+		String[] devices = new String[devices_info.length];
+		
+		for(int i = 0;i < devices_info.length;i++) {
+			devices[i] = devices_info[i].getName();
+		}
+		
+		return devices;
+	}
+	
+	static public String[] availableOutputs() {
+		MidiDevice.Info[] devices_info = availableOutputsMidiDeviceInfo();
+		String[] devices = new String[devices_info.length];
+		
+		for(int i = 0;i < devices_info.length;i++) {
+			devices[i] = devices_info[i].getName();
+		}
+		
+		return devices;
+	}
+	
+	static public MidiDevice.Info[] availableInputsMidiDeviceInfo() {
 		MidiDevice.Info[] available_devices = MidiSystem.getMidiDeviceInfo();
 		MidiDevice device;
 		
-		String[][] device_names = new String[available_devices.length][3];
+		Vector<MidiDevice.Info> devices_list = new Vector<MidiDevice.Info>();
 		
 		for(int i = 0;i < available_devices.length;i++) {
 			try {
-				device_names[i][0] = available_devices[i].getName();
-				device_names[i][1] = "Unavailable";
 				device = MidiSystem.getMidiDevice(available_devices[i]);
-				if (device.getMaxReceivers() == 0) {
-					device_names[i][1] = "Input";
-				} else if (device.getMaxTransmitters() == 0) {
-					device_names[i][1] = "Output";
-				} else {
-					device_names[i][1] = "Input/Output";
-				}
 				device.open();
-				device_names[i][2] = "Available";
 				device.close();
+				if (device.getMaxTransmitters() != 0) devices_list.add(available_devices[i]);
 			} catch (MidiUnavailableException e) {
-				device_names[i][2] = "Unavailable";
+
 			}
 		}
 		
-		return device_names;
+		MidiDevice.Info[] devices = new MidiDevice.Info[devices_list.size()];
+		
+		devices_list.toArray(devices);
+		
+		return devices;
+	}
+	
+	static public MidiDevice.Info[] availableOutputsMidiDeviceInfo() {
+		MidiDevice.Info[] available_devices = MidiSystem.getMidiDeviceInfo();
+		MidiDevice device;
+		
+		Vector<MidiDevice.Info> devices_list = new Vector<MidiDevice.Info>();
+		
+		for(int i = 0;i < available_devices.length;i++) {
+			try {
+				device = MidiSystem.getMidiDevice(available_devices[i]);
+				device.open();
+				device.close();
+				if (device.getMaxReceivers() != 0) devices_list.add(available_devices[i]);
+			} catch (MidiUnavailableException e) {
+
+			}
+		}
+		
+		MidiDevice.Info[] devices = new MidiDevice.Info[devices_list.size()];
+		
+		devices_list.toArray(devices);
+		
+		return devices;
+	}
+	
+	public String[] attachedInputs() {
+		MidiDevice.Info[] devices_info = attachedInputsMidiDeviceInfo();
+		String[] devices = new String[devices_info.length];
+		
+		for(int i = 0;i < devices_info.length;i++) {
+			devices[i] = devices_info[i].getName();
+		}
+		
+		return devices;
+	}
+	
+	public String[] attachedOutputs() {
+		MidiDevice.Info[] devices_info = attachedOutputsMidiDeviceInfo();
+		String[] devices = new String[devices_info.length];
+		
+		for(int i = 0;i < devices_info.length;i++) {
+			devices[i] = devices_info[i].getName();
+		}
+		
+		return devices;
+	}
+	
+	public MidiDevice.Info[] attachedInputsMidiDeviceInfo() {
+		MidiDevice.Info[] devices = new MidiDevice.Info[input_devices.size()];
+	
+		for(int i = 0;i < input_devices.size();i++) {
+			devices[i] = input_devices.get(i).info;
+		}
+		
+		return devices;
+	}
+	
+	public MidiDevice.Info[] attachedOutputsMidiDeviceInfo() {
+		MidiDevice.Info[] devices = new MidiDevice.Info[output_devices.size()];
+	
+		for(int i = 0;i < output_devices.size();i++) {
+			devices[i] = output_devices.get(i).info;
+		}
+		
+		return devices;
 	}
 	
 	/* -- Nested Classes -- */

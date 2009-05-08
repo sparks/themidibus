@@ -13,12 +13,11 @@
 
 	Expand javadocs, look over @see, clarify data relevance for sendMessage, check all @return are there
 	
-	-Should outputDeviceNameToNumber and inputDeviceNameToNumber be public ?
-
 	-Allow sending of MidiMessage objects, perhaps?
 	-Create more overloads of sendMessage(), eg sendMessage(status, data)
 	-Constrain or warn when data is obviously outside of the valid range for sendMessage
-	Warn user data has been constrained??
+
+	-Clean up PApplet methods
 	
 	-Add zipping script
 	
