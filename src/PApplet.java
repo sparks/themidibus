@@ -21,7 +21,7 @@ package themidibus;
 import javax.sound.midi.MidiMessage;
 
 /**
- * PApplet is your processing application or sketch. In it you can implement the following methods which, if implemented, will be called whenerever a MidiBus, object attached to this PApplet, recieves a new incomming MIDI message of the appropriate type.
+ * PApplet is your processing application or sketch. In it you can implement the following methods which, if implemented, will be called whenerever a MidiBus object attached to this PApplet, recieves a new incomming MIDI message of the appropriate type.
  * <p>
  * <i><b style="color:red;">Note:</b> This page is a dummy page for documentation of themidibus' extention of the regular PApplet's functionality, for the full documentation of PApplet please visits the <a target="_blank" href="http://dev.processing.org/reference/core/javadoc/processing/core/PApplet.html">Processing javadocs</a></i>
  *
