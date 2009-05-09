@@ -1,6 +1,8 @@
 -Revision 4
 
 	Add functions to remove Inputs/Outputs
+	For consistency allow removal by MidiDevice.Info
+	Allow remove by MidiDevice object?
 	
 	Allow sending of Meta and System messages easily, should simply work within sendMessage
 
@@ -17,7 +19,7 @@
 	-Create more overloads of sendMessage(), eg sendMessage(status, data)
 	-Constrain or warn when data is obviously outside of the valid range for sendMessage
 
-	-Clean up PApplet methods
+	Clean up PApplet methods
 	
 	-Add zipping script
 	

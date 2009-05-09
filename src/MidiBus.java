@@ -1,20 +1,20 @@
 /**
  * Copyright (c) 2008 Severin Smith
-
- * This file is part of a library called themidibus - http://www.smallbutdigital.com/themidibus.php.
-
- * themidibus is free software: you can redistribute it and/or modify
+ *
+ * This file is part of a library called The MidiBus - http://www.smallbutdigital.com/themidibus.php.
+ *
+ * The MidiBus is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * themidibus is distributed in the hope that it will be useful,
+ *
+ * The MidiBus is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
-
+ *
  * You should have received a copy of the GNU General Public License
- * along with themidibus.  If not, see <http://www.gnu.org/licenses/>.
+ * along with the MidiBus. If not, see <http://www.gnu.org/licenses/>.
 */
 
 package themidibus;
@@ -318,7 +318,7 @@ public class MidiBus {
 		return false;
 	}
 	
-	public boolean addInput(MidiDevice.Info device_info) {
+	boolean addInput(MidiDevice.Info device_info) {
 		try {
 			MidiDevice new_device = MidiSystem.getMidiDevice(device_info);
 		
@@ -398,7 +398,7 @@ public class MidiBus {
 		return false;	
 	}
 	
-	public boolean addOutput(MidiDevice.Info device_info) {
+	boolean addOutput(MidiDevice.Info device_info) {
 		try {
 			MidiDevice new_device = MidiSystem.getMidiDevice(device_info);
 		
@@ -454,6 +454,20 @@ public class MidiBus {
 		return false;
 	}
 	
+	boolean removeInput(MidiDevice.Info device_info) {
+		for(InputDeviceContainer container : input_devices) {
+			if(container.info.equals(device_info)) {
+				container.transmitter.close();
+				container.receiver.close();
+				container.device.close();
+
+				input_devices.remove(container);
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public boolean removeOutput(int device_num) {
 		try {
 			OutputDeviceContainer container = output_devices.get(device_num);
@@ -471,6 +485,19 @@ public class MidiBus {
 	public boolean removeOutput(String device_name) {
 		for(OutputDeviceContainer container : output_devices) {
 			if(container.info.getName().equals(device_name)) {
+				container.receiver.close();
+				container.device.close();
+
+				output_devices.remove(container);
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	boolean removeOutput(MidiDevice.Info device_info) {
+		for(OutputDeviceContainer container : output_devices) {
+			if(container.info.equals(device_info)) {
 				container.receiver.close();
 				container.device.close();
 
@@ -533,6 +560,36 @@ public class MidiBus {
 	}
 	
 	/* -- Midi Out -- */
+	
+	public void sendMessage(byte[] data) {
+		if((int)((byte)data[0] & 0xFF) == MetaMessage.META) {
+				MetaMessage message = new MetaMessage();
+				try {
+					byte[] payload = new byte[data.length-2];
+					System.arraycopy(data, 2, payload, 0, data.length-2);
+					message.setMessage((int)((byte)data[1] & 0xFF), payload, data.length-2);
+					sendMessage(data);
+				} catch(InvalidMidiDataException e) {
+					System.err.println("\nThe MidiBus Warning: Message not sent, invalid Midi data");
+				}
+			} else if((int)((byte)data[0] & 0xFF) == SysexMessage.SYSTEM_EXCLUSIVE || (int)((byte)data[0] & 0xFF) == SysexMessage.SPECIAL_SYSTEM_EXCLUSIVE) {
+				SysexMessage message = new SysexMessage();
+				try {
+					message.setMessage(data, data.length);
+					sendMessage(message);
+				} catch(InvalidMidiDataException e) {
+					System.err.println("\nThe MidiBus Warning: Message not sent, invalid Midi data");
+				}
+			} else {
+				ShortMessage message = new ShortMessage();
+				try {
+					message.setMessage(status);
+					sendMessage(message);
+				} catch(InvalidMidiDataException e) {
+					System.err.println("\nThe MidiBus Warning: Message not sent, invalid Midi data");
+				}
+			}
+	}
 	
 	/**
 	 * Sends a Midi message that takes no data bytes.
@@ -1026,8 +1083,9 @@ public class MidiBus {
 	static public void list() {
 		String[] available_inputs = availableInputs();
 		String[] available_outputs = availableOutputs();
+		String[] unavailable = unavailableDevices();
 		
-		if(available_inputs.length == 0 && available_outputs.length == 0) return;
+		if(available_inputs.length == 0 && available_outputs.length == 0 && unavailable.length == 0) return;
 		
 		System.out.println("\nAvailable Midi Devices:");
 		if(available_inputs.length != 0) {
@@ -1038,7 +1096,10 @@ public class MidiBus {
 			System.out.println("----------Output----------");
 			for(int i = 0;i < available_outputs.length;i++) System.out.println("["+i+"] \""+available_outputs[i]+"\"");
 		}
-			//	System.out.println("----------Unavailable----------");
+		if(unavailable.length != 0) {
+			System.out.println("----------Unavailable----------");
+			for(int i = 0;i < unavailable.length;i++) System.out.println("["+i+"] \""+unavailable[i]+"\"");
+		}
 	}
 	
 	static public String[] availableInputs() {
@@ -1063,7 +1124,18 @@ public class MidiBus {
 		return devices;
 	}
 	
-	static public MidiDevice.Info[] availableInputsMidiDeviceInfo() {
+	static public String[] unavailableDevices() {
+		MidiDevice.Info[] devices_info = unavailableMidiDeviceInfo();
+		String[] devices = new String[devices_info.length];
+		
+		for(int i = 0;i < devices_info.length;i++) {
+			devices[i] = devices_info[i].getName();
+		}
+		
+		return devices;
+	}
+	
+	static MidiDevice.Info[] availableInputsMidiDeviceInfo() {
 		MidiDevice.Info[] available_devices = MidiSystem.getMidiDeviceInfo();
 		MidiDevice device;
 		
@@ -1087,7 +1159,7 @@ public class MidiBus {
 		return devices;
 	}
 	
-	static public MidiDevice.Info[] availableOutputsMidiDeviceInfo() {
+	static MidiDevice.Info[] availableOutputsMidiDeviceInfo() {
 		MidiDevice.Info[] available_devices = MidiSystem.getMidiDeviceInfo();
 		MidiDevice device;
 		
@@ -1101,6 +1173,29 @@ public class MidiBus {
 				if (device.getMaxReceivers() != 0) devices_list.add(available_devices[i]);
 			} catch (MidiUnavailableException e) {
 
+			}
+		}
+		
+		MidiDevice.Info[] devices = new MidiDevice.Info[devices_list.size()];
+		
+		devices_list.toArray(devices);
+		
+		return devices;
+	}
+	
+	static MidiDevice.Info[] unavailableMidiDeviceInfo() {
+		MidiDevice.Info[] available_devices = MidiSystem.getMidiDeviceInfo();
+		MidiDevice device;
+		
+		Vector<MidiDevice.Info> devices_list = new Vector<MidiDevice.Info>();
+		
+		for(int i = 0;i < available_devices.length;i++) {
+			try {
+				device = MidiSystem.getMidiDevice(available_devices[i]);
+				device.open();
+				device.close();
+			} catch (MidiUnavailableException e) {
+				devices_list.add(available_devices[i]);
 			}
 		}
 		
@@ -1133,7 +1228,7 @@ public class MidiBus {
 		return devices;
 	}
 	
-	public MidiDevice.Info[] attachedInputsMidiDeviceInfo() {
+	MidiDevice.Info[] attachedInputsMidiDeviceInfo() {
 		MidiDevice.Info[] devices = new MidiDevice.Info[input_devices.size()];
 	
 		for(int i = 0;i < input_devices.size();i++) {
@@ -1143,7 +1238,7 @@ public class MidiBus {
 		return devices;
 	}
 	
-	public MidiDevice.Info[] attachedOutputsMidiDeviceInfo() {
+	MidiDevice.Info[] attachedOutputsMidiDeviceInfo() {
 		MidiDevice.Info[] devices = new MidiDevice.Info[output_devices.size()];
 	
 		for(int i = 0;i < output_devices.size();i++) {
