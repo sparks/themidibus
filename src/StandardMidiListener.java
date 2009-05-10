@@ -22,9 +22,9 @@ package themidibus;
 import javax.sound.midi.MidiMessage;
 
 /**
- * A StandardMidiListener can be notified of incomming MIDI messages in MidiMessage form, usually by a MidiBus object which it is connect to. Typically it would analyse and react to incomming MIDI messages in some useful way.
+ * A StandardMidiListener can be notified of incomming Midi messages in MidiMessage form, usually by a MidiBus object which it is connected to. Typically it would analyse and react to incomming Midi messages in some useful way.
  *
- * @version 003
+ * @version 004
  * @author Severin Smith
  * @see MidiListener
  * @see RawMidiListener
@@ -34,9 +34,9 @@ import javax.sound.midi.MidiMessage;
 */
 public interface StandardMidiListener extends MidiListener {
 	/**
-	 * Objects notifying this StandardMidiListener of a new MIDI message call this method and pass the MidiMessage
+	 * Objects notifying this StandardMidiListener of a new Midi message call this method and pass the MidiMessage
 	 * 
-	 * @param message the MidiMessage in question
+	 * @param message the MidiMessage received
 	*/
 	public void midiMessage(MidiMessage message);
 }

@@ -1,28 +1,28 @@
 /**
  * Copyright (c) 2008 Severin Smith
-
- * This file is part of a library called themidibus - http://www.smallbutdigital.com/themidibus.php.
-
- * themidibus is free software: you can redistribute it and/or modify
+ *
+ * This file is part of a library called The MidiBus - http://www.smallbutdigital.com/themidibus.php.
+ *
+ * The MidiBus is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * themidibus is distributed in the hope that it will be useful,
+ *
+ * The MidiBus is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
-
+ *
  * You should have received a copy of the GNU General Public License
- * along with themidibus.  If not, see <http://www.gnu.org/licenses/>.
+ * along with the MidiBus. If not, see <http://www.gnu.org/licenses/>.
 */
 
 package themidibus;
 
 /**
- * A SimpleMidiListener can be notified of incomming NoteOn, NoteOff and ControllerChange MIDI messages, usually by a MidiBus object which it is connect to. Typically it would analyse and react to incomming MIDI messages in some useful way.
+ * A SimpleMidiListener can be notified of incomming NoteOn, NoteOff and ControllerChange Midi messages, usually by a MidiBus object which it is connected to. Typically it would analyse and react to incomming Midi messages in some useful way.
  *
- * @version 003
+ * @version 004
  * @author Severin Smith
  * @see MidiListener
  * @see RawMidiListener
@@ -33,7 +33,7 @@ package themidibus;
 public interface SimpleMidiListener extends MidiListener {
 	
 	/**
-	 * Objects notifying this SimpleMidiListener of a new NoteOn MIDI message call this method.
+	 * Objects notifying this SimpleMidiListener of a new NoteOn Midi message call this method.
 	 * 
 	 * @param channel the channel on which the NoteOn arrived
 	 * @param pitch the pitch associated with the NoteOn
@@ -42,7 +42,7 @@ public interface SimpleMidiListener extends MidiListener {
 	public void noteOn(int channel, int pitch, int velocity);
 	
 	/**
-	 * Objects notifying this SimpleMidiListener of a new NoteOff MIDI message call this method.
+	 * Objects notifying this SimpleMidiListener of a new NoteOff Midi message call this method.
 	 * 
 	 * @param channel the channel on which the NoteOff arrived
 	 * @param pitch the pitch associated with the NoteOff
@@ -51,7 +51,7 @@ public interface SimpleMidiListener extends MidiListener {
 	public void noteOff(int channel, int pitch, int velocity);
 	
 	/**
-	 * Objects notifying this SimpleMidiListener of a new ControllerChange MIDI message call this method.
+	 * Objects notifying this SimpleMidiListener of a new ControllerChange Midi message call this method.
 	 * 
 	 * @param channel the channel on which the ContollerChange arrived
 	 * @param number the controller number associated with the ContollerChange
