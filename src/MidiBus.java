@@ -58,9 +58,9 @@ public class MidiBus {
 	Vector<MidiListener> listeners;
 	
 	PApplet parent;
-	
-	Method eventMethod_noteOn, eventMethod_noteOff, eventMethod_controllerChange, eventMethod_rawMidi, eventMethod_midiMessage;
-	Method eventMethod_noteOn_withBusName, eventMethod_noteOff_withBusName, eventMethod_controllerChange_withBusName, eventMethod_rawMidi_withBusName, eventMethod_midiMessage_withBusName;
+		
+	Method method_note_on, method_note_off, method_controller_change, method_raw_midi, method_midi_message;
+	Method method_note_on_with_bus_name, method_note_off_with_bus_name, method_controller_change_with_bus_name, method_raw_midi_with_bus_name, method_midi_message_with_bus_name;
 	
 	/* -- Constructors -- */
 	
@@ -191,61 +191,61 @@ public class MidiBus {
 		parent.registerDispose(this);
 		
 		try {
-			eventMethod_noteOn = parent.getClass().getMethod("noteOn", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE });
+			method_note_on = parent.getClass().getMethod("noteOn", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE });
 		} catch (Exception e) {
 			// no such method, or an error.. which is fine, just ignore
 		}
 	
 		try {
-			eventMethod_noteOff = parent.getClass().getMethod("noteOff", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE });
+			method_note_off = parent.getClass().getMethod("noteOff", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE });
 		} catch (Exception e) {
 			// no such method, or an error.. which is fine, just ignore
 		}
 
 		try {
-			eventMethod_controllerChange = parent.getClass().getMethod("controllerChange", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE });
+			method_controller_change = parent.getClass().getMethod("controllerChange", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE });
 		} catch (Exception e) {
 			// no such method, or an error.. which is fine, just ignore
 		}
 		
 		try {
-			eventMethod_rawMidi = parent.getClass().getMethod("rawMidi", new Class[] { byte[].class });
+			method_raw_midi = parent.getClass().getMethod("rawMidi", new Class[] { byte[].class });
 		} catch (Exception e) {
 			// no such method, or an error.. which is fine, just ignore
 		}
 		
 		try {
-			eventMethod_midiMessage = parent.getClass().getMethod("midiMessage", new Class[] { MidiMessage.class });
+			method_midi_message = parent.getClass().getMethod("midiMessage", new Class[] { MidiMessage.class });
 		} catch (Exception e) {
 			// no such method, or an error.. which is fine, just ignore
 		}
 	
 		try {
-			eventMethod_noteOn_withBusName = parent.getClass().getMethod("noteOn", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, String.class });
+			method_note_on_with_bus_name = parent.getClass().getMethod("noteOn", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, String.class });
 		} catch (Exception e) {
 			// no such method, or an error.. which is fine, just ignore
 		}
 	
 		try {
-			eventMethod_noteOff_withBusName = parent.getClass().getMethod("noteOff", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, String.class });
+			method_note_off_with_bus_name = parent.getClass().getMethod("noteOff", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, String.class });
 		} catch (Exception e) {
 			// no such method, or an error.. which is fine, just ignore
 		}
 
 		try {
-			eventMethod_controllerChange_withBusName = parent.getClass().getMethod("controllerChange", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, String.class });
+			method_controller_change_with_bus_name = parent.getClass().getMethod("controllerChange", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, String.class });
 		} catch (Exception e) {
 			// no such method, or an error.. which is fine, just ignore
 		}
 		
 		try {
-			eventMethod_rawMidi_withBusName = parent.getClass().getMethod("rawMidi", new Class[] { byte[].class, String.class });
+			method_raw_midi_with_bus_name = parent.getClass().getMethod("rawMidi", new Class[] { byte[].class, String.class });
 		} catch (Exception e) {
 			// no such method, or an error.. which is fine, just ignore
 		}
 		
 		try {
-			eventMethod_midiMessage_withBusName = parent.getClass().getMethod("midiMessage", new Class[] { MidiMessage.class, String.class });
+			method_midi_message_with_bus_name = parent.getClass().getMethod("midiMessage", new Class[] { MidiMessage.class, String.class });
 		} catch (Exception e) {
 			// no such method, or an error.. which is fine, just ignore
 		}
@@ -369,6 +369,7 @@ public class MidiBus {
 			input_devices.remove(container);
 			return true;
 		} catch(ArrayIndexOutOfBoundsException e) {
+			
 			return false;
 		}
 	}
@@ -867,9 +868,7 @@ public class MidiBus {
 		
 			/* -- RawMidiListener -- */
 		
-			if(listener instanceof RawMidiListener) {
-	 			((RawMidiListener)listener).rawMidiMessage(data);
-			}
+			if(listener instanceof RawMidiListener) ((RawMidiListener)listener).rawMidiMessage(data);
 		
 			/* -- SimpleMidiListener -- */
 			
@@ -885,9 +884,7 @@ public class MidiBus {
 		
 			/* -- StandardMidiListener -- */
 		
-			if(listener instanceof StandardMidiListener) {
-				((StandardMidiListener)listener).midiMessage(message);
-			}
+			if(listener instanceof StandardMidiListener) ((StandardMidiListener)listener).midiMessage(message);
 			
 		}
 	}
@@ -901,99 +898,99 @@ public class MidiBus {
 		byte[] data = message.getMessage();
 
 		if((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_ON) {
-			if(eventMethod_noteOn != null) {
+			if(method_note_on != null) {
 				try {
-					eventMethod_noteOn.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF) });
+					method_note_on.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF) });
 				} catch (Exception e) {
 					System.err.println("\nThe MidiBus Warning: Disabling noteOn(int channel, int pitch, int velocity) because an unkown exception was thrown and caught");
 					e.printStackTrace();
-					eventMethod_noteOn = null;
+					method_note_on = null;
 				}
 			}
-			if(eventMethod_noteOn_withBusName != null) {
+			if(method_note_on_with_bus_name != null) {
 				try {
-					eventMethod_noteOn_withBusName.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), bus_name });
+					method_note_on_with_bus_name.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), bus_name });
 				} catch (Exception e) {
 					System.err.println("\nThe MidiBus Warning: Disabling noteOn(int channel, int pitch, int velocity, String bus_name) with bus_name because an unkown exception was thrown and caught");
 					e.printStackTrace();
-					eventMethod_noteOn_withBusName = null;
+					method_note_on_with_bus_name = null;
 				}
 			}
 		} else if((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_OFF) {
-			if(eventMethod_noteOff != null) {
+			if(method_note_off != null) {
 				try {
-					eventMethod_noteOff.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF) });
+					method_note_off.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF) });
 				} catch (Exception e) {
 					System.err.println("\nThe MidiBus Warning: Disabling noteOff(int channel, int pitch, int velocity) because an unkown exception was thrown and caught");
 					e.printStackTrace();
-					eventMethod_noteOff = null;
+					method_note_off = null;
 				}
 			}
-			if(eventMethod_noteOff_withBusName != null) {
+			if(method_note_off_with_bus_name != null) {
 				try {
-					eventMethod_noteOff_withBusName.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), bus_name });
+					method_note_off_with_bus_name.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), bus_name });
 				} catch (Exception e) {
 					System.err.println("\nThe MidiBus Warning: Disabling noteOff(int channel, int pitch, int velocity, String bus_name) with bus_name because an unkown exception was thrown and caught");
 					e.printStackTrace();
-					eventMethod_noteOff_withBusName = null;
+					method_note_off_with_bus_name = null;
 				}
 			}
 		} else if((int)((byte)data[0] & 0xF0) == ShortMessage.CONTROL_CHANGE) {
-			if(eventMethod_controllerChange != null) {
+			if(method_controller_change != null) {
 				try {
-					eventMethod_controllerChange.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF) });
+					method_controller_change.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF) });
 				} catch (Exception e) {
 					System.err.println("\nThe MidiBus Warning: Disabling controllerChange(int channel, int number, int value) because an unkown exception was thrown and caught");
 					e.printStackTrace();
-					eventMethod_controllerChange = null;
+					method_controller_change = null;
 				}
 			}
-			if(eventMethod_controllerChange_withBusName != null) {
+			if(method_controller_change_with_bus_name != null) {
 				try {
-					eventMethod_controllerChange_withBusName.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), bus_name });
+					method_controller_change_with_bus_name.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), bus_name });
 				} catch (Exception e) {
 					System.err.println("\nThe MidiBus Warning: Disabling controllerChange(int channel, int number, int value, String bus_name) with bus_name because an unkown exception was thrown and caught");
 					e.printStackTrace();
-					eventMethod_controllerChange_withBusName = null;
+					method_controller_change_with_bus_name = null;
 				}
 			}
 		}
 		
-		if(eventMethod_rawMidi != null) {
+		if(method_raw_midi != null) {
 			try {
-				eventMethod_rawMidi.invoke(parent, new Object[] { data });
+				method_raw_midi.invoke(parent, new Object[] { data });
 			} catch (Exception e) {
 				System.err.println("\nThe MidiBus Warning: Disabling rawMidi(byte[] data) because an unkown exception was thrown and caught");
 				e.printStackTrace();
-				eventMethod_rawMidi = null;
+				method_raw_midi = null;
 			}
 		}
-		if(eventMethod_rawMidi_withBusName != null) {
+		if(method_raw_midi_with_bus_name != null) {
 			try {
-				eventMethod_rawMidi_withBusName.invoke(parent, new Object[] { data, bus_name });
+				method_raw_midi_with_bus_name.invoke(parent, new Object[] { data, bus_name });
 			} catch (Exception e) {
 				System.err.println("\nThe MidiBus Warning: Disabling rawMidi(byte[] data, String bus_name) with bus_name because an unkown exception was thrown and caught");
 				e.printStackTrace();
-				eventMethod_rawMidi_withBusName = null;
+				method_raw_midi_with_bus_name = null;
 			}
 		}
 		
-		if(eventMethod_midiMessage != null) {
+		if(method_midi_message != null) {
 			try {
-				eventMethod_midiMessage.invoke(parent, new Object[] { message });
+				method_midi_message.invoke(parent, new Object[] { message });
 			} catch (Exception e) {
 				System.err.println("\nThe MidiBus Warning: Disabling midiMessage(MidiMessage message) because an unkown exception was thrown and caught");
 				e.printStackTrace();
-				eventMethod_midiMessage = null;
+				method_midi_message = null;
 			}
 		}
-		if(eventMethod_midiMessage_withBusName != null) {
+		if(method_midi_message_with_bus_name != null) {
 			try {
-				eventMethod_midiMessage_withBusName.invoke(parent, new Object[] { message, bus_name });
+				method_midi_message_with_bus_name.invoke(parent, new Object[] { message, bus_name });
 			} catch (Exception e) {
 				System.err.println("\nThe MidiBus Warning: Disabling midiMessage(MidiMessage message, String bus_name) with bus_name because an unkown exception was thrown and caught");
 				e.printStackTrace();
-				eventMethod_midiMessage_withBusName = null;
+				method_midi_message_with_bus_name = null;
 			}
 		}
 		
