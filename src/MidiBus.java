@@ -48,10 +48,7 @@ import java.lang.reflect.Method;
 public class MidiBus {
 	
 	String bus_name;
-	
-	public static final int INPUT = 1;
-	public static final int OUTPUT = 2;
-	
+		
 	Vector<InputDeviceContainer> input_devices;
 	Vector<OutputDeviceContainer> output_devices;
 
@@ -477,7 +474,7 @@ public class MidiBus {
 			return false;
 		}
 		
-		return addInput(devices[device_num]);		
+		return addOutput(devices[device_num]);		
 	}
 	
 	/**
