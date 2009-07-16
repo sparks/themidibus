@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2008 Severin Smith
+ * Copyright (c) 2009 Severin Smith
 
- * This file is part of a library called themidibus - http://www.smallbutdigital.com/themidibus.php.
+ * This file is part of a library called The MidiBus (themidibus) - http://www.smallbutdigital.com/themidibus.php.
 
  * themidibus is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ package themidibus;
 import javax.sound.midi.MidiMessage;
 
 /**
- * A StandardMidiListener can be notified of incomming Midi messages in MidiMessage form, usually by a MidiBus object which it is connected to. Typically it would analyse and react to incomming Midi messages in some useful way.
+ * A StandardMidiListener can be notified of incomming MIDI messages in MidiMessage form, usually by a MidiBus object which it is connected to. Typically it would analyse and react to incomming MIDI messages in some useful way.
  *
  * @version 004
  * @author Severin Smith
@@ -34,7 +34,7 @@ import javax.sound.midi.MidiMessage;
 */
 public interface StandardMidiListener extends MidiListener {
 	/**
-	 * Objects notifying this StandardMidiListener of a new Midi message call this method and pass the MidiMessage
+	 * Objects notifying this StandardMidiListener of a new MIDI message call this method and pass the MidiMessage
 	 * 
 	 * @param message the MidiMessage received
 	*/

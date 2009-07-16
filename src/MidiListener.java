@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2008 Severin Smith
+ * Copyright (c) 2009 Severin Smith
  *
- * This file is part of a library called The MidiBus - http://www.smallbutdigital.com/themidibus.php.
+ * This file is part of a library called The MidiBus (themidibus) - http://www.smallbutdigital.com/themidibus.php.
  *
  * The MidiBus is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

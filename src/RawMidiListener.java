@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2008 Severin Smith
+ * Copyright (c) 2009 Severin Smith
  *
- * This file is part of a library called The MidiBus - http://www.smallbutdigital.com/themidibus.php.
+ * This file is part of a library called The MidiBus (themidibus) - http://www.smallbutdigital.com/themidibus.php.
  *
  * The MidiBus is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 package themidibus;
 
 /**
- * A RawMidiListener can be notified of incomming Midi messages in raw form, usually by a MidiBus object which it is connect to. Typically it would analyse and react to incomming Midi messages in some useful way.
+ * A RawMidiListener can be notified of incomming MIDI messages in raw form, usually by a MidiBus object which it is connect to. Typically it would analyse and react to incomming MIDI messages in some useful way.
  *
  * @version 004
  * @author Severin Smith
@@ -31,9 +31,9 @@ package themidibus;
 */
 public interface RawMidiListener extends MidiListener {
 	/**
-	 * Objects notifying this RawMidiListener of a new Midi message call this method and pass the raw message to it.
+	 * Objects notifying this RawMidiListener of a new MIDI message call this method and pass the raw message to it.
 	 * 
-	 * @param data the data bytes that make up the Midi message
+	 * @param data the data bytes that make up the MIDI message
 	*/
 	public void rawMidiMessage(byte[] data);
 }

@@ -1,7 +1,7 @@
 /**
- * Copyright (c) 2008 Severin Smith
+ * Copyright (c) 2009 Severin Smith
  *
- * This file is part of a library called The MidiBus - http://www.smallbutdigital.com/themidibus.php.
+ * This file is part of a library called The MidiBus (themidibus) - http://www.smallbutdigital.com/themidibus.php.
  *
  * The MidiBus is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ package themidibus;
 import javax.sound.midi.MidiMessage;
 
 /**
- * PApplet is your processing application or sketch. In it you can implement the following methods which will be called whenerever a MidiBus object attached to the PApplet, recieves a new incomming Midi message of the appropriate type.
+ * PApplet is your processing application or sketch. In it you can implement the following methods which will be called whenerever a MidiBus object attached to the PApplet, recieves a new incomming MIDI message of the appropriate type.
  * <p>
  * <i><b style="color:red;">Note:</b> This page is a dummy page for documentation of the MidiBus' extention of the regular PApplet's functionality, for the full documentation of PApplet please visits the <a target="_blank" href="http://dev.processing.org/reference/core/javadoc/processing/core/PApplet.html">Processing javadocs</a></i>
  *
@@ -36,7 +36,7 @@ import javax.sound.midi.MidiMessage;
 public class PApplet{	
 	
 	/**
-	 * Is passed the channel, controller number and contoller value associated with every new ContollerChange Midi message recieved by a MidiBus attached to this applet.
+	 * Is passed the channel, controller number and contoller value associated with every new ContollerChange MIDI message recieved by a MidiBus attached to this applet.
 	 *
 	 * @param channel the channel on which the ContollerChange arrived
 	 * @param number the controller number associated with the ContollerChange
@@ -48,7 +48,7 @@ public class PApplet{
 	}
 	
 	/**
-	 * Is passed the channel, pitch and velocity associated with every new NoteOff Midi message recieved by a MidiBus attached to this applet and the name of the MidiBus which recieved the message.
+	 * Is passed the channel, pitch and velocity associated with every new NoteOff MIDI message recieved by a MidiBus attached to this applet and the name of the MidiBus which recieved the message.
 	 *
 	 * @param channel the channel on which the ContollerChange arrived
 	 * @param number the controller number associated with the ContollerChange
@@ -61,7 +61,7 @@ public class PApplet{
 	}
 	
 	/**
-	 * Is passed the raw MidiMessage associated with every new Midi message recieved by a MidiBus attached to this applet.
+	 * Is passed the raw MidiMessage associated with every new MIDI message recieved by a MidiBus attached to this applet.
 	 *
 	 * @param message the MidiMessage recieved
 	 * @see #midiMessage(MidiMessage message, String bus_name)
@@ -71,10 +71,10 @@ public class PApplet{
 	}
 	
 	/**
-	 * Is passed the raw MidiMessage associated with every new Midi message recieved by a MidiBus attached to this applet and the name of the MidiBus which recieved the message.
+	 * Is passed the raw MidiMessage associated with every new MIDI message recieved by a MidiBus attached to this applet and the name of the MidiBus which recieved the message.
 	 *
 	 * @param message the MidiMessage recieved
-	 * @param bus_name the name of MidiBus which recieved the Midi message 
+	 * @param bus_name the name of MidiBus which recieved the MIDI message 
 	 * @see #midiMessage(MidiMessage message)
 	*/
 	public void midiMessage(MidiMessage message, String bus_name) {
@@ -82,7 +82,7 @@ public class PApplet{
 	}
 	
 	/**
-	 * Is passed the channel, pitch and velocity associated with every new NoteOff Midi message recieved by a MidiBus attached to this applet.
+	 * Is passed the channel, pitch and velocity associated with every new NoteOff MIDI message recieved by a MidiBus attached to this applet.
 	 *
 	 * @param channel the channel on which the NoteOff arrived
 	 * @param pitch the pitch associated with the NoteOff
@@ -94,7 +94,7 @@ public class PApplet{
 	}
 	
 	/**
-	 * Is passed the channel, pitch and velocity associated with every new NoteOff Midi message recieved by a MidiBus attached to this applet and the name of the MidiBus which recieved the message.
+	 * Is passed the channel, pitch and velocity associated with every new NoteOff MIDI message recieved by a MidiBus attached to this applet and the name of the MidiBus which recieved the message.
 	 *
 	 * @param channel the channel on which the NoteOff arrived
 	 * @param pitch the pitch associated with the NoteOff
@@ -107,7 +107,7 @@ public class PApplet{
 	}
 	
 	/**
-	 * Is passed the channel, pitch and velocity associated with every new NoteOn Midi message recieved by a MidiBus attached to this applet.
+	 * Is passed the channel, pitch and velocity associated with every new NoteOn MIDI message recieved by a MidiBus attached to this applet.
 	 *
 	 * @param channel the channel on which the NoteOn arrived
 	 * @param pitch the pitch associated with the NoteOn
@@ -119,7 +119,7 @@ public class PApplet{
 	}
 	
 	/**
-	 * Is passed the channel, pitch and velocity associated with every new NoteOn Midi message recieved by a MidiBus attached to this applet and the name of the MidiBus which recieved the message.
+	 * Is passed the channel, pitch and velocity associated with every new NoteOn MIDI message recieved by a MidiBus attached to this applet and the name of the MidiBus which recieved the message.
 	 *
 	 * @param channel the channel on which the NoteOn arrived
 	 * @param pitch the pitch associated with the NoteOn
@@ -132,9 +132,9 @@ public class PApplet{
 	}
 	
 	/**
-	 * Is passed the raw data associated with every new Midi message recieved by a MidiBus attached to this applet.
+	 * Is passed the raw data associated with every new MIDI message recieved by a MidiBus attached to this applet.
 	 *
-	 * @param data the raw data associated with the Midi message
+	 * @param data the raw data associated with the MIDI message
 	 * @see #rawMidi(byte[] data, String bus_name)
 	*/
 	public void rawMidi(byte[] data) {
@@ -142,10 +142,10 @@ public class PApplet{
 	}
 	
 	/**
-	 * Is passed the raw data associated with every new Midi message recieved by a MidiBus attached to this applet and the name of the MidiBus which recieved the message.
+	 * Is passed the raw data associated with every new MIDI message recieved by a MidiBus attached to this applet and the name of the MidiBus which recieved the message.
 	 *
-	 * @param data the raw data associated with the Midi message
-	 * @param bus_name the name of MidiBus which recieved the Midi message 
+	 * @param data the raw data associated with the MIDI message
+	 * @param bus_name the name of MidiBus which recieved the MIDI message 
 	 * @see #rawMidi(byte[] data)
 	*/
 	public void rawMidi(byte[] data, String bus_name) {
