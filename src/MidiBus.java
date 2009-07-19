@@ -387,7 +387,7 @@ public class MidiBus {
 		MidiDevice.Info[] devices = availableInputsMidiDeviceInfo();
 		
 		for(int i = 0;i < devices.length;i++) {
-			if(devices[i].getName().equals(device_name)) return addOutput(devices[i]);
+			if(devices[i].getName().equals(device_name)) return addInput(devices[i]);
 		}
 		
 		System.err.println("\nThe MidiBus Warning: No available input MIDI devices named: \""+device_name+"\" were found");
@@ -434,7 +434,7 @@ public class MidiBus {
 			}
 			
 			for(InputDeviceContainer container : input_devices) {
-				if(device_info.equals(container.info)) return false;
+				if(device_info.getName().equals(container.info.getName())) return false;
 			}
 
 			new_device.open();
@@ -561,7 +561,7 @@ public class MidiBus {
 			}
 			
 			for(OutputDeviceContainer container : output_devices) {
-				if(device_info.equals(container.info)) return false;
+				if(device_info.getName().equals(container.info.getName())) return false;
 			}
 
 			new_device.open();
@@ -585,10 +585,14 @@ public class MidiBus {
 	 * @see #clearAll()
 	*/
 	public void clearInputs() {
-		for(InputDeviceContainer container : input_devices) {
-			container.transmitter.close();
-			container.receiver.close();
-			container.device.close();
+		try{
+			for(InputDeviceContainer container : input_devices) {
+				container.transmitter.close();
+				container.receiver.close();
+				container.device.close();
+			}
+		} catch (Exception e) {
+			System.err.println("The MidiBus Warning: Unexpected error during clearInputs()");
 		}
 		
 		input_devices.clear();
@@ -601,9 +605,13 @@ public class MidiBus {
 	 * @see #clearAll()
 	*/
 	public void clearOutputs() {
-		for(OutputDeviceContainer container : output_devices) {
-			container.receiver.close();
-			container.device.close();
+		try{
+			for(OutputDeviceContainer container : output_devices) {
+				container.receiver.close();
+				container.device.close();
+			}	
+		} catch (Exception e) {
+			System.err.println("The MidiBus Warning: Unexpected error during clearOutputs()");
 		}
 		
 		output_devices.clear();
@@ -1384,8 +1392,12 @@ public class MidiBus {
 		}
 		
 		public boolean equals(Object container) {
-			if(container instanceof InputDeviceContainer && ((InputDeviceContainer)container).info.equals(this.info)) return true;
+			if(container instanceof InputDeviceContainer && ((InputDeviceContainer)container).info.getName().equals(this.info.getName())) return true;
 			else return false;
+		}
+		
+		public int hashCode() {
+			return info.getName().hashCode();
 		}
 		
 	}
@@ -1404,9 +1416,14 @@ public class MidiBus {
 		}
 		
 		public boolean equals(Object container) {
-			if(container instanceof OutputDeviceContainer && ((OutputDeviceContainer)container).info.equals(this.info)) return true;
+			if(container instanceof OutputDeviceContainer && ((OutputDeviceContainer)container).info.getName().equals(this.info.getName())) return true;
 			else return false;
 		}
+		
+		public int hashCode() {
+			return info.getName().hashCode();
+		}
+		
 	}
 	
 }

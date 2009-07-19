@@ -9,13 +9,15 @@ void setup() {
 	MidiBus.list(); // List all available Midi devices on STDOUT. This will show each device's index and name.
 	
 	// Either you can
-	//                 Parent In Out
-	//                   |    |  |
-	myBus = new MidiBus(this, 0, 1); // Create a new MidiBus using the device index to select the Midi input and output devices respectively.
+	//                   Parent In Out
+	//                     |    |  |
+	//myBus = new MidiBus(this, 0, 1); // Create a new MidiBus using the device index to select the Midi input and output devices respectively.
+
 	// or you can ...
-	//                 Parent         In                   Out
-	//                   |            |                     |
-	myBus = new MidiBus(this, "IncomingDeviceName", "OutgoingDeviceName"); // Create a new MidiBus using the device names to select the Midi input and output devices respectively.
+	//                   Parent         In                   Out
+	//                     |            |                     |
+	//myBus = new MidiBus(this, "IncomingDeviceName", "OutgoingDeviceName"); // Create a new MidiBus using the device names to select the Midi input and output devices respectively.
+
 	// or for testing you could ...
 	//                 Parent  In        Out
 	//                   |     |          |
