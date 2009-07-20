@@ -33,6 +33,8 @@
  * <li><a href="http://www.smallbutdigital.com/themidibus.php">The MidiBus website: examples, updates, documentation, etc</a></li>
  * <li><a href="http://java.sun.com/j2se/1.5.0/docs/api/javax/sound/midi/package-summary.html">javax.sound.midi Package</a></li>
  * <li><a href="http://java.sun.com/docs/books/tutorial/sound/index.html">Java Sound Tutorials</a></li>
+ * <li><a href="http://www.srm.com/qtma/davidsmidispec.html">MIDI Specification Reference</a></li>
+ * <li><a href="http://www.indiana.edu/~emusic/cntrlnumb.html">Standard Controller Numbers</a></li>
  * </ul>
  *
  * @version 004
