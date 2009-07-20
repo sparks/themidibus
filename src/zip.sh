@@ -15,7 +15,7 @@ fi
 
 echo "Zipping ..."
 
-if ! zip -rq themidibus themidibus/examples/ themidibus/library/ themidibus/reference/ themidibus/src/ themidibus/INSTALL.txt -x \*.DS_Store
+if ! zip -rq themidibus themidibus/examples/ themidibus/library/ themidibus/reference/ themidibus/src/ themidibus/INSTALL.txt themidibus/CHANGELOG.txt -x \*.DS_Store
 	then
 	echo "Zipping failed"
 	exit 1

@@ -1,0 +1,41 @@
+-Version 004
+
+	Notable Bug Fixes:
+		-Fixed uninitialized listeners vector.
+		-Fixed available/unavailable devices detection: version 003 would sometimes list unavailable devices as available.
+		-Fixed exceptional cases which threw NullPointer exceptions.
+		-Added try-catch statements to catch some unusual exception from MMJ mac MIDI subsystem
+		-Implemented workaround for MMJ malloc problems when closing devices.
+	
+	Changes:
+		-New devices indexing system:
+			-Version 3 used mixed indices for inputs and outputs, eg:
+				Available Midi Devices:
+				-----------------------
+				[0] "IAC Driver - Bus 1" [Input]
+				[1] "IAC Driver - Bus 1" [Output]
+				[2] "Real Time Sequencer" [Input/Output]
+				[3] "Java Sound Synthesizer" [Output]
+				
+			-Version 4 now uses seperate indicies for inputs and outputs, eg:		
+				Available MIDI Devices:
+				----------Input----------
+				[0] "IAC Driver - Bus 1"
+				[1] "Real Time Sequencer"
+				----------Output----------
+				[0] "IAC Driver - Bus 1"
+				[1] "Real Time Sequencer"
+				[2] "Java Sound Synthesizer"
+		-The static method list() has been changed as per the new indexing system (and will also show unavailable devices)
+		-The static method returnList() has been replaced by the static methods availableInputs() and availableOutputs()
+	
+	New Features:
+		-Added overrides to Object methods for clone(), equals(Object obj), hashCode() and toString()
+		-Added attachedInputs() and attachedOutputs() methods. Theses methods return an array of the inputs/output currently attached to a given instance of the MidiBus object.
+		-Added removeInput(int device_num), removeInput(String device_name), removeOutput(int device_num) and removeOutput(String device_name). Theses methods allow the selective removal of attached inputs and outputs.
+		-Added static method unavailableDevices() which lists any devices that are detected but appear to be unavailable. (As per bug fix)
+		-Added new overloads to sendMessage():
+			-sendMessage(byte[] data). Attemps to send an arbitrary array of bytes as a MIDI message. This method supports System Exlusive messages and Meta Messages, including messages with more than 2 data bytes.
+			-sendMessage(MidiMessage message). Attemps to send a MidiMessage object.
+			-sendMessage(int status). Attemps to send a message with only a status byte.
+			-sendMessage(int status, int data). Attemps to send a message with only a status byte and one data byte.
