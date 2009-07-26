@@ -185,7 +185,7 @@ public class MidiBus {
 	private void init(PApplet parent, String bus_name) {
 		this.parent = parent;
 	
-		parent.registerDispose(this);
+		if(parent != null) parent.registerDispose(this);
 		
 		try {
 			method_note_on = parent.getClass().getMethod("noteOn", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE });
@@ -355,15 +355,16 @@ public class MidiBus {
 	 * @see #removeInput(String device_name)
 	 * @see #attachedInputs()
 	*/
-	public boolean removeInput(int device_num) {
+	public synchronized boolean removeInput(int device_num) {
 		try {
 			InputDeviceContainer container = input_devices.get(device_num);
+	
+			input_devices.remove(container);
 		
 			container.transmitter.close();
 			container.receiver.close();
 			container.device.close();
 		
-			input_devices.remove(container);
 			return true;
 		} catch(ArrayIndexOutOfBoundsException e) {
 			
@@ -404,14 +405,15 @@ public class MidiBus {
 	 * @see #removeInput(int device_num)
 	 * @see #attachedInputs()
 	*/
-	public boolean removeInput(String device_name) {
+	public synchronized boolean removeInput(String device_name) {
 		for(InputDeviceContainer container : input_devices) {
 			if(container.info.getName().equals(device_name)) {
+				input_devices.remove(container);
+		
 				container.transmitter.close();
 				container.receiver.close();
 				container.device.close();
 
-				input_devices.remove(container);
 				return true;
 			}
 		}
@@ -424,7 +426,7 @@ public class MidiBus {
 	 * @param device_info the MidiDevice.Info of the MIDI input device to be added.
 	 * @return true if and only if the input device was successfully added.
 	*/
-	boolean addInput(MidiDevice.Info device_info) {
+	synchronized boolean addInput(MidiDevice.Info device_info) {
 		try {
 			MidiDevice new_device = MidiSystem.getMidiDevice(device_info);
 		
@@ -485,14 +487,15 @@ public class MidiBus {
 	 * @see #removeInput(String device_name)
 	 * @see #attachedOutputs()
 	*/
-	public boolean removeOutput(int device_num) {
+	public synchronized boolean removeOutput(int device_num) {
 		try {
 			OutputDeviceContainer container = output_devices.get(device_num);
+	
+			output_devices.remove(container);
 		
 			container.receiver.close();
 			container.device.close();
 		
-			output_devices.remove(container);
 			return true;
 		} catch(ArrayIndexOutOfBoundsException e) {
 			return false;
@@ -532,13 +535,14 @@ public class MidiBus {
 	 * @see #removeOutput(int device_num)
 	 * @see #attachedOutputs()
 	*/
-	public boolean removeOutput(String device_name) {
+	public synchronized boolean removeOutput(String device_name) {
 		for(OutputDeviceContainer container : output_devices) {
 			if(container.info.getName().equals(device_name)) {
+				output_devices.remove(container);
+			
 				container.receiver.close();
 				container.device.close();
 
-				output_devices.remove(container);
 				return true;
 			}
 		}
@@ -551,7 +555,7 @@ public class MidiBus {
 	 * @param device_info the MidiDevice.Info of the MIDI output device to be added.
 	 * @return true if and only if the input device was successfully added.
 	*/
-	boolean addOutput(MidiDevice.Info device_info) {
+	synchronized boolean addOutput(MidiDevice.Info device_info) {
 		try {
 			MidiDevice new_device = MidiSystem.getMidiDevice(device_info);
 		
@@ -584,7 +588,7 @@ public class MidiBus {
 	 * @see #clearOutputs()
 	 * @see #clearAll()
 	*/
-	public void clearInputs() {
+	public synchronized void clearInputs() {
 		try{
 			for(InputDeviceContainer container : input_devices) {
 				container.transmitter.close();
@@ -604,7 +608,7 @@ public class MidiBus {
 	 * @see #clearInputs()
 	 * @see #clearAll()
 	*/
-	public void clearOutputs() {
+	public synchronized void clearOutputs() {
 		try{
 			for(OutputDeviceContainer container : output_devices) {
 				container.receiver.close();
@@ -778,7 +782,7 @@ public class MidiBus {
 	 * @see #sendNoteOff(int channel, int pitch, int velocity)
 	 * @see #sendControllerChange(int channel, int number, int value)
 	*/
-	public void sendMessage(MidiMessage message) {
+	public synchronized void sendMessage(MidiMessage message) {
 		for(OutputDeviceContainer container : output_devices) {
 			container.receiver.send(message,-1);
 		}
@@ -1138,7 +1142,7 @@ public class MidiBus {
 	*/
 	protected void finalize() {
 		close();
-		parent.unregisterDispose(this);
+		if(parent != null) parent.unregisterDispose(this);
 	}
 	
 	/* -- Shutting Down -- */
