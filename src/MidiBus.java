@@ -44,8 +44,18 @@ import java.lang.reflect.Method;
  * @see StandardMidiListener
  * @see SimpleMidiListener
 */
-
 public class MidiBus {
+	
+	enum OperatingSystem { MAC, WIN, NIX, OTHER }
+	
+	static OperatingSystem current_os = 
+		(System.getProperty("os.name").toLowerCase().indexOf( "win" ) >= 0) ?
+		OperatingSystem.WIN :
+		(System.getProperty("os.name").toLowerCase().indexOf( "mac" ) >= 0) ?
+		OperatingSystem.MAC :
+		(System.getProperty("os.name").toLowerCase().indexOf( "nix" ) >= 0 || System.getProperty("os.name").toLowerCase().indexOf( "nux" ) >= 0) ?
+		OperatingSystem.NIX :
+		OperatingSystem.OTHER; //Yes I am aware this is ugly, but I want it to be static
 	
 	String bus_name;
 		
@@ -128,7 +138,7 @@ public class MidiBus {
 	}
 	
 	/**
-	 * Constructs a new MidiBus attached to the specified PApplet and opens the MIDI input and output devices specified by the names in_device_name and out_device_name. An empty String can be passed to in_device_num if no input MIDI device is to be opened, or to out_device_num if no output MIDI device is to be opened. The new MidiBus's bus_name will be generated automatically.
+	 * Constructs a new MidiBus attached to the specified PApplet and opens the MIDI input and output devices specified by the names in_device_name and out_device_name. An empty String can be passed to in_device_name if no input MIDI device is to be opened, or to out_device_name if no output MIDI device is to be opened. The new MidiBus's bus_name will be generated automatically.
 	 * <p>
 	 * If two or more MIDI inputs have the same name, whichever appears first when {@link #list()} is called will be added, simlarly for two or more MIDI outputs with the same name. If this behavior is problematic use {@link #MidiBus(PApplet parent, int in_device_num, int out_device_num)} instead.
 	 *
@@ -148,7 +158,7 @@ public class MidiBus {
 	}
 	
 	/**
-	 * Constructs a new MidiBus attached to the specified PApplet with the specified bus_name and opens the MIDI input and output devices specified by the names in_device_num and out_device_num. An empty String can be passed to in_device_num if no input MIDI device is to be opened, or to out_device_num if no output MIDI device is to be opened.
+	 * Constructs a new MidiBus attached to the specified PApplet with the specified bus_name and opens the MIDI input and output devices specified by the names out_device_name and out_device_name. An empty String can be passed to in_device_name if no input MIDI device is to be opened, or to out_device_name if no output MIDI device is to be opened.
 	 * <p>
 	 * If two or more MIDI inputs have the same name, whichever appears first when {@link #list()} is called will be added, simlarly for two or more MIDI outputs with the same name. If this behavior is problematic use {@link #MidiBus(PApplet parent, int in_device_num, int out_device_num, String bus_name)} instead.
 	 *
@@ -167,6 +177,82 @@ public class MidiBus {
 		addInput(in_device_name);
 		addOutput(out_device_name);
 	}
+
+	/* -- Yet even more delicious constructor flavors -- */
+	
+	/**
+	 * More flavors of constructor, similar to the others, but with mixed arguments
+	 *
+	 * @param parent the Processing PApplet to which this MidiBus is attached.
+	 * @param in_device_num the name of the MIDI input device to be opened.
+	 * @param out_device_name the name of the MIDI output device to be opened.
+	 * @see #addInput(int device_num)
+	 * @see #addInput(String device_name)
+	 * @see #addOutput(int device_num)
+	 * @see #addOutput(String device_name)
+	 * @see #list()
+	*/
+	public MidiBus(PApplet parent, int in_device_num, String out_device_name) {
+		init(parent);
+		addInput(in_device_num);
+		addOutput(out_device_name);
+	}
+	
+	/**
+	 * More flavors of constructor, similar to the others, but with mixed arguments
+	 *
+	 * @param parent the Processing PApplet to which this MidiBus is attached.
+	 * @param in_device_name the name of the MIDI input device to be opened.
+	 * @param out_device_num the name of the MIDI output device to be opened.
+	 * @see #addInput(int device_num)
+	 * @see #addInput(String device_name)
+	 * @see #addOutput(int device_num)
+	 * @see #addOutput(String device_name)
+	 * @see #list()
+	*/
+	public MidiBus(PApplet parent, String in_device_name, int out_device_num) {
+		init(parent);
+		addInput(in_device_name);
+		addOutput(out_device_num);
+	}
+	
+	/**
+	 * More flavors of constructor, similar to the others, but with mixed arguments
+	 *
+	 * @param parent the Processing PApplet to which this MidiBus is attached.
+	 * @param in_device_num the name of the MIDI input device to be opened.
+	 * @param out_device_name the name of the MIDI output device to be opened.
+	 * @param bus_name the String which which identifies this MidiBus.
+	 * @see #addInput(int device_num)
+	 * @see #addInput(String device_name)
+	 * @see #addOutput(int device_num)
+	 * @see #addOutput(String device_name)
+	 * @see #list()
+	*/
+	public MidiBus(PApplet parent, int in_device_num, String out_device_name, String bus_name) {
+		init(parent, bus_name);
+		addInput(in_device_num);
+		addOutput(out_device_name);
+	}
+	
+	/**
+	 * More flavors of constructor, similar to the others, but with mixed arguments
+	 *
+	 * @param parent the Processing PApplet to which this MidiBus is attached.
+	 * @param in_device_name the name of the MIDI input device to be opened.
+	 * @param out_device_num the name of the MIDI output device to be opened.
+	 * @param bus_name the String which which identifies this MidiBus.
+	 * @see #addInput(int device_num)
+	 * @see #addInput(String device_name)
+	 * @see #addOutput(int device_num)
+	 * @see #addOutput(String device_name)
+	 * @see #list()
+	*/
+	public MidiBus(PApplet parent, String in_device_name, int out_device_num, String bus_name) {
+		init(parent, bus_name);
+		addInput(in_device_name);
+		addOutput(out_device_num);
+	}
 	
 	/* -- Constructor Functions -- */
 	
@@ -183,6 +269,7 @@ public class MidiBus {
 	 * Perfoms the initialisation of new MidiBus objects, is private for a reason, and is only ever called within the constructors. This method exists only for the purpose of cleaner and easier to maintain code.
 	*/
 	private void init(PApplet parent, String bus_name) {
+
 		this.parent = parent;
 	
 		if(parent != null) parent.registerDispose(this);
@@ -584,6 +671,8 @@ public class MidiBus {
 	 * @see #clearAll()
 	*/
 	public synchronized void clearInputs() {
+		//We are purposefully not closing devices here, because in some cases that will be slow, and we might want later
+		//Also it's broken on MAC
 		try{
 			for(InputDeviceContainer container : input_devices) {
 				container.transmitter.close();
@@ -603,6 +692,8 @@ public class MidiBus {
 	 * @see #clearAll()
 	*/
 	public synchronized void clearOutputs() {
+		//We are purposefully not closing devices here, because in some cases that will be slow, and we might want later
+		//Also it's broken on MAC
 		try{
 			for(OutputDeviceContainer container : output_devices) {
 				container.receiver.close();
@@ -642,7 +733,9 @@ public class MidiBus {
 		for(int i = 0;i < available_devices.length;i++) {
 			try {
 				device = MidiSystem.getMidiDevice(available_devices[i]);
-				if(device.isOpen()) device.close();
+				//Closing input devices on mac seems to be broken in the new native Java MIDI subsystem
+				//Now is hangs instead of throwing a null pointer, yay!
+				if(device.isOpen() && !(current_os == OperatingSystem.MAC && device.getMaxTransmitters() != 0)) device.close();
 			} catch(MidiUnavailableException e) {
 				//Device wasn't available, which is fine since we wanted to close it anyways
 			}
@@ -1297,9 +1390,15 @@ public class MidiBus {
 		for(int i = 0;i < available_devices.length;i++) {
 			try {
 				device = MidiSystem.getMidiDevice(available_devices[i]);
+				//This open close checks to make sure the announced device is truely available
+				//There are many reports on Windows that some devices lie about their availability
+				//(For instance the Microsoft GS Wavetable Synth)
+				//But in theory I guess this could happen on any OS, so I'll just do it all the time.
 				if(!device.isOpen()) {
 					device.open();
-					device.close();
+					//Closing input devices on mac seems to be broken in the new native Java MIDI subsystem
+					//Now is hangs instead of throwing a null pointer, yay!
+					if(current_os != OperatingSystem.MAC) device.close();
 				}
 				if (device.getMaxTransmitters() != 0) devices_list.add(available_devices[i]);
 			} catch(MidiUnavailableException e) {
@@ -1328,6 +1427,10 @@ public class MidiBus {
 		for(int i = 0;i < available_devices.length;i++) {
 			try {
 				device = MidiSystem.getMidiDevice(available_devices[i]);
+				//This open close checks to make sure the announced device is truely available
+				//There are many reports on Windows that some devices lie about their availability
+				//(For instance the Microsoft GS Wavetable Synth)
+				//But in theory I guess this could happen on any OS, so I'll just do it all the time.
 				if(!device.isOpen()) {
 					device.open();
 					device.close();
@@ -1359,6 +1462,10 @@ public class MidiBus {
 		for(int i = 0;i < available_devices.length;i++) {
 			try {
 				device = MidiSystem.getMidiDevice(available_devices[i]);
+				//This open close checks to make sure the announced device is truely available
+				//There are many reports on Windows that some devices lie about their availability
+				//(For instance the Microsoft GS Wavetable Synth)
+				//But in theory I guess this could happen on any OS, so I'll just do it all the time.
 				if(!device.isOpen()) {
 					device.open();
 					device.close();

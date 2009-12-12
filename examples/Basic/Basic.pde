@@ -5,9 +5,9 @@ MidiBus myBus; // The MidiBus
 void setup() {
 	size(400,400);
 	background(0);
-	
+
 	MidiBus.list(); // List all available Midi devices on STDOUT. This will show each device's index and name.
-	
+
 	// Either you can
 	//                   Parent In Out
 	//                     |    |  |
@@ -21,7 +21,7 @@ void setup() {
 	// or for testing you could ...
 	//                 Parent  In        Out
 	//                   |     |          |
-	myBus = new MidiBus(this, "", "Java Sound Synthesizer"); // Create a new MidiBus with no input device and the default Java Sound Synthesizer as the output device.
+	myBus = new MidiBus(this, 2, "Java Sound Synthesizer"); // Create a new MidiBus with no input device and the default Java Sound Synthesizer as the output device.
 }
 
 void draw() {
