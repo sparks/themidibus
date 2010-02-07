@@ -1,5 +1,7 @@
 import themidibus.*; //Import the library
-import javax.sound.midi.MidiMessage; //Import the MidiMessage class http://java.sun.com/j2se/1.5.0/docs/api/javax/sound/midi/MidiMessage.html
+import javax.sound.midi.MidiMessage; //Import the MidiMessage classes http://java.sun.com/j2se/1.5.0/docs/api/javax/sound/midi/MidiMessage.html
+import javax.sound.midi.SysexMessage;
+import javax.sound.midi.ShortMessage;
 
 MidiBus myBus; // The MidiBus
 
@@ -8,7 +10,7 @@ void setup() {
 	background(0);
 	
 	MidiBus.list(); // List all available Midi devices on STDOUT. This will show each device's index and name.
-	myBus = new MidiBus(this, "IncomingDeviceName", "OutgoingDeviceName"); // Create a new MidiBus object
+	myBus = new MidiBus(this, 0, 0); // Create a new MidiBus object
 }
 
 void draw() {
@@ -27,8 +29,23 @@ void draw() {
 	int channel_byte = 0; // On channel 0 again
 	int first_byte = 64; // The same note;
 	int second_byte = 80; // But with less velocity
-	
+		
 	myBus.sendMessage(status_byte, channel_byte, first_byte, second_byte);
+	
+	//Or we could even send a variable length sysex message
+	
+	myBus.sendMessage(new byte[] {(byte)0xF0, (byte)0x1, (byte)0x2, (byte)0x3, (byte)0x4, (byte)0xF7});
+	
+	//We could also do the same thing this way ...
+	
+	try { //All the methods of SysexMessage, ShortMessage, etc, require try catch blocks
+		SysexMessage message = new SysexMessage();
+		message.setMessage(0xF0, new byte[] {(byte)0x5, (byte)0x6, (byte)0x7, (byte)0x8, (byte)0xF7}, 5);
+		myBus.sendMessage(message);
+	} catch(Exception e) {
+		
+	}
+	
 	delay(2000);
 }
 
@@ -47,8 +64,9 @@ void rawMidi(byte[] data) { // You can also use rawMidi(byte[] data, String bus_
 	println("Status Byte/MIDI Command:"+(int)(data[0] & 0xFF));
 	// N.B. In some cases (noteOn, noteOff, controllerChange, etc) the first half of the status byte is the command and the second half if the channel
 	// In these cases (data[0] & 0xF0) gives you the command and (data[0] & 0x0F) gives you the channel
-	if(data.length > 1) println("Param 1: "+(int)(data[1] & 0xFF));
-	if(data.length > 2) println("Param 2: "+(int)(data[2] & 0xFF));
+	for(int i = 1;i < data.length;i++) {
+		println("Param "+(i+1)+": "+(int)(data[i] & 0xFF));
+	}
 }
 
 void midiMessage(MidiMessage message) { // You can also use midiMessage(MidiMessage message, String bus_name)
@@ -59,6 +77,7 @@ void midiMessage(MidiMessage message) { // You can also use midiMessage(MidiMess
 	println("MidiMessage Data:");
 	println("--------");
 	println("Status Byte/MIDI Command:"+message.getStatus());
-	if(message.getMessage().length > 1) println("Param 1: "+(int)(message.getMessage()[1] & 0xFF));
-	if(message.getMessage().length > 2) println("Param 2: "+(int)(message.getMessage()[2] & 0xFF));
+	for(int i = 1;i < message.getMessage().length;i++) {
+		println("Param "+(i+1)+": "+(int)(message.getMessage()[i] & 0xFF));
+	}
 }
