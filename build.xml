@@ -1,0 +1,44 @@
+<project name="themidibus" basedir="." default="main">
+
+	<property name="processing.dir" value="/Applications/Processing.app/Contents/Resources/Java/"/>
+
+	<property name="src.dir" value="src"/>
+	<property name="build.dir" value="bin"/>
+	<property name="ref.dir" value="reference"/>
+
+	<path id="classpath">
+		<fileset dir="${processing.dir}" includes="core.jar"/>
+	</path>			
+
+	<target name="clean">
+		<delete dir="${build.dir}"/>
+	</target>
+
+	<target name="compile">
+		<mkdir dir="${build.dir}"/>
+		<javac srcdir="${src.dir}" sourcepath="" destdir="${build.dir}" classpathref="classpath">
+			<include name="**/*.java"/>
+			<exclude name="**/PApplet.java"/>
+		</javac>
+	</target>
+
+	<target name="jar" depends="compile">
+		<jar destfile="library/${ant.project.name}.jar" basedir="${build.dir}"/>
+	</target>
+
+	<target name="main" depends="jar">
+		<antcall target="clean"/>
+	</target>
+
+	<target name="doc">
+		<mkdir dir="${ref.dir}"/>
+		<javadoc packagenames="themidibus.*" sourcepath="${src.dir}" destdir="${ref.dir}" author="true" version="true" classpathref="classpath"/>
+	</target>
+	
+	<target name="zip">
+		<zip destfile="themidibus.zip">
+			<zipfileset dir="." includes="examples/**/*, library/**/*, reference/**/*, src/**/*, CHANGELOG.txt, INSTALL.txt, build.xml" excludes="**/*.DS_Store" prefix="themidibus"/>
+		</zip>
+	</target>
+
+</project>
