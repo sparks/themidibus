@@ -64,7 +64,7 @@ public class MidiBus {
 
 	Vector<MidiListener> listeners;
 	
-	PApplet parent;
+	processing.core.PApplet parent;
 		
 	Method method_note_on, method_note_off, method_controller_change, method_raw_midi, method_midi_message;
 	Method method_note_on_with_bus_name, method_note_off_with_bus_name, method_controller_change_with_bus_name, method_raw_midi_with_bus_name, method_midi_message_with_bus_name;
@@ -81,7 +81,7 @@ public class MidiBus {
 	 * @see #addOutput(String device_name)
 	 * @see #list()
 	*/
-	public MidiBus(PApplet parent) {
+	public MidiBus(processing.core.PApplet parent) {
 		init(parent);
 	}
 	
@@ -97,7 +97,7 @@ public class MidiBus {
 	 * @see #addOutput(String device_name)
 	 * @see #list()
 	*/
-	public MidiBus(PApplet parent, int in_device_num, int out_device_num) {		
+	public MidiBus(processing.core.PApplet parent, int in_device_num, int out_device_num) {		
 		init(parent);
 		addInput(in_device_num);
 		addOutput(out_device_num);
@@ -116,7 +116,7 @@ public class MidiBus {
 	 * @see #addOutput(String device_name)
 	 * @see #list()
 	*/
-	public MidiBus(PApplet parent, int in_device_num, int out_device_num, String bus_name) {		
+	public MidiBus(processing.core.PApplet parent, int in_device_num, int out_device_num, String bus_name) {		
 		init(parent, bus_name);
 		addInput(in_device_num);
 		addOutput(out_device_num);
@@ -133,14 +133,14 @@ public class MidiBus {
 	 * @see #addOutput(String device_name)
 	 * @see #list()
 	*/
-	public MidiBus(PApplet parent, String bus_name) {
+	public MidiBus(processing.core.PApplet parent, String bus_name) {
 		init(parent, bus_name);
 	}
 	
 	/**
 	 * Constructs a new MidiBus attached to the specified PApplet and opens the MIDI input and output devices specified by the names in_device_name and out_device_name. An empty String can be passed to in_device_name if no input MIDI device is to be opened, or to out_device_name if no output MIDI device is to be opened. The new MidiBus's bus_name will be generated automatically.
 	 * <p>
-	 * If two or more MIDI inputs have the same name, whichever appears first when {@link #list()} is called will be added, simlarly for two or more MIDI outputs with the same name. If this behavior is problematic use {@link #MidiBus(PApplet parent, int in_device_num, int out_device_num)} instead.
+	 * If two or more MIDI inputs have the same name, whichever appears first when {@link #list()} is called will be added, simlarly for two or more MIDI outputs with the same name. If this behavior is problematic use {@link #MidiBus(processing.core.PApplet parent, int in_device_num, int out_device_num)} instead.
 	 *
 	 * @param parent the Processing PApplet to which this MidiBus is attached.
 	 * @param in_device_name the name of the MIDI input device to be opened.
@@ -151,7 +151,7 @@ public class MidiBus {
 	 * @see #addOutput(String device_name)
 	 * @see #list()
 	*/
-	public MidiBus(PApplet parent, String in_device_name, String out_device_name) {
+	public MidiBus(processing.core.PApplet parent, String in_device_name, String out_device_name) {
 		init(parent);
 		addInput(in_device_name);
 		addOutput(out_device_name);
@@ -160,7 +160,7 @@ public class MidiBus {
 	/**
 	 * Constructs a new MidiBus attached to the specified PApplet with the specified bus_name and opens the MIDI input and output devices specified by the names out_device_name and out_device_name. An empty String can be passed to in_device_name if no input MIDI device is to be opened, or to out_device_name if no output MIDI device is to be opened.
 	 * <p>
-	 * If two or more MIDI inputs have the same name, whichever appears first when {@link #list()} is called will be added, simlarly for two or more MIDI outputs with the same name. If this behavior is problematic use {@link #MidiBus(PApplet parent, int in_device_num, int out_device_num, String bus_name)} instead.
+	 * If two or more MIDI inputs have the same name, whichever appears first when {@link #list()} is called will be added, simlarly for two or more MIDI outputs with the same name. If this behavior is problematic use {@link #MidiBus(processing.core.PApplet parent, int in_device_num, int out_device_num, String bus_name)} instead.
 	 *
 	 * @param parent the Processing PApplet to which this MidiBus is attached.
 	 * @param in_device_name the name of the MIDI input device to be opened.
@@ -172,7 +172,7 @@ public class MidiBus {
 	 * @see #addOutput(String device_name)
 	 * @see #list()
 	*/
-	public MidiBus(PApplet parent, String in_device_name, String out_device_name, String bus_name) {
+	public MidiBus(processing.core.PApplet parent, String in_device_name, String out_device_name, String bus_name) {
 		init(parent, bus_name);
 		addInput(in_device_name);
 		addOutput(out_device_name);
@@ -192,7 +192,7 @@ public class MidiBus {
 	 * @see #addOutput(String device_name)
 	 * @see #list()
 	*/
-	public MidiBus(PApplet parent, int in_device_num, String out_device_name) {
+	public MidiBus(processing.core.PApplet parent, int in_device_num, String out_device_name) {
 		init(parent);
 		addInput(in_device_num);
 		addOutput(out_device_name);
@@ -210,7 +210,7 @@ public class MidiBus {
 	 * @see #addOutput(String device_name)
 	 * @see #list()
 	*/
-	public MidiBus(PApplet parent, String in_device_name, int out_device_num) {
+	public MidiBus(processing.core.PApplet parent, String in_device_name, int out_device_num) {
 		init(parent);
 		addInput(in_device_name);
 		addOutput(out_device_num);
@@ -229,7 +229,7 @@ public class MidiBus {
 	 * @see #addOutput(String device_name)
 	 * @see #list()
 	*/
-	public MidiBus(PApplet parent, int in_device_num, String out_device_name, String bus_name) {
+	public MidiBus(processing.core.PApplet parent, int in_device_num, String out_device_name, String bus_name) {
 		init(parent, bus_name);
 		addInput(in_device_num);
 		addOutput(out_device_name);
@@ -248,7 +248,7 @@ public class MidiBus {
 	 * @see #addOutput(String device_name)
 	 * @see #list()
 	*/
-	public MidiBus(PApplet parent, String in_device_name, int out_device_num, String bus_name) {
+	public MidiBus(processing.core.PApplet parent, String in_device_name, int out_device_num, String bus_name) {
 		init(parent, bus_name);
 		addInput(in_device_name);
 		addOutput(out_device_num);
@@ -260,7 +260,7 @@ public class MidiBus {
 	 * Creates a new (hopefully/probably) unique bus_name value for new MidiBus objects that weren't given one and then calls the regular init() function. 
 	 * If two MidiBus object were to have the same name, this would be bad, but not fatal, so there's no point in spending too much time worrying about it.
 	*/
-	private void init(PApplet parent) {
+	private void init(processing.core.PApplet parent) {
 		String id = new Formatter().format("%08d", System.currentTimeMillis()%100000000).toString();
 		init(parent, "MidiBus_"+id);
 	}
@@ -268,7 +268,7 @@ public class MidiBus {
 	/**
 	 * Perfoms the initialisation of new MidiBus objects, is private for a reason, and is only ever called within the constructors. This method exists only for the purpose of cleaner and easier to maintain code.
 	*/
-	private void init(PApplet parent, String bus_name) {
+	private void init(processing.core.PApplet parent, String bus_name) {
 
 		this.parent = parent;
 	

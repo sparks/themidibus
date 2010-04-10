@@ -1,6 +1,7 @@
 <project name="themidibus" basedir="." default="main">
 
 	<property name="processing.dir" value="/Applications/Processing.app/Contents/Resources/Java/"/>
+	<property name="lib.dir" value="/Users/sparky/Projects/processing/libraries/"/>
 
 	<property name="src.dir" value="src"/>
 	<property name="build.dir" value="bin"/>
@@ -8,10 +9,15 @@
 
 	<path id="classpath">
 		<fileset dir="${processing.dir}" includes="core.jar"/>
-	</path>			
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar"/>
+			<exclude name="**/${ant.project.name}.jar"/>
+		</fileset>
+	</path>
 
 	<target name="clean">
 		<delete dir="${build.dir}"/>
+		<delete file="${ant.project.name}.zip"/>
 	</target>
 
 	<target name="compile">
@@ -32,12 +38,12 @@
 
 	<target name="doc">
 		<mkdir dir="${ref.dir}"/>
-		<javadoc packagenames="themidibus.*" sourcepath="${src.dir}" destdir="${ref.dir}" author="true" version="true" classpathref="classpath"/>
+		<javadoc sourcepath="${src.dir}" destdir="${ref.dir}" author="true" version="true" classpathref="classpath"/>
 	</target>
 	
 	<target name="zip">
-		<zip destfile="themidibus.zip">
-			<zipfileset dir="." includes="examples/**/*, library/**/*, reference/**/*, src/**/*, CHANGELOG.txt, INSTALL.txt, build.xml" excludes="**/*.DS_Store" prefix="themidibus"/>
+		<zip destfile="${ant.project.name}.zip">
+			<zipfileset dir="." excludes="**/*.DS_Store, .gitignore, **/.git, **/.git/**/*, TODO.txt" prefix="${ant.project.name}"/>
 		</zip>
 	</target>
 
