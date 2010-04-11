@@ -1,3 +1,8 @@
+<!-- 
+	Generic Ant build.xml file for Processing libraries
+	Severin Smith
+	http://www.smallbutdigital.com
+-->
 <project name="themidibus" basedir="." default="main">
 
 	<property name="processing.dir" value="/Applications/Processing.app/Contents/Resources/Java/"/>
@@ -17,23 +22,18 @@
 
 	<target name="clean">
 		<delete dir="${build.dir}"/>
-		<delete file="${ant.project.name}.zip"/>
 	</target>
 
 	<target name="compile">
 		<mkdir dir="${build.dir}"/>
 		<javac srcdir="${src.dir}" sourcepath="" destdir="${build.dir}" classpathref="classpath">
-			<include name="**/*.java"/>
 			<exclude name="**/PApplet.java"/>
 		</javac>
 	</target>
 
 	<target name="jar" depends="compile">
+		<mkdir dir="library"/>
 		<jar destfile="library/${ant.project.name}.jar" basedir="${build.dir}"/>
-	</target>
-
-	<target name="main" depends="jar">
-		<antcall target="clean"/>
 	</target>
 
 	<target name="doc">
@@ -45,6 +45,10 @@
 		<zip destfile="${ant.project.name}.zip">
 			<zipfileset dir="." excludes="**/*.DS_Store, .gitignore, **/.git, **/.git/**/*, TODO.txt" prefix="${ant.project.name}"/>
 		</zip>
+	</target>
+
+	<target name="main" depends="jar">
+		<antcall target="clean"/>
 	</target>
 
 </project>
