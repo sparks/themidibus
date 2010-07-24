@@ -5,18 +5,23 @@
 -->
 <project name="themidibus" basedir="." default="main">
 
-	<property name="processing.dir" value="/Applications/Processing.app/Contents/Resources/Java/"/>
-	<property name="lib.dir" value="/Users/sparky/Projects/processing/libraries/"/>
+	<property name="core.dir" value="/Applications/Processing.app/Contents/Resources/Java/"/>
+	<property name="core-lib.dir" value="/Applications/Processing.app/Contents/Resources/Java/"/>
+	<property name="contrib-lib.dir" value="/Users/Admin/Projects/processing/libraries/"/>
 
 	<property name="src.dir" value="src"/>
 	<property name="build.dir" value="bin"/>
 	<property name="ref.dir" value="reference"/>
 
 	<path id="classpath">
-		<fileset dir="${processing.dir}" includes="core.jar"/>
-		<fileset dir="${lib.dir}">
+		<fileset dir="${core.dir}">
 			<include name="**/*.jar"/>
-			<exclude name="**/${ant.project.name}.jar"/>
+		</fileset>
+		<fileset dir="${core-lib.dir}">
+			<include name="**/*.jar"/>
+		</fileset>
+		<fileset dir="${contrib-lib.dir}">
+			<include name="**/*.jar"/>
 		</fileset>
 	</path>
 

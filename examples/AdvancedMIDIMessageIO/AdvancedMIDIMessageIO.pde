@@ -69,7 +69,7 @@ void rawMidi(byte[] data) { // You can also use rawMidi(byte[] data, String bus_
 	}
 }
 
-void midiMessage(MidiMessage message) { // You can also use midiMessage(MidiMessage message, String bus_name)
+void midiMessage(MidiMessage message, long timeStamp) { // You can also use midiMessage(MidiMessage message, String bus_name)
 	// Receive a MidiMessage
 	// MidiMessage is an abstract class, the actual passed object will be either javax.sound.midi.MetaMessage, javax.sound.midi.ShortMessage, javax.sound.midi.SysexMessage.
 	// Check it out here http://java.sun.com/j2se/1.5.0/docs/api/javax/sound/midi/package-summary.html
@@ -80,4 +80,5 @@ void midiMessage(MidiMessage message) { // You can also use midiMessage(MidiMess
 	for(int i = 1;i < message.getMessage().length;i++) {
 		println("Param "+(i+1)+": "+(int)(message.getMessage()[i] & 0xFF));
 	}
+	println("Timestamp: "+timeStamp);
 }

@@ -48,15 +48,6 @@ public class MidiBus {
 	
 	enum OperatingSystem { MAC, WIN, NIX, OTHER }
 	
-	static OperatingSystem current_os = 
-		(System.getProperty("os.name").toLowerCase().indexOf( "win" ) >= 0) ?
-		OperatingSystem.WIN :
-		(System.getProperty("os.name").toLowerCase().indexOf( "mac" ) >= 0) ?
-		OperatingSystem.MAC :
-		(System.getProperty("os.name").toLowerCase().indexOf( "nix" ) >= 0 || System.getProperty("os.name").toLowerCase().indexOf( "nux" ) >= 0) ?
-		OperatingSystem.NIX :
-		OperatingSystem.OTHER; //Yes I am aware this is ugly, but I want it to be static
-	
 	String bus_name;
 		
 	Vector<InputDeviceContainer> input_devices;
@@ -323,13 +314,13 @@ public class MidiBus {
 		}
 		
 		try {
-			method_raw_midi_with_bus_name = parent.getClass().getMethod("rawMidi", new Class[] { byte[].class, String.class });
+			method_raw_midi_with_bus_name = parent.getClass().getMethod("rawMidi", new Class[] { byte[].class, Long.TYPE, String.class });
 		} catch(Exception e) {
 			// no such method, or an error.. which is fine, just ignore
 		}
 		
 		try {
-			method_midi_message_with_bus_name = parent.getClass().getMethod("midiMessage", new Class[] { MidiMessage.class, String.class });
+			method_midi_message_with_bus_name = parent.getClass().getMethod("midiMessage", new Class[] { MidiMessage.class, Long.TYPE, String.class });
 		} catch(Exception e) {
 			// no such method, or an error.. which is fine, just ignore
 		}
@@ -471,7 +462,7 @@ public class MidiBus {
 		if(device_name.equals("")) return false;
 		
 		MidiDevice.Info[] devices = availableInputsMidiDeviceInfo();
-		
+
 		for(int i = 0;i < devices.length;i++) {
 			if(devices[i].getName().equals(device_name)) return addInput(devices[i]);
 		}
@@ -733,9 +724,7 @@ public class MidiBus {
 		for(int i = 0;i < available_devices.length;i++) {
 			try {
 				device = MidiSystem.getMidiDevice(available_devices[i]);
-				//Closing input devices on mac seems to be broken in the new native Java MIDI subsystem
-				//Now is hangs instead of throwing a null pointer, yay!
-				if(device.isOpen() && !(current_os == OperatingSystem.MAC && device.getMaxTransmitters() != 0)) device.close();
+				if(device.isOpen()) device.close();
 			} catch(MidiUnavailableException e) {
 				//Device wasn't available, which is fine since we wanted to close it anyways
 			}
@@ -895,7 +884,7 @@ public class MidiBus {
 	*/
 	public synchronized void sendMessage(MidiMessage message) {
 		for(OutputDeviceContainer container : output_devices) {
-			container.receiver.send(message,-1);
+			container.receiver.send(message, System.currentTimeMillis());
 		}
 	}
 	
@@ -981,7 +970,7 @@ public class MidiBus {
 	 *
 	 * @param message the new inbound MidiMessage.
 	*/
-	void notifyListeners(MidiMessage message) {
+	void notifyListeners(MidiMessage message, long timeStamp) {
 		byte[] data = message.getMessage();
 		
 		for(MidiListener listener : listeners) {
@@ -1004,7 +993,7 @@ public class MidiBus {
 		
 			/* -- StandardMidiListener -- */
 		
-			if(listener instanceof StandardMidiListener) ((StandardMidiListener)listener).midiMessage(message);
+			if(listener instanceof StandardMidiListener) ((StandardMidiListener)listener).midiMessage(message, timeStamp);
 			
 		}
 	}
@@ -1014,7 +1003,7 @@ public class MidiBus {
 	 *
 	 * @param message the new inbound MidiMessage.
 	*/
-	void notifyPApplet(MidiMessage message) {	
+	void notifyPApplet(MidiMessage message, long timeStamp) {	
 		byte[] data = message.getMessage();
 
 		if((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_ON) {
@@ -1097,7 +1086,7 @@ public class MidiBus {
 		
 		if(method_midi_message != null) {
 			try {
-				method_midi_message.invoke(parent, new Object[] { message });
+				method_midi_message.invoke(parent, new Object[] { message, timeStamp });
 			} catch(Exception e) {
 				System.err.println("\nThe MidiBus Warning: Disabling midiMessage(MidiMessage message) because an unkown exception was thrown and caught");
 				e.printStackTrace();
@@ -1106,7 +1095,7 @@ public class MidiBus {
 		}
 		if(method_midi_message_with_bus_name != null) {
 			try {
-				method_midi_message_with_bus_name.invoke(parent, new Object[] { message, bus_name });
+				method_midi_message_with_bus_name.invoke(parent, new Object[] { message, timeStamp, bus_name });
 			} catch(Exception e) {
 				System.err.println("\nThe MidiBus Warning: Disabling midiMessage(MidiMessage message, String bus_name) with bus_name because an unkown exception was thrown and caught");
 				e.printStackTrace();
@@ -1396,9 +1385,7 @@ public class MidiBus {
 				//But in theory I guess this could happen on any OS, so I'll just do it all the time.
 				if(!device.isOpen()) {
 					device.open();
-					//Closing input devices on mac seems to be broken in the new native Java MIDI subsystem
-					//Now is hangs instead of throwing a null pointer, yay!
-					if(current_os != OperatingSystem.MAC) device.close();
+					device.close();
 				}
 				if (device.getMaxTransmitters() != 0) devices_list.add(available_devices[i]);
 			} catch(MidiUnavailableException e) {
@@ -1505,9 +1492,9 @@ public class MidiBus {
 					System.err.println("\nThe MidiBus Warning: Mystery error during noteOn (0 velocity) to noteOff conversion");
 				}
 			}
-			
-			notifyListeners(message);
-			notifyPApplet(message);
+						
+			notifyListeners(message, timeStamp);
+			notifyPApplet(message, timeStamp);
 		}
 		
 	}	
