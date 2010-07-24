@@ -45,9 +45,7 @@ import java.lang.reflect.Method;
  * @see SimpleMidiListener
 */
 public class MidiBus {
-	
-	enum OperatingSystem { MAC, WIN, NIX, OTHER }
-	
+		
 	String bus_name;
 		
 	Vector<InputDeviceContainer> input_devices;
