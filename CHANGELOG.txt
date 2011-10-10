@@ -1,4 +1,13 @@
--Version 004
+-Version 005
+  
+  Changes:
+    -Added library.properties for Processing 2.0
+    -Added permanent URL for latest version http://www.smallbutdigital.com/releases/themidibus/themidibus-latest.zip and library.properties file http://www.smallbutdigital.com/releases/themidibus/themidibus-latest.txt
+  
+  Bug Fixes:
+    -Fixed two small issues in sendMessage(byte[] data) which made the method mostly useless before.
+
+-Version 005
 
 	Notable Bug Fixes:
 		-Fixed uninitialized listeners vector.
@@ -17,7 +26,7 @@
 				[2] "Real Time Sequencer" [Input/Output]
 				[3] "Java Sound Synthesizer" [Output]
 				
-			-Version 4 now uses seperate indicies for inputs and outputs, eg:		
+			-Version 4 now uses separate indicies for inputs and outputs, eg:		
 				Available MIDI Devices:
 				----------Input----------
 				[0] "IAC Driver - Bus 1"

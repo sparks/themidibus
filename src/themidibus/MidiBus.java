@@ -36,7 +36,7 @@ import java.lang.reflect.Method;
  * <p>
  * If you wish to build more complex Processing MIDI applications you can add more input and output devices to any given instance of MidiBus via the addInput() and addOutput() methods. However it is important to understand that each MidiBus object acts like 2 MIDI buses, one for input and one for output. This means, that by design, outgoing MIDI messages are sent to <i>all</i> output devices connected to a given instance of MidiBus, and incomming messages from <i>all</i> input devices connected to a given instance of MidiBus are <i>merged</i> upon reception. In practice, this means that, by design, you cannot tell which of the devices connected to a given instance of MidiBus sent a particular message, nor can you send a MIDI message to one particular device connected to that object. Instead, for independent reception/transmission to different <i>sets</i> of MIDI devices, you can instantiate more than one MidiBus object inside your Processing sketch. Each instance of MidiBus will only send MIDI messages to output devices which are connected to it and inbound MIDI messages arriving at each MidiBus can be diferentiated using the the {@link PApplet} methods with the bus_name parameter.
  *
- * @version 004
+ * @version 005
  * @author Severin Smith
  * @see PApplet
  * @see MidiListener
@@ -752,7 +752,7 @@ public class MidiBus {
 					byte[] payload = new byte[data.length-2];
 					System.arraycopy(data, 2, payload, 0, data.length-2);
 					message.setMessage((int)((byte)data[1] & 0xFF), payload, data.length-2);
-					sendMessage(data);
+					sendMessage(message);
 				} catch(InvalidMidiDataException e) {
 					System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
 				}
@@ -767,7 +767,9 @@ public class MidiBus {
 			} else {
 				ShortMessage message = new ShortMessage();
 				try {
-					message.setMessage((int)((byte)data[0] & 0xFF), (int)((byte)data[1] & 0xFF), (int)((byte)data[2] & 0xFF));
+					if(data.length > 2) message.setMessage((int)((byte)data[0] & 0xFF), (int)((byte)data[1] & 0xFF), (int)((byte)data[2] & 0xFF));
+					else if(data.length > 1) message.setMessage((int)((byte)data[0] & 0xFF), (int)((byte)data[1] & 0xFF), 0);
+					else message.setMessage((int)((byte)data[0] & 0xFF));
 					sendMessage(message);
 				} catch(InvalidMidiDataException e) {
 					System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");

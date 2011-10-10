@@ -1,7 +1,0 @@
--Revision 5
-
-	Nothing yet!
-
--Notes
-
-	Look into concurrent CC issued/bug report
