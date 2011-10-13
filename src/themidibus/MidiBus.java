@@ -6,9 +6,7 @@
  * The MidiBus is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * The MidiBus is distributed in the hope that it will be useful,
+ * (at your option) any later version. * The MidiBus is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
@@ -294,19 +292,19 @@ public class MidiBus {
 		}
 	
 		try {
-			method_note_on_with_bus_name = parent.getClass().getMethod("noteOn", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, String.class });
+			method_note_on_with_bus_name = parent.getClass().getMethod("noteOn", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, Long.TYPE, String.class });
 		} catch(Exception e) {
 			// no such method, or an error.. which is fine, just ignore
 		}
 	
 		try {
-			method_note_off_with_bus_name = parent.getClass().getMethod("noteOff", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, String.class });
+			method_note_off_with_bus_name = parent.getClass().getMethod("noteOff", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, Long.TYPE, String.class });
 		} catch(Exception e) {
 			// no such method, or an error.. which is fine, just ignore
 		}
 
 		try {
-			method_controller_change_with_bus_name = parent.getClass().getMethod("controllerChange", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, String.class });
+			method_controller_change_with_bus_name = parent.getClass().getMethod("controllerChange", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, Long.TYPE, String.class });
 		} catch(Exception e) {
 			// no such method, or an error.. which is fine, just ignore
 		}
@@ -796,6 +794,7 @@ public class MidiBus {
 			message.setMessage(status);
 			sendMessage(message);
 		} catch(InvalidMidiDataException e) {
+			System.out.println(e);
 			System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
 		}
 	}
@@ -1018,7 +1017,7 @@ public class MidiBus {
 			}
 			if(method_note_on_with_bus_name != null) {
 				try {
-					method_note_on_with_bus_name.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), bus_name });
+					method_note_on_with_bus_name.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp, bus_name });
 				} catch(Exception e) {
 					System.err.println("\nThe MidiBus Warning: Disabling noteOn(int channel, int pitch, int velocity, String bus_name) with bus_name because an unkown exception was thrown and caught");
 					e.printStackTrace();
@@ -1037,7 +1036,7 @@ public class MidiBus {
 			}
 			if(method_note_off_with_bus_name != null) {
 				try {
-					method_note_off_with_bus_name.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), bus_name });
+					method_note_off_with_bus_name.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp, bus_name });
 				} catch(Exception e) {
 					System.err.println("\nThe MidiBus Warning: Disabling noteOff(int channel, int pitch, int velocity, String bus_name) with bus_name because an unkown exception was thrown and caught");
 					e.printStackTrace();
@@ -1056,7 +1055,7 @@ public class MidiBus {
 			}
 			if(method_controller_change_with_bus_name != null) {
 				try {
-					method_controller_change_with_bus_name.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), bus_name });
+					method_controller_change_with_bus_name.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp, bus_name });
 				} catch(Exception e) {
 					System.err.println("\nThe MidiBus Warning: Disabling controllerChange(int channel, int number, int value, String bus_name) with bus_name because an unkown exception was thrown and caught");
 					e.printStackTrace();
@@ -1076,7 +1075,7 @@ public class MidiBus {
 		}
 		if(method_raw_midi_with_bus_name != null) {
 			try {
-				method_raw_midi_with_bus_name.invoke(parent, new Object[] { data, bus_name });
+				method_raw_midi_with_bus_name.invoke(parent, new Object[] { data, timeStamp, bus_name });
 			} catch(Exception e) {
 				System.err.println("\nThe MidiBus Warning: Disabling rawMidi(byte[] data, String bus_name) with bus_name because an unkown exception was thrown and caught");
 				e.printStackTrace();
@@ -1086,7 +1085,7 @@ public class MidiBus {
 		
 		if(method_midi_message != null) {
 			try {
-				method_midi_message.invoke(parent, new Object[] { message, timeStamp });
+				method_midi_message.invoke(parent, new Object[] { message });
 			} catch(Exception e) {
 				System.err.println("\nThe MidiBus Warning: Disabling midiMessage(MidiMessage message) because an unkown exception was thrown and caught");
 				e.printStackTrace();

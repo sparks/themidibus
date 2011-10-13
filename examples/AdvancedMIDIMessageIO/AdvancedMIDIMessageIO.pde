@@ -25,7 +25,7 @@ void draw() {
 
 	//Or for something different we could send a custom Midi message ...
 	
-	int status_byte = 0xC0; // For instance let us send aftertouch
+	int status_byte = 0xA0; // For instance let us send aftertouch
 	int channel_byte = 0; // On channel 0 again
 	int first_byte = 64; // The same note;
 	int second_byte = 80; // But with less velocity
@@ -35,7 +35,6 @@ void draw() {
 	//Or we could even send a variable length sysex message
 	
 	myBus.sendMessage(new byte[] {(byte)0xF0, (byte)0x1, (byte)0x2, (byte)0x3, (byte)0x4, (byte)0xF7});
-	
 	//We could also do the same thing this way ...
 	
 	try { //All the methods of SysexMessage, ShortMessage, etc, require try catch blocks
@@ -69,7 +68,7 @@ void rawMidi(byte[] data) { // You can also use rawMidi(byte[] data, String bus_
 	}
 }
 
-void midiMessage(MidiMessage message, long timeStamp) { // You can also use midiMessage(MidiMessage message, String bus_name)
+void midiMessage(MidiMessage message) { // You can also use midiMessage(MidiMessage message, String bus_name)
 	// Receive a MidiMessage
 	// MidiMessage is an abstract class, the actual passed object will be either javax.sound.midi.MetaMessage, javax.sound.midi.ShortMessage, javax.sound.midi.SysexMessage.
 	// Check it out here http://java.sun.com/j2se/1.5.0/docs/api/javax/sound/midi/package-summary.html
@@ -80,5 +79,4 @@ void midiMessage(MidiMessage message, long timeStamp) { // You can also use midi
 	for(int i = 1;i < message.getMessage().length;i++) {
 		println("Param "+(i+1)+": "+(int)(message.getMessage()[i] & 0xFF));
 	}
-	println("Timestamp: "+timeStamp);
 }
