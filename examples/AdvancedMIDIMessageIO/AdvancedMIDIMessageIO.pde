@@ -80,3 +80,8 @@ void midiMessage(MidiMessage message) { // You can also use midiMessage(MidiMess
 		println("Param "+(i+1)+": "+(int)(message.getMessage()[i] & 0xFF));
 	}
 }
+
+void delay(int time) {
+	int current = millis();
+	while(millis() < current+time) Thread.yield();
+}

@@ -69,3 +69,8 @@ void controllerChange(int channel, int number, int value) {
 	println("Number:"+number);
 	println("Value:"+value);
 }
+
+void delay(int time) {
+	int current = millis();
+	while(millis() < current+time) Thread.yield();
+}
