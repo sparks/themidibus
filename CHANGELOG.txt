@@ -1,3 +1,8 @@
+-Version 006
+
+  Changes:
+    -Added constructors to MidiBus which allow parent as Object, for use outside of Processing
+
 -Version 005
   
   Changes:
@@ -6,8 +11,6 @@
   
   Bug Fixes:
     -Fixed two small issues in sendMessage(byte[] data) which made the method mostly useless before.
-
--Version 005
 
 	Notable Bug Fixes:
 		-Fixed uninitialized listeners vector.
