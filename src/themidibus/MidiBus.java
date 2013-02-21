@@ -34,7 +34,7 @@ import java.lang.reflect.Method;
  * <p>
  * If you wish to build more complex Processing MIDI applications you can add more input and output devices to any given instance of MidiBus via the addInput() and addOutput() methods. However it is important to understand that each MidiBus object acts like 2 MIDI buses, one for input and one for output. This means, that by design, outgoing MIDI messages are sent to <i>all</i> output devices connected to a given instance of MidiBus, and incomming messages from <i>all</i> input devices connected to a given instance of MidiBus are <i>merged</i> upon reception. In practice, this means that, by design, you cannot tell which of the devices connected to a given instance of MidiBus sent a particular message, nor can you send a MIDI message to one particular device connected to that object. Instead, for independent reception/transmission to different <i>sets</i> of MIDI devices, you can instantiate more than one MidiBus object inside your Processing sketch. Each instance of MidiBus will only send MIDI messages to output devices which are connected to it and inbound MIDI messages arriving at each MidiBus can be diferentiated using the the {@link PApplet} methods with the bus_name parameter.
  *
- * @version 005
+ * @version 006
  * @author Severin Smith
  * @see PApplet
  * @see MidiListener
@@ -51,13 +51,27 @@ public class MidiBus {
 
 	Vector<MidiListener> listeners;
 	
-	processing.core.PApplet parent;
+	Object parent;
 		
 	Method method_note_on, method_note_off, method_controller_change, method_raw_midi, method_midi_message;
 	Method method_note_on_with_bus_name, method_note_off_with_bus_name, method_controller_change_with_bus_name, method_raw_midi_with_bus_name, method_midi_message_with_bus_name;
 	
 	/* -- Constructors -- */
 	
+	/**
+	 * Constructs a new MidiBus attached to the specified parent. No input or output MIDI devices will be opened. The new MidiBus's bus_name will be generated automatically.
+	 *
+	 * @param parent the parent to which this MidiBus is attached.
+	 * @see #addInput(int device_num)
+	 * @see #addInput(String device_name)
+	 * @see #addOutput(int device_num)
+	 * @see #addOutput(String device_name)
+	 * @see #list()
+	*/
+	public MidiBus(Object parent) {
+		init(parent);
+	}
+
 	/**
 	 * Constructs a new MidiBus attached to the specified PApplet. No input or output MIDI devices will be opened. The new MidiBus's bus_name will be generated automatically.
 	 *
@@ -72,6 +86,24 @@ public class MidiBus {
 		init(parent);
 	}
 	
+	/**
+	 * Constructs a new MidiBus attached to the specified parent and opens the MIDI input and output devices specified by the indexes in_device_num and out_device_num. A value of -1 can be passed to in_device_num if no input MIDI device is to be opened, or to out_device_num if no output MIDI device is to be opened. The new MidiBus's bus_name will be generated automatically.
+	 *
+	 * @param parent the parent to which this MidiBus is attached.
+	 * @param in_device_num the index of the MIDI input device to be opened.
+	 * @param out_device_num the index of the MIDI output device to be opened.
+	 * @see #addInput(int device_num)
+	 * @see #addInput(String device_name)
+	 * @see #addOutput(int device_num)
+	 * @see #addOutput(String device_name)
+	 * @see #list()
+	*/
+	public MidiBus(Object parent, int in_device_num, int out_device_num) {		
+		init(parent);
+		addInput(in_device_num);
+		addOutput(out_device_num);
+	}
+
 	/**
 	 * Constructs a new MidiBus attached to the specified PApplet and opens the MIDI input and output devices specified by the indexes in_device_num and out_device_num. A value of -1 can be passed to in_device_num if no input MIDI device is to be opened, or to out_device_num if no output MIDI device is to be opened. The new MidiBus's bus_name will be generated automatically.
 	 *
@@ -109,6 +141,21 @@ public class MidiBus {
 		addOutput(out_device_num);
 	}
 	
+	/**
+	 * Constructs a new MidiBus attached to the specified parent with the specified bus_name. No input or output MIDI devices will be opened.
+	 *
+	 * @param parent the parent to which this MidiBus is attached.
+	 * @param bus_name the String which which identifies this MidiBus.
+	 * @see #addInput(int device_num)
+	 * @see #addInput(String device_name)
+	 * @see #addOutput(int device_num)
+	 * @see #addOutput(String device_name)
+	 * @see #list()
+	*/
+	public MidiBus(Object parent, String bus_name) {
+		init(parent, bus_name);
+	}
+
 	/**
 	 * Constructs a new MidiBus attached to the specified PApplet with the specified bus_name. No input or output MIDI devices will be opened.
 	 *
@@ -247,7 +294,7 @@ public class MidiBus {
 	 * Creates a new (hopefully/probably) unique bus_name value for new MidiBus objects that weren't given one and then calls the regular init() function. 
 	 * If two MidiBus object were to have the same name, this would be bad, but not fatal, so there's no point in spending too much time worrying about it.
 	*/
-	private void init(processing.core.PApplet parent) {
+	private void init(Object parent) {
 		String id = new Formatter().format("%08d", System.currentTimeMillis()%100000000).toString();
 		init(parent, "MidiBus_"+id);
 	}
@@ -255,12 +302,14 @@ public class MidiBus {
 	/**
 	 * Perfoms the initialisation of new MidiBus objects, is private for a reason, and is only ever called within the constructors. This method exists only for the purpose of cleaner and easier to maintain code.
 	*/
-	private void init(processing.core.PApplet parent, String bus_name) {
+	private void init(Object parent, String bus_name) {
 
 		this.parent = parent;
 	
-		if(parent != null) parent.registerDispose(this);
-		
+		if(parent instanceof processing.core.PApplet) {
+                    ((processing.core.PApplet) parent).registerDispose(this);
+		}
+
 		try {
 			method_note_on = parent.getClass().getMethod("noteOn", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE });
 		} catch(Exception e) {
@@ -1241,7 +1290,9 @@ public class MidiBus {
 	*/
 	protected void finalize() {
 		close();
-		if(parent != null) parent.unregisterDispose(this);
+		if(parent instanceof processing.core.PApplet) {
+                    ((processing.core.PApplet) parent).unregisterDispose(this);
+                }
 	}
 	
 	/* -- Shutting Down -- */

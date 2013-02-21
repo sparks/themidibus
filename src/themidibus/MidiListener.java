@@ -22,7 +22,7 @@ package themidibus;
 /**
  * This is a placeholder interface which makes it easier to program and manipulate objects which implement subinterfaces of MidiListener like {@link RawMidiListener}, {@link SimpleMidiListener} or {@link StandardMidiListener}. It makes it easier to create lists and arrays of such object and allows for a standard method {@link MidiBus#addMidiListener(MidiListener listener)} to add any type of listener to a MidiBus object.
  *
- * @version 005
+ * @version 006
  * @author Severin Smith
  * @see RawMidiListener
  * @see SimpleMidiListener
