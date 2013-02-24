@@ -1,3 +1,5 @@
 *.DS_Store
-src/bin/
-src/bin/*
+bin
+reference
+library
+
