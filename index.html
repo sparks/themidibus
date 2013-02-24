@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+	"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" version="-//W3C//DTD XHTML 1.1//EN" xml:lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<title>The MidiBus</title>
+	<link rel="stylesheet" href="http://www.smallbutdigital.com/style.css" type="text/css" />
+</head>
+<body>
+	<div id="content">
+		<h3>The MidiBus</h3>
+		<img src="http://smallbutdigital.com/media/themidibus/themidibus_0.png" alt="the MidiBus" />
+				
+		<p>The MidiBus is a MIDI library for <a href="http://www.processing.org">Processing</a>. It provides a quick and simple way to access and interact with installed MIDI system resources. The MidiBus is aimed primarily at real time MIDI applications. The focus is on strong MIDI I/O capabilities and keeping frills to a minimum (e.g. currently no built in sequencer, file read/write, MIDI recording/playback).</p>
+		
+		<h4>Download and Javadocs</h4>
+		
+		<ul class="download">
+			<li><a href="http://github.com/sparks/themidibus">Visit the GitHub page and download it there</a></li>
+			<li><a href="http://www.smallbutdigital.com/releases/themidibus/themidibus-latest.zip">Latest Release (includes examples and javadocs)</a></li>
+			<!-- <li><a href="http://www.humatic.de/htools/mmj.htm">mmj, <i>a Mac OS X universal binary java Midi subsystem</i> (required for Mac users)</a></li> -->
+			<li><a href="http://www.smallbutdigital.com/themidibus/themidibus/package-summary.html">The MidiBus Online Javadocs</a></li>
+		</ul>		
+		
+		<h4>A Few Quick Notes</h4>
+		
+		<!-- <p><b style="color:red;">Important</b>: Mac users must install <a href="http://www.humatic.de/htools/mmj.htm">mmj, <i>a Mac OS X universal binary java MIDI subsystem</i></a> - or an equivalent third party MIDI subsystem - because apple does not provide build-in MIDI support for java. Mmj is recommended because it works, it's free and it's almost open source (CC licence), although there is no 64 bit version yet (donate on their website and there will be!).</p> -->
+		
+		<p>Before you get started, it is important to understand that the MidiBus offers little functionality that isn't available from Java's native <a href="http://java.sun.com/j2se/1.5.0/docs/api/javax/sound/midi/package-summary.html">javax.sound.midi package</a>. Anyone interested in working with MIDI in Java should take the time to read the documentation for the <a href="http://java.sun.com/j2se/1.5.0/docs/api/javax/sound/midi/package-summary.html">javax.sound.midi</a>. It offers a more full featured and flexible alternative to this package, although it does do so at the cost of added complexity. In addition, it may be worthwhile to skim <a href="http://java.sun.com/docs/books/tutorial/sound/index.html">the "official" Java Tutorial</a> for the javax.sound.* packages.</p>
+		
+		<h4>Getting Started</h4>
+		
+		<p>The MidiBus is very straight forwards to use. A good place to start is the Basic.pde example included in the <a href="http://www.smallbutdigital.com/releases/themidibus/themidibus-latest.zip">latest release</a>. From there you can look at the Javadocs either <a href="http://www.smallbutdigital.com/themidibus/themidibus/package-summary.html">online</a> or bundled with your library in the "reference" subdirectory. The Javadocs are a comprehensive reference of all the MidiBus' available functionality. There are also a few advanced examples which can (hopefully) help answer the most common questions: how to work with multiple input/output devices, how to send uncommon MIDI messages and how to receive uncommon MIDI messages.</p>
+		
+		<p>Please do not hesitate to <a href="http://www.smallbutdigital.com/contact.php">contact me</a> with any questions, comments or bug reports.</p>
+		
+		<h4>Made with the MidiBus</h4>
+		
+		<ul class="download">
+			<li><a href="http://www.quotile-sequencer.com/">Quotile Sequencer</a></li>
+			<li><a href="http://createdigitalmusic.com/2009/02/02/a-mutating-drum-step-sequencer-new-midi-library-for-processing/">Create Digital Music: Quotile Sequencer</a></li>
+			<li><a href="http://www.glitch-sequencer.com/">Glitch Sequencer</a></li>
+			<li><a href="http://www.youtube.com/watch?v=0Ncfnxr1DIY">Filter control via light blob tracking in Processing</a></li>
+			<li><a href="http://code.google.com/p/midicity/">midicity, <i>Real-time, MIDI-triggered city landscape creation</i></a></li>
+			<li><a href="http://www.spikenzielabs.com/SpikenzieLabs/Serial_MIDI.html">Serial - MIDI Converter</i></a></li>
+		</ul>		
+		
+	</div>
+</body>
+</html>
