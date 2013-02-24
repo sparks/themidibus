@@ -307,7 +307,7 @@ public class MidiBus {
 		this.parent = parent;
 	
 		if(parent instanceof processing.core.PApplet) {
-                    ((processing.core.PApplet) parent).registerDispose(this);
+			((processing.core.PApplet) parent).registerDispose(this);
 		}
 
 		try {
@@ -1291,8 +1291,8 @@ public class MidiBus {
 	protected void finalize() {
 		close();
 		if(parent instanceof processing.core.PApplet) {
-                    ((processing.core.PApplet) parent).unregisterDispose(this);
-                }
+			((processing.core.PApplet) parent).unregisterDispose(this);
+		}
 	}
 	
 	/* -- Shutting Down -- */
