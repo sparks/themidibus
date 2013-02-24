@@ -37,7 +37,7 @@
  * <li><a href="http://www.indiana.edu/~emusic/cntrlnumb.html">Standard Controller Numbers</a></li>
  * </ul>
  *
- * @version 005
+ * @version 006
  * @author Severin Smith
 */
 
