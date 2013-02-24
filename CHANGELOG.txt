@@ -2,6 +2,12 @@
 
   Changes:
     -Added constructors to MidiBus which allow parent as Object, for use outside of Processing
+  ToDo:
+    -Constructors are redundant deprecate non Object constructors
+    -Support changes to Processing 2.0 event handling/register
+    -Explicitly support third party MIDI subsystem if possible (MMJ?)
+    -Improve startup speed if possible
+    -Migrate web page to GitHub Pages
 
 -Version 005
   
@@ -21,7 +27,7 @@
 	
 	Changes:
 		-New devices indexing system:
-			-Version 3 used mixed indices for inputs and outputs, eg:
+			-Version 3 used mixed indicies for inputs and outputs, eg:
 				Available Midi Devices:
 				-----------------------
 				[0] "IAC Driver - Bus 1" [Input]
@@ -47,7 +53,7 @@
 		-Added removeInput(int device_num), removeInput(String device_name), removeOutput(int device_num) and removeOutput(String device_name). Theses methods allow the selective removal of attached inputs and outputs.
 		-Added static method unavailableDevices() which lists any devices that are detected but appear to be unavailable. (As per bug fix)
 		-Added new overloads to sendMessage():
-			-sendMessage(byte[] data). Attemps to send an arbitrary array of bytes as a MIDI message. This method supports System Exlusive messages and Meta Messages, including messages with more than 2 data bytes.
-			-sendMessage(MidiMessage message). Attemps to send a MidiMessage object.
-			-sendMessage(int status). Attemps to send a message with only a status byte.
-			-sendMessage(int status, int data). Attemps to send a message with only a status byte and one data byte.
+			-sendMessage(byte[] data). Attempts to send an arbitrary array of bytes as a MIDI message. This method supports System Exclusive messages and Meta Messages, including messages with more than 2 data bytes.
+			-sendMessage(MidiMessage message). Attempts to send a MidiMessage object.
+			-sendMessage(int status). Attempts to send a message with only a status byte.
+			-sendMessage(int status, int data). Attempts to send a message with only a status byte and one data byte.
