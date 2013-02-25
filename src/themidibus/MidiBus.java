@@ -69,7 +69,7 @@ public class MidiBus {
 	 * @see #list()
 	*/
 	public MidiBus(Object parent) {
-		init(parent);
+		init(parent, null);
 	}
 	
 	/**
@@ -85,7 +85,7 @@ public class MidiBus {
 	 * @see #list()
 	*/
 	public MidiBus(Object parent, int in_device_num, int out_device_num) {		
-		init(parent);
+		init(parent, null);
 		addInput(in_device_num);
 		addOutput(out_device_num);
 	}
@@ -139,7 +139,7 @@ public class MidiBus {
 	 * @see #list()
 	*/
 	public MidiBus(Object parent, String in_device_name, String out_device_name) {
-		init(parent);
+		init(parent, null);
 		addInput(in_device_name);
 		addOutput(out_device_name);
 	}
@@ -180,7 +180,7 @@ public class MidiBus {
 	 * @see #list()
 	*/
 	public MidiBus(Object parent, int in_device_num, String out_device_name) {
-		init(parent);
+		init(parent, null);
 		addInput(in_device_num);
 		addOutput(out_device_name);
 	}
@@ -198,7 +198,7 @@ public class MidiBus {
 	 * @see #list()
 	*/
 	public MidiBus(Object parent, String in_device_name, int out_device_num) {
-		init(parent);
+		init(parent, null);
 		addInput(in_device_name);
 		addOutput(out_device_num);
 	}
@@ -242,91 +242,23 @@ public class MidiBus {
 	}
 	
 	/* -- Constructor Functions -- */
-	
-	/**
-	 * Creates a new (hopefully/probably) unique bus_name value for new MidiBus objects that weren't given one and then calls the regular init() function. 
-	 * If two MidiBus object were to have the same name, this would be bad, but not fatal, so there's no point in spending too much time worrying about it.
-	*/
-	private void init(Object parent) {
-		String id = new Formatter().format("%08d", System.currentTimeMillis()%100000000).toString();
-		init(parent, "MidiBus_"+id);
-	}
-	
+		
 	/**
 	 * Perfoms the initialisation of new MidiBus objects, is private for a reason, and is only ever called within the constructors. This method exists only for the purpose of cleaner and easier to maintain code.
+	 * Creates a new (hopefully/probably) unique bus_name value for new MidiBus objects that weren't given one.
+	 * If two MidiBus object were to have the same name, this would be bad, but not fatal, so there's no point in spending too much time worrying about it.
 	*/
 	private void init(Object parent, String bus_name) {
-		this.parent = parent;
-	
-		if(parent instanceof processing.core.PApplet) {
-			((processing.core.PApplet) parent).registerDispose(this);
-			// ((processing.core.PApplet parent).registerMethod("dispose", this);
-		}
+		registerParent(parent);
 
-		try {
-			method_note_on = parent.getClass().getMethod("noteOn", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE });
-		} catch(Exception e) {
-			// no such method, or an error.. which is fine, just ignore
-		}
-	
-		try {
-			method_note_off = parent.getClass().getMethod("noteOff", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE });
-		} catch(Exception e) {
-			// no such method, or an error.. which is fine, just ignore
-		}
-
-		try {
-			method_controller_change = parent.getClass().getMethod("controllerChange", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE });
-		} catch(Exception e) {
-			// no such method, or an error.. which is fine, just ignore
-		}
-		
-		try {
-			method_raw_midi = parent.getClass().getMethod("rawMidi", new Class[] { byte[].class });
-		} catch(Exception e) {
-			// no such method, or an error.. which is fine, just ignore
-		}
-		
-		try {
-			method_midi_message = parent.getClass().getMethod("midiMessage", new Class[] { MidiMessage.class });
-		} catch(Exception e) {
-			// no such method, or an error.. which is fine, just ignore
-		}
-	
-		try {
-			method_note_on_with_bus_name = parent.getClass().getMethod("noteOn", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, Long.TYPE, String.class });
-		} catch(Exception e) {
-			// no such method, or an error.. which is fine, just ignore
-		}
-	
-		try {
-			method_note_off_with_bus_name = parent.getClass().getMethod("noteOff", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, Long.TYPE, String.class });
-		} catch(Exception e) {
-			// no such method, or an error.. which is fine, just ignore
-		}
-
-		try {
-			method_controller_change_with_bus_name = parent.getClass().getMethod("controllerChange", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, Long.TYPE, String.class });
-		} catch(Exception e) {
-			// no such method, or an error.. which is fine, just ignore
-		}
-		
-		try {
-			method_raw_midi_with_bus_name = parent.getClass().getMethod("rawMidi", new Class[] { byte[].class, Long.TYPE, String.class });
-		} catch(Exception e) {
-			// no such method, or an error.. which is fine, just ignore
-		}
-		
-		try {
-			method_midi_message_with_bus_name = parent.getClass().getMethod("midiMessage", new Class[] { MidiMessage.class, Long.TYPE, String.class });
-		} catch(Exception e) {
-			// no such method, or an error.. which is fine, just ignore
-		}
-		
 		/* -- */
-		
-		this.bus_name = bus_name;
-	
+
+		if(bus_name == null) {
+			generateBusName();
+		} else {
+			this.bus_name = bus_name;
+		}
+
 		/* -- */
 		
 		input_devices = new Vector<InputDeviceContainer>();
@@ -1004,7 +936,9 @@ public class MidiBus {
 	 *
 	 * @param message the new inbound MidiMessage.
 	*/
-	void notifyParent(MidiMessage message, long timeStamp) {	
+	void notifyParent(MidiMessage message, long timeStamp) {
+		if(parent == null) return;
+
 		byte[] data = message.getMessage();
 
 		if((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_ON) {
@@ -1107,6 +1041,109 @@ public class MidiBus {
 	}
 	
 	/* -- Listener Handling -- */
+
+	/**
+	 * Registers an Object as the parent in order to recieve method callbacks as per {@link PApplet}. Calling this will replace the previous parent Object if any was set.
+	 *
+	 * @param parent the object to register.
+	 * @return the previous parent object if any was set.
+	 * @see #addMidiListener(MidiListener listener)
+	*/
+	public Object registerParent(Object parent) {
+		Object old_parent = this.parent;
+
+		if(old_parent != null) {
+			if(old_parent instanceof processing.core.PApplet) {
+				((processing.core.PApplet) parent).unregisterDispose(this);
+				// ((processing.core.PApplet parent).unregisterMethod("dispose", this);
+			}
+
+			method_note_on = null;
+			method_note_off = null;
+			method_controller_change = null;
+			method_raw_midi = null;
+			method_midi_message = null;
+
+			method_note_on_with_bus_name = null;
+			method_note_off_with_bus_name = null;
+			method_controller_change_with_bus_name = null;
+			method_raw_midi_with_bus_name = null;
+			method_midi_message_with_bus_name = null;
+		}
+
+		this.parent = parent;
+
+		if(parent != null) {
+
+			if(parent instanceof processing.core.PApplet) {
+				((processing.core.PApplet) parent).registerDispose(this);
+				// ((processing.core.PApplet parent).registerMethod("dispose", this);
+			}
+
+			try {
+				method_note_on = parent.getClass().getMethod("noteOn", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE });
+			} catch(Exception e) {
+				// no such method, or an error.. which is fine, just ignore
+			}
+			
+			try {
+				method_note_off = parent.getClass().getMethod("noteOff", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE });
+			} catch(Exception e) {
+				// no such method, or an error.. which is fine, just ignore
+			}
+
+			try {
+				method_controller_change = parent.getClass().getMethod("controllerChange", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE });
+			} catch(Exception e) {
+				// no such method, or an error.. which is fine, just ignore
+			}
+			
+			try {
+				method_raw_midi = parent.getClass().getMethod("rawMidi", new Class[] { byte[].class });
+			} catch(Exception e) {
+				// no such method, or an error.. which is fine, just ignore
+			}
+			
+			try {
+				method_midi_message = parent.getClass().getMethod("midiMessage", new Class[] { MidiMessage.class });
+			} catch(Exception e) {
+				// no such method, or an error.. which is fine, just ignore
+			}
+			
+			try {
+				method_note_on_with_bus_name = parent.getClass().getMethod("noteOn", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, Long.TYPE, String.class });
+			} catch(Exception e) {
+				// no such method, or an error.. which is fine, just ignore
+			}
+			
+			try {
+				method_note_off_with_bus_name = parent.getClass().getMethod("noteOff", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, Long.TYPE, String.class });
+			} catch(Exception e) {
+				// no such method, or an error.. which is fine, just ignore
+			}
+
+			try {
+				method_controller_change_with_bus_name = parent.getClass().getMethod("controllerChange", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, Long.TYPE, String.class });
+			} catch(Exception e) {
+				// no such method, or an error.. which is fine, just ignore
+			}
+			
+			try {
+				method_raw_midi_with_bus_name = parent.getClass().getMethod("rawMidi", new Class[] { byte[].class, Long.TYPE, String.class });
+			} catch(Exception e) {
+				// no such method, or an error.. which is fine, just ignore
+			}
+			
+			try {
+				method_midi_message_with_bus_name = parent.getClass().getMethod("midiMessage", new Class[] { MidiMessage.class, Long.TYPE, String.class });
+			} catch(Exception e) {
+				// no such method, or an error.. which is fine, just ignore
+			}
+
+		}
+
+		return old_parent;
+	}
 	
 	/**
 	 * 	Adds a listener who will be notified each time a new MIDI message is received from a MIDI input device. If the listener has already been added, it will not be added again.
@@ -1114,6 +1151,7 @@ public class MidiBus {
 	 * @param listener the listener to add.
 	 * @return true if and only the listener was sucessfully added.
 	 * @see #removeMidiListener(MidiListener listener)
+	 * @see #registerParent(Object parent)
 	*/
 	public boolean addMidiListener(MidiListener listener) {
 		for(MidiListener current : listeners) if(current == listener) return false;
@@ -1157,6 +1195,7 @@ public class MidiBus {
 	 *
 	 * @return the name of this MidiBus.
 	 * @see #setBusName(String bus_name)
+	 * @see #generateBusName()
 	*/
 	public String getBusName() {
 		return bus_name;
@@ -1167,11 +1206,23 @@ public class MidiBus {
 	 *
 	 * @param bus_name the new name of this MidiBus.
 	 * @see #getBusName()
+	 * @see #generateBusName()
 	*/
 	public void setBusName(String bus_name) {
 		this.bus_name = bus_name;
 	}
 	
+	/**
+	 * Generate a name for this MidiBus instance.
+	 *
+	 * @see #setBusName(String bus_name)
+	 * @see #getBusName()
+	*/
+	public void generateBusName() {
+		String id = new Formatter().format("%08d", System.currentTimeMillis()%100000000).toString();
+		bus_name = "MidiBus_"+id;
+	}
+
 	/* -- Object -- */
 	
 	/**
