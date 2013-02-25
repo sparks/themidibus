@@ -71,7 +71,22 @@ public class MidiBus {
 	public MidiBus(Object parent) {
 		init(parent, null);
 	}
-	
+
+	/**
+	 * Constructs a new MidiBus attached to the specified parent (PApplet or other) with the specified bus_name. No input or output MIDI devices will be opened.
+	 *
+	 * @param parent the parent to which this MidiBus is attached.
+	 * @param bus_name the String which which identifies this MidiBus.
+	 * @see #addInput(int device_num)
+	 * @see #addInput(String device_name)
+	 * @see #addOutput(int device_num)
+	 * @see #addOutput(String device_name)
+	 * @see #list()
+	*/
+	public MidiBus(Object parent, String bus_name) {
+		init(parent, bus_name);
+	}
+
 	/**
 	 * Constructs a new MidiBus attached to the specified parent (PApplet or other) and opens the MIDI input and output devices specified by the indexes in_device_num and out_device_num. A value of -1 can be passed to in_device_num if no input MIDI device is to be opened, or to out_device_num if no output MIDI device is to be opened. The new MidiBus's bus_name will be generated automatically.
 	 *
@@ -107,21 +122,6 @@ public class MidiBus {
 		init(parent, bus_name);
 		addInput(in_device_num);
 		addOutput(out_device_num);
-	}
-	
-	/**
-	 * Constructs a new MidiBus attached to the specified parent (PApplet or other) with the specified bus_name. No input or output MIDI devices will be opened.
-	 *
-	 * @param parent the parent to which this MidiBus is attached.
-	 * @param bus_name the String which which identifies this MidiBus.
-	 * @see #addInput(int device_num)
-	 * @see #addInput(String device_name)
-	 * @see #addOutput(int device_num)
-	 * @see #addOutput(String device_name)
-	 * @see #list()
-	*/
-	public MidiBus(Object parent, String bus_name) {
-		init(parent, bus_name);
 	}
 	
 	/**
@@ -184,25 +184,7 @@ public class MidiBus {
 		addInput(in_device_num);
 		addOutput(out_device_name);
 	}
-	
-	/**
-	 * More flavors of constructor, similar to the others, but with mixed arguments
-	 *
-	 * @param parent the parent to which this MidiBus is attached.
-	 * @param in_device_name the name of the MIDI input device to be opened.
-	 * @param out_device_num the name of the MIDI output device to be opened.
-	 * @see #addInput(int device_num)
-	 * @see #addInput(String device_name)
-	 * @see #addOutput(int device_num)
-	 * @see #addOutput(String device_name)
-	 * @see #list()
-	*/
-	public MidiBus(Object parent, String in_device_name, int out_device_num) {
-		init(parent, null);
-		addInput(in_device_name);
-		addOutput(out_device_num);
-	}
-	
+
 	/**
 	 * More flavors of constructor, similar to the others, but with mixed arguments
 	 *
@@ -220,6 +202,24 @@ public class MidiBus {
 		init(parent, bus_name);
 		addInput(in_device_num);
 		addOutput(out_device_name);
+	}
+
+	/**
+	 * More flavors of constructor, similar to the others, but with mixed arguments
+	 *
+	 * @param parent the parent to which this MidiBus is attached.
+	 * @param in_device_name the name of the MIDI input device to be opened.
+	 * @param out_device_num the name of the MIDI output device to be opened.
+	 * @see #addInput(int device_num)
+	 * @see #addInput(String device_name)
+	 * @see #addOutput(int device_num)
+	 * @see #addOutput(String device_name)
+	 * @see #list()
+	*/
+	public MidiBus(Object parent, String in_device_name, int out_device_num) {
+		init(parent, null);
+		addInput(in_device_name);
+		addOutput(out_device_num);
 	}
 	
 	/**
