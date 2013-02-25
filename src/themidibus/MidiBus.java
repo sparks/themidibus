@@ -67,7 +67,7 @@ public class MidiBus {
 	 * @see #addOutput(String device_name)
 	 * @see #list()
 	*/
-	public Midibus() {
+	public MidiBus() {
 		init(null, null);
 	}
 	
