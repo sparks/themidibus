@@ -57,9 +57,22 @@ public class MidiBus {
 	Method method_note_on_with_bus_name, method_note_off_with_bus_name, method_controller_change_with_bus_name, method_raw_midi_with_bus_name, method_midi_message_with_bus_name;
 	
 	/* -- Constructors -- */
+
+	/**
+	 * Constructs a new Midibus. The new Midibus's bus_name will be generated automatically.
+	 *
+	 * @see #addInput(int device_num)
+	 * @see #addInput(String device_name)
+	 * @see #addOutput(int device_num)
+	 * @see #addOutput(String device_name)
+	 * @see #list()
+	*/
+	public Midibus() {
+		init(null, null);
+	}
 	
 	/**
-	 * Constructs a new MidiBus attached to the specified parent (PApplet or other). No input or output MIDI devices will be opened. The new MidiBus's bus_name will be generated automatically.
+	 * Constructs a new MidiBus and registers the specified parent (PApplet or other) for callbacks. No input or output MIDI devices will be opened. The new MidiBus's bus_name will be generated automatically.
 	 *
 	 * @param parent the parent to which this MidiBus is attached.
 	 * @see #addInput(int device_num)
@@ -73,7 +86,7 @@ public class MidiBus {
 	}
 
 	/**
-	 * Constructs a new MidiBus attached to the specified parent (PApplet or other) with the specified bus_name. No input or output MIDI devices will be opened.
+	 * Constructs a new MidiBus with the specified bus_name and registers the specified parent (PApplet or other) for callbacks. No input or output MIDI devices will be opened.
 	 *
 	 * @param parent the parent to which this MidiBus is attached.
 	 * @param bus_name the String which which identifies this MidiBus.
@@ -88,7 +101,7 @@ public class MidiBus {
 	}
 
 	/**
-	 * Constructs a new MidiBus attached to the specified parent (PApplet or other) and opens the MIDI input and output devices specified by the indexes in_device_num and out_device_num. A value of -1 can be passed to in_device_num if no input MIDI device is to be opened, or to out_device_num if no output MIDI device is to be opened. The new MidiBus's bus_name will be generated automatically.
+	 * Constructs a new MidiBus and registers the specified parent (PApplet or other) for callbacks. Opens the MIDI input and output devices specified by the indexes in_device_num and out_device_num. A value of -1 can be passed to in_device_num if no input MIDI device is to be opened, or to out_device_num if no output MIDI device is to be opened. The new MidiBus's bus_name will be generated automatically.
 	 *
 	 * @param parent the parent to which this MidiBus is attached.
 	 * @param in_device_num the index of the MIDI input device to be opened.
@@ -106,7 +119,7 @@ public class MidiBus {
 	}
 	
 	/**
-	 * Constructs a new MidiBus attached to the specified parent (PApplet or other) with the specified bus_name and opens the MIDI input and output devices specified by the indexes in_device_num and out_device_num. A value of -1 can be passed to in_device_num if no input MIDI device is to be opened, or to out_device_num if no output MIDI device is to be opened.
+	 * Constructs a new MidiBus with the specified bus_name and registers the specified parent (PApplet or other) for callbacks. Opens the MIDI input and output devices specified by the indexes in_device_num and out_device_num. A value of -1 can be passed to in_device_num if no input MIDI device is to be opened, or to out_device_num if no output MIDI device is to be opened.
 	 *
 	 * @param parent the parent to which this MidiBus is attached.
 	 * @param in_device_num the index of the MIDI input device to be opened.
@@ -125,7 +138,7 @@ public class MidiBus {
 	}
 	
 	/**
-	 * Constructs a new MidiBus attached to the specified parent (PApplet or other) and opens the MIDI input and output devices specified by the names in_device_name and out_device_name. An empty String can be passed to in_device_name if no input MIDI device is to be opened, or to out_device_name if no output MIDI device is to be opened. The new MidiBus's bus_name will be generated automatically.
+	 * Constructs a new MidiBus and registers the specified parent (PApplet or other) for callbacks. Opens the MIDI input and output devices specified by the names in_device_name and out_device_name. An empty String can be passed to in_device_name if no input MIDI device is to be opened, or to out_device_name if no output MIDI device is to be opened. The new MidiBus's bus_name will be generated automatically.
 	 * <p>
 	 * If two or more MIDI inputs have the same name, whichever appears first when {@link #list()} is called will be added, simlarly for two or more MIDI outputs with the same name. If this behavior is problematic use {@link #MidiBus(processing.core.PApplet parent, int in_device_num, int out_device_num)} instead.
 	 *
@@ -145,7 +158,7 @@ public class MidiBus {
 	}
 	
 	/**
-	 * Constructs a new MidiBus attached to the specified parent (PApplet or other) with the specified bus_name and opens the MIDI input and output devices specified by the names out_device_name and out_device_name. An empty String can be passed to in_device_name if no input MIDI device is to be opened, or to out_device_name if no output MIDI device is to be opened.
+	 * Constructs a new MidiBus with the specified bus_name and registers the specified parent (PApplet or other) for callbacks. Opens the MIDI input and output devices specified by the names out_device_name and out_device_name. An empty String can be passed to in_device_name if no input MIDI device is to be opened, or to out_device_name if no output MIDI device is to be opened.
 	 * <p>
 	 * If two or more MIDI inputs have the same name, whichever appears first when {@link #list()} is called will be added, simlarly for two or more MIDI outputs with the same name. If this behavior is problematic use {@link #MidiBus(processing.core.PApplet parent, int in_device_num, int out_device_num, String bus_name)} instead.
 	 *
