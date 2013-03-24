@@ -44,6 +44,8 @@ import java.lang.reflect.Method;
 */
 public class MidiBus {
 		
+	static MidiDevice.Info[] available_devices;
+
 	String bus_name;
 		
 	Vector<InputDeviceContainer> input_devices;
@@ -661,12 +663,12 @@ public class MidiBus {
 	 * @see #dispose()
 	*/
 	void closeAllMidiDevices() {
-		MidiDevice.Info[] available_devices = MidiSystem.getMidiDeviceInfo();
+		if(MidiBus.available_devices == null) findMidiDevices();
 		MidiDevice device;
 		
-		for(int i = 0;i < available_devices.length;i++) {
+		for(int i = 0;i < MidiBus.available_devices.length;i++) {
 			try {
-				device = MidiSystem.getMidiDevice(available_devices[i]);
+				device = MidiSystem.getMidiDevice(MidiBus.available_devices[i]);
 				if(device.isOpen()) device.close();
 			} catch(MidiUnavailableException e) {
 				//Device wasn't available, which is fine since we wanted to close it anyways
@@ -1375,6 +1377,14 @@ public class MidiBus {
 			for(int i = 0;i < unavailable.length;i++) System.out.println("["+i+"] \""+unavailable[i]+"\"");
 		}
 	}
+
+	/**
+	 * Rescan for Midi Devices. This is autocalled once when the MidiBus starts up. It should be called again if you need to refresh the list of available MidiDevices while your program is running.
+	 *
+	*/
+	static public void findMidiDevices() {
+		MidiBus.available_devices = MidiSystem.getMidiDeviceInfo();
+	}
 	
 	/**
 	 * Returns the names of all the available input devices.
@@ -1439,28 +1449,28 @@ public class MidiBus {
 	 * @return the MidiDevice.Info of the available inputs.
 	*/
 	static MidiDevice.Info[] availableInputsMidiDeviceInfo() {
-		MidiDevice.Info[] available_devices = MidiSystem.getMidiDeviceInfo();
+		if(MidiBus.available_devices == null) findMidiDevices();
 		MidiDevice device;
 		
 		Vector<MidiDevice.Info> devices_list = new Vector<MidiDevice.Info>();
-		
-		for(int i = 0;i < available_devices.length;i++) {
+
+		for(int i = 0;i < MidiBus.available_devices.length;i++) {
 			try {
-				device = MidiSystem.getMidiDevice(available_devices[i]);
+				device = MidiSystem.getMidiDevice(MidiBus.available_devices[i]);
 				//This open close checks to make sure the announced device is truely available
 				//There are many reports on Windows that some devices lie about their availability
 				//(For instance the Microsoft GS Wavetable Synth)
 				//But in theory I guess this could happen on any OS, so I'll just do it all the time.
-				if(!device.isOpen()) {
-					device.open();
-					device.close();
-				}
-				if (device.getMaxTransmitters() != 0) devices_list.add(available_devices[i]);
+				// if(!device.isOpen()) {
+				// 	device.open();
+				// 	device.close();
+				// }
+				if (device.getMaxTransmitters() != 0) devices_list.add(MidiBus.available_devices[i]);
 			} catch(MidiUnavailableException e) {
 				//Device was unavailable which is fine, we only care about available inputs
 			}
 		}
-		
+
 		MidiDevice.Info[] devices = new MidiDevice.Info[devices_list.size()];
 		
 		devices_list.toArray(devices);
@@ -1474,23 +1484,23 @@ public class MidiBus {
 	 * @return the MidiDevice.Info of the available output.
 	*/
 	static MidiDevice.Info[] availableOutputsMidiDeviceInfo() {
-		MidiDevice.Info[] available_devices = MidiSystem.getMidiDeviceInfo();
+		if(MidiBus.available_devices == null) findMidiDevices();
 		MidiDevice device;
 		
 		Vector<MidiDevice.Info> devices_list = new Vector<MidiDevice.Info>();
 		
-		for(int i = 0;i < available_devices.length;i++) {
+		for(int i = 0;i < MidiBus.available_devices.length;i++) {
 			try {
-				device = MidiSystem.getMidiDevice(available_devices[i]);
+				device = MidiSystem.getMidiDevice(MidiBus.available_devices[i]);
 				//This open close checks to make sure the announced device is truely available
 				//There are many reports on Windows that some devices lie about their availability
 				//(For instance the Microsoft GS Wavetable Synth)
 				//But in theory I guess this could happen on any OS, so I'll just do it all the time.
-				if(!device.isOpen()) {
-					device.open();
-					device.close();
-				}
-				if (device.getMaxReceivers() != 0) devices_list.add(available_devices[i]);
+				// if(!device.isOpen()) {
+				// 	device.open();
+				// 	device.close();
+				// }
+				if (device.getMaxReceivers() != 0) devices_list.add(MidiBus.available_devices[i]);
 			} catch(MidiUnavailableException e) {
 				//Device was unavailable which is fine, we only care about available output
 			}
@@ -1509,24 +1519,24 @@ public class MidiBus {
 	 * @return the MidiDevice.Info of the unavailable devices.
 	*/
 	static MidiDevice.Info[] unavailableMidiDeviceInfo() {
-		MidiDevice.Info[] available_devices = MidiSystem.getMidiDeviceInfo();
+		if(MidiBus.available_devices == null) findMidiDevices();
 		MidiDevice device;
 		
 		Vector<MidiDevice.Info> devices_list = new Vector<MidiDevice.Info>();
 		
-		for(int i = 0;i < available_devices.length;i++) {
+		for(int i = 0;i < MidiBus.available_devices.length;i++) {
 			try {
-				device = MidiSystem.getMidiDevice(available_devices[i]);
+				device = MidiSystem.getMidiDevice(MidiBus.available_devices[i]);
 				//This open close checks to make sure the announced device is truely available
 				//There are many reports on Windows that some devices lie about their availability
 				//(For instance the Microsoft GS Wavetable Synth)
 				//But in theory I guess this could happen on any OS, so I'll just do it all the time.
-				if(!device.isOpen()) {
-					device.open();
-					device.close();
-				}
+				// if(!device.isOpen()) {
+				// 	device.open();
+				// 	device.close();
+				// }
 			} catch(MidiUnavailableException e) {
-				devices_list.add(available_devices[i]);
+				devices_list.add(MidiBus.available_devices[i]);
 			}
 		}
 		
