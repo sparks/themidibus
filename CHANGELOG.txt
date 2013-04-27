@@ -2,12 +2,14 @@
 
   Changes:
     -Added constructors to MidiBus which allow parent as Object, for use outside of Processing
+    -Introduce a new class called Note which represents a pressed/release key
   ToDo:
     -Constructors are redundant deprecate non Object constructors
     -Support changes to Processing 2.0 event handling/register
     -Explicitly support third party MIDI subsystem if possible (MMJ?)
     -Improve startup speed if possible
     -Migrate web page to GitHub Pages
+    -Use Note class to send a key
 
 -Version 005
   

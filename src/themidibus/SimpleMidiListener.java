@@ -42,6 +42,13 @@ public interface SimpleMidiListener extends MidiListener {
 	public void noteOn(int channel, int pitch, int velocity);
 	
 	/**
+	 * Objects notifying this SimpleMidiListener of a new NoteOn MIDI message call this method.
+	 * 
+	 * @param note an object holding all information of the pressed note
+	*/
+	public void noteOn(Note note);
+	
+	/**
 	 * Objects notifying this SimpleMidiListener of a new NoteOff MIDI message call this method.
 	 * 
 	 * @param channel the channel on which the NoteOff arrived
@@ -49,6 +56,13 @@ public interface SimpleMidiListener extends MidiListener {
 	 * @param velocity the velocity associated with the NoteOff
 	*/
 	public void noteOff(int channel, int pitch, int velocity);
+	
+	/**
+	 * Objects notifying this SimpleMidiListener of a new NoteOn MIDI message call this method.
+	 * 
+	 * @param note an object holding all information of the released note
+	*/
+	public void noteOff(Note note);
 	
 	/**
 	 * Objects notifying this SimpleMidiListener of a new ControllerChange MIDI message call this method.

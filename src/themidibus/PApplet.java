@@ -82,6 +82,17 @@ public class PApplet{
 	}
 	
 	/**
+	 * Is passes a Note object representing the released key 
+	 * 
+	 * @param Note the Note object
+	 * @see #noteOff(int channel, int pitch, int velocity)
+	 * @see themidibus.SimpleMidiListener#noteOff(Note)
+	*/
+	public void noteOff(Note nt) {
+		
+	}
+	
+	/**
 	 * Is passed the channel, pitch and velocity associated with every new NoteOff MIDI message recieved by a MidiBus attached to this applet.
 	 *
 	 * @param channel the channel on which the NoteOff arrived
@@ -115,6 +126,17 @@ public class PApplet{
 	 * @see #noteOn(int channel, int pitch, int velocity, String bus_name)
 	*/
 	public void noteOn(int channel, int pitch, int velocity) {
+		
+	}
+	
+	/**
+	 * Is passes a Note object representing the pressed key 
+	 * 
+	 * @param Note the Note object
+	 * @see #noteOn(int channel, int pitch, int velocity)
+	 * @see themidibus.SimpleMidiListener#noteOff(Note)
+	*/
+	public void noteOn(Note nt) {
 		
 	}
 	
