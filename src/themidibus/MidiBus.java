@@ -840,6 +840,7 @@ public class MidiBus {
 	 * @param channel the channel associated with the message.
 	 * @param pitch the pitch associated with the message.
 	 * @param velocity the velocity associated with the message.
+	 * @see #sendNoteOn(int channel, Note nt)
 	 * @see #sendMessage(byte[] data)
 	 * @see #sendMessage(int status)
 	 * @see #sendMessage(int status, int data)
@@ -848,6 +849,7 @@ public class MidiBus {
 	 * @see #sendMessage(MidiMessage message)
 	 * @see #sendNoteOff(int channel, int pitch, int velocity)
 	 * @see #sendControllerChange(int channel, int number, int value)
+	 * 
 	*/
 	public void sendNoteOn(int channel, int pitch, int velocity) {
 		ShortMessage message = new ShortMessage();
@@ -857,6 +859,25 @@ public class MidiBus {
 		} catch(InvalidMidiDataException e) {
 			System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
 		}
+	}
+	
+	/**
+	 * Sends a NoteOn message to a channel with the specified note.
+	 *
+	 * @param channel the channel associated with the message.
+	 * @param note the note object for the message.
+	 * @see #sendNoteOn(int channel, int pitch, int velocity)
+	 * @see #sendMessage(byte[] data)
+	 * @see #sendMessage(int status)
+	 * @see #sendMessage(int status, int data)
+	 * @see #sendMessage(int status, int data1, int data2)
+	 * @see #sendMessage(int command, int channel, int data1, int data2)
+	 * @see #sendMessage(MidiMessage message)
+	 * @see #sendNoteOff(int channel, int pitch, int velocity)
+	 * @see #sendControllerChange(int channel, int number, int value)
+	*/
+	public void sendNoteOn(int channel, Note note) {
+		sendNoteOn(channel, note.getPitch(), note.getStrength());
 	}
 	
 	/**
@@ -882,6 +903,25 @@ public class MidiBus {
 		} catch(InvalidMidiDataException e) {
 			System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
 		}
+	}
+	
+	/**
+	 * Sends a NoteOff message to a channel with the specified note.
+	 *
+	 * @param channel the channel associated with the message.
+	 * @param note the note object for the message.
+	 * @see #sendNoteOff(int channel, int pitch, int velocity)
+	 * @see #sendMessage(byte[] data)
+	 * @see #sendMessage(int status)
+	 * @see #sendMessage(int status, int data)
+	 * @see #sendMessage(int status, int data1, int data2)
+	 * @see #sendMessage(int command, int channel, int data1, int data2)
+	 * @see #sendMessage(MidiMessage message)
+	 * @see #sendNoteOff(int channel, int pitch, int velocity)
+	 * @see #sendControllerChange(int channel, int number, int value)
+	*/
+	public void sendNoteOff(int channel, Note note) {
+		sendNoteOff(channel, note.getPitch(), note.getStrength());
 	}
 	
 	/**

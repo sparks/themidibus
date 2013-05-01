@@ -84,11 +84,11 @@ public class PApplet{
 	/**
 	 * Is passes a Note object representing the released key 
 	 * 
-	 * @param Note the Note object
+	 * @param note the Note object
 	 * @see #noteOff(int channel, int pitch, int velocity)
 	 * @see themidibus.SimpleMidiListener#noteOff(Note)
 	*/
-	public void noteOff(Note nt) {
+	public void noteOff(Note note) {
 		
 	}
 	
@@ -132,11 +132,11 @@ public class PApplet{
 	/**
 	 * Is passes a Note object representing the pressed key 
 	 * 
-	 * @param Note the Note object
+	 * @param note the Note object
 	 * @see #noteOn(int channel, int pitch, int velocity)
 	 * @see themidibus.SimpleMidiListener#noteOff(Note)
 	*/
-	public void noteOn(Note nt) {
+	public void noteOn(Note note) {
 		
 	}
 	

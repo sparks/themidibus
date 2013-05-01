@@ -9,7 +9,6 @@
     -Explicitly support third party MIDI subsystem if possible (MMJ?)
     -Improve startup speed if possible
     -Migrate web page to GitHub Pages
-    -Use Note class to send a key
 
 -Version 005
   
