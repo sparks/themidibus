@@ -7,7 +7,6 @@
 
 	<property name="core.dir" value="/Applications/Processing.app/Contents/Resources/Java/"/>
 	<property name="core-lib.dir" value="/Applications/Processing.app/Contents/Resources/Java/"/>
-	<property name="contrib-lib.dir" value="/Users/sparky/Projects/processing/libraries/"/>
 
 	<property name="src.dir" value="src"/>
 	<property name="build.dir" value="bin"/>
@@ -18,9 +17,6 @@
 			<include name="**/*.jar"/>
 		</fileset>
 		<fileset dir="${core-lib.dir}">
-			<include name="**/*.jar"/>
-		</fileset>
-		<fileset dir="${contrib-lib.dir}">
 			<include name="**/*.jar"/>
 		</fileset>
 	</path>

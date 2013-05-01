@@ -53,7 +53,7 @@ public class MidiBus {
 	
 	Object parent;
 		
-	Method method_note_on, method_note_off, method_controller_change, method_raw_midi, method_midi_message;
+	Method method_note_on, method_note_off, method_note_on_wcla, method_note_off_wcla, method_controller_change, method_raw_midi, method_midi_message;
 	Method method_note_on_with_bus_name, method_note_off_with_bus_name, method_controller_change_with_bus_name, method_raw_midi_with_bus_name, method_midi_message_with_bus_name;
 	
 	/* -- Constructors -- */
@@ -840,6 +840,7 @@ public class MidiBus {
 	 * @param channel the channel associated with the message.
 	 * @param pitch the pitch associated with the message.
 	 * @param velocity the velocity associated with the message.
+	 * @see #sendNoteOn(int channel, Note nt)
 	 * @see #sendMessage(byte[] data)
 	 * @see #sendMessage(int status)
 	 * @see #sendMessage(int status, int data)
@@ -848,6 +849,7 @@ public class MidiBus {
 	 * @see #sendMessage(MidiMessage message)
 	 * @see #sendNoteOff(int channel, int pitch, int velocity)
 	 * @see #sendControllerChange(int channel, int number, int value)
+	 * 
 	*/
 	public void sendNoteOn(int channel, int pitch, int velocity) {
 		ShortMessage message = new ShortMessage();
@@ -857,6 +859,25 @@ public class MidiBus {
 		} catch(InvalidMidiDataException e) {
 			System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
 		}
+	}
+	
+	/**
+	 * Sends a NoteOn message to a channel with the specified note.
+	 *
+	 * @param channel the channel associated with the message.
+	 * @param note the note object for the message.
+	 * @see #sendNoteOn(int channel, int pitch, int velocity)
+	 * @see #sendMessage(byte[] data)
+	 * @see #sendMessage(int status)
+	 * @see #sendMessage(int status, int data)
+	 * @see #sendMessage(int status, int data1, int data2)
+	 * @see #sendMessage(int command, int channel, int data1, int data2)
+	 * @see #sendMessage(MidiMessage message)
+	 * @see #sendNoteOff(int channel, int pitch, int velocity)
+	 * @see #sendControllerChange(int channel, int number, int value)
+	*/
+	public void sendNoteOn(int channel, Note note) {
+		sendNoteOn(channel, note.getPitch(), note.getStrength());
 	}
 	
 	/**
@@ -882,6 +903,25 @@ public class MidiBus {
 		} catch(InvalidMidiDataException e) {
 			System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
 		}
+	}
+	
+	/**
+	 * Sends a NoteOff message to a channel with the specified note.
+	 *
+	 * @param channel the channel associated with the message.
+	 * @param note the note object for the message.
+	 * @see #sendNoteOff(int channel, int pitch, int velocity)
+	 * @see #sendMessage(byte[] data)
+	 * @see #sendMessage(int status)
+	 * @see #sendMessage(int status, int data)
+	 * @see #sendMessage(int status, int data1, int data2)
+	 * @see #sendMessage(int command, int channel, int data1, int data2)
+	 * @see #sendMessage(MidiMessage message)
+	 * @see #sendNoteOff(int channel, int pitch, int velocity)
+	 * @see #sendControllerChange(int channel, int number, int value)
+	*/
+	public void sendNoteOff(int channel, Note note) {
+		sendNoteOff(channel, note.getPitch(), note.getStrength());
 	}
 	
 	/**
@@ -963,6 +1003,17 @@ public class MidiBus {
 					e.printStackTrace();
 					method_note_on = null;
 				}
+			
+			}
+			if(method_note_on_wcla != null){
+				try {
+					Note nt = new Note ((int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp);
+					method_note_on_wcla.invoke(parent, nt);
+				} catch(Exception e) {
+					System.err.println("\nThe MidiBus Warning: Disabling noteOn(Note note) because an unkown exception was thrown and caught");
+					e.printStackTrace();
+					method_note_on_wcla = null;
+				}
 			}
 			if(method_note_on_with_bus_name != null) {
 				try {
@@ -990,6 +1041,16 @@ public class MidiBus {
 					System.err.println("\nThe MidiBus Warning: Disabling noteOff(int channel, int pitch, int velocity, String bus_name) with bus_name because an unkown exception was thrown and caught");
 					e.printStackTrace();
 					method_note_off_with_bus_name = null;
+				}
+			}
+			if(method_note_off_wcla != null){
+				try {
+					Note nt = new Note ((int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp);
+					method_note_off_wcla.invoke(parent, nt);
+				} catch(Exception e) {
+					System.err.println("\nThe MidiBus Warning: Disabling noteOff(Note note) because an unkown exception was thrown and caught");
+					e.printStackTrace();
+					method_note_off_wcla = null;
 				}
 			}
 		} else if((int)((byte)data[0] & 0xF0) == ShortMessage.CONTROL_CHANGE) {
@@ -1101,6 +1162,18 @@ public class MidiBus {
 			
 			try {
 				method_note_off = parent.getClass().getMethod("noteOff", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE });
+			} catch(Exception e) {
+				// no such method, or an error.. which is fine, just ignore
+			}
+			
+			try {
+				method_note_on_wcla = parent.getClass().getMethod("noteOn", new Class[] { Note.class});
+			} catch(Exception e) {
+				// no such method, or an error.. which is fine, just ignore
+			}
+			
+			try {
+				method_note_off_wcla = parent.getClass().getMethod("noteOff", new Class[] { Note.class });
 			} catch(Exception e) {
 				// no such method, or an error.. which is fine, just ignore
 			}
