@@ -37,6 +37,7 @@ void draw() {
   myBus.sendMessage(status_byte, channel_byte, first_byte, second_byte);
 
   //Or we could even send a variable length sysex message
+  //IMPORTANT: On mac you will have to use the MMJ MIDI subsystem to be able to send SysexMessages. Consult README.md for more information
 
   myBus.sendMessage(
     new byte[] {
