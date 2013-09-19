@@ -1030,6 +1030,18 @@ public class MidiBus {
 		
 			if(listener instanceof StandardMidiListener) ((StandardMidiListener)listener).midiMessage(message, timeStamp);
 			
+			/* -- ObjectMidiListener -- */
+
+			if(listener instanceof ObjectMidiListener) {
+				if((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_ON) {
+					((ObjectMidiListener)listener).noteOn(new Note((int)(data[0] & 0x0F),(int)(data[1] & 0xFF),(int)(data[2] & 0xFF)));
+				} else if((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_OFF) {
+					((ObjectMidiListener)listener).noteOff(new Note((int)(data[0] & 0x0F),(int)(data[1] & 0xFF),(int)(data[2] & 0xFF)));
+				} else if((int)((byte)data[0] & 0xF0) == ShortMessage.CONTROL_CHANGE) {
+					((ObjectMidiListener)listener).controllerChange(new ControlChange((int)(data[0] & 0x0F),(int)(data[1] & 0xFF),(int)(data[2] & 0xFF)));
+				}
+			}
+
 		}
 	}
 	
