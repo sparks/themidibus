@@ -29,6 +29,10 @@ Before you get started, it is important to understand that the MidiBus offers li
 
 The MidiBus is very straight forwards to use. A good place to start is the included Basic.pde example. From there you can look at the JavaDocs either [online](http://smallbutdigital.com/themidibus/themidibus/package-summary.html) or bundled with your library in the "reference" subdirectory. The JavaDocs are a comprehensive reference of all the MidiBus' available functionality. There are also a few advanced examples which can (hopefully) help answer the most common questions: how to work with multiple input/output devices, how to send uncommon MIDI messages and how to receive uncommon MIDI messages.
 
+## Using Alternate MIDI Subsytem
+
+The Apple MIDI subsystem has a number of problems. Most notably it doesn't seem to support MIDI messages with status >= 0xF0 such as SysEx messages. You can use [MMJ](http://www.humatic.de/htools/mmj.htm) as an alternate subsystem. To do so you must also disable timestamps in your MidiBus instance otherwise MMJ won't work properly. You can do so by calling `mybus.sendTimestamp(false)`
+
 ## Liscence
 
 GPL3
