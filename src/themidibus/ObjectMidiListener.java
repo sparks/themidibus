@@ -23,7 +23,7 @@ package themidibus;
  * A ObjectMidiListener can be notified of incomming NoteOn, NoteOff and ControllerChange events via {@link Note} and {@link ControlChange} objects, usually by a MidiBus object which it is connected to. Typically it would analyse and react to incomming messages in some useful way.
  *
  * @version 006
- * @author Severin Smith
+ * @author Severin Smith, Marc Koderer
  * @see MidiListener
  * @see RawMidiListener
  * @see SimpleMidiListener
