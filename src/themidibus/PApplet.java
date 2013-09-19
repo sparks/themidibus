@@ -41,7 +41,7 @@ public class PApplet{
 	 * @param channel the channel on which the ContollerChange arrived
 	 * @param number the controller number associated with the ContollerChange
 	 * @param value the controller value associated with the ContollerChange
-	 * @see #controllerChange(int channel, int pitch, int velocity, String bus_name)
+	 * @see #controllerChange(int channel, int pitch, int velocity, long timestamp, String bus_name)
 	*/
 	public void controllerChange(int channel, int number, int value) {
 		
@@ -76,7 +76,7 @@ public class PApplet{
 	 * Is passed the raw MidiMessage associated with every new MIDI message recieved by a MidiBus attached to this applet.
 	 *
 	 * @param message the MidiMessage recieved
-	 * @see #midiMessage(MidiMessage message, String bus_name)
+	 * @see #midiMessage(MidiMessage message, long timestamp, String bus_name)
 	*/
 	public void midiMessage(MidiMessage message) {
 		
@@ -100,7 +100,7 @@ public class PApplet{
 	 * @param channel the channel on which the NoteOff arrived
 	 * @param pitch the pitch associated with the NoteOff
 	 * @param velocity the velocity associated with the NoteOff
-	 * @see #noteOff(int channel, int pitch, int velocity, String bus_name)
+	 * @see #noteOff(int channel, int pitch, int velocity, long timestamp, String bus_name)
 	*/
 	public void noteOff(int channel, int pitch, int velocity) {
 		
@@ -124,7 +124,6 @@ public class PApplet{
 	 * Is passed a Note object representing noteOff event
 	 * 
 	 * @param note the Note object
-	 * @param note the Note object
 	 * @see #noteOff(int channel, int pitch, int velocity)
 	 * @see themidibus.ObjectMidiListener#noteOn(Note)
 	*/
@@ -138,7 +137,7 @@ public class PApplet{
 	 * @param channel the channel on which the NoteOn arrived
 	 * @param pitch the pitch associated with the NoteOn
 	 * @param velocity the velocity associated with the NoteOn
-	 * @see #noteOn(int channel, int pitch, int velocity, String bus_name)
+	 * @see #noteOn(int channel, int pitch, int velocity, long timestamp, String bus_name)
 	*/
 	public void noteOn(int channel, int pitch, int velocity) {
 		
@@ -173,7 +172,7 @@ public class PApplet{
 	 * Is passed the raw data associated with every new MIDI message recieved by a MidiBus attached to this applet.
 	 *
 	 * @param data the raw data associated with the MIDI message
-	 * @see #rawMidi(byte[] data, String bus_name)
+	 * @see #rawMidi(byte[] data, long timestamp, String bus_name)
 	*/
 	public void rawMidi(byte[] data) {
 		

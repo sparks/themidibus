@@ -145,7 +145,7 @@ public class MidiBus {
 	/**
 	 * Constructs a new MidiBus and registers the specified parent (PApplet or other) for callbacks. Opens the MIDI input and output devices specified by the names in_device_name and out_device_name. An empty String can be passed to in_device_name if no input MIDI device is to be opened, or to out_device_name if no output MIDI device is to be opened. The new MidiBus's bus_name will be generated automatically.
 	 * <p>
-	 * If two or more MIDI inputs have the same name, whichever appears first when {@link #list()} is called will be added, simlarly for two or more MIDI outputs with the same name. If this behavior is problematic use {@link #MidiBus(processing.core.PApplet parent, int in_device_num, int out_device_num)} instead.
+	 * If two or more MIDI inputs have the same name, whichever appears first when {@link #list()} is called will be added, simlarly for two or more MIDI outputs with the same name. If this behavior is problematic use {@link #MidiBus(Object parent, int in_device_num, int out_device_num)} instead.
 	 *
 	 * @param parent the parent to which this MidiBus is attached.
 	 * @param in_device_name the name of the MIDI input device to be opened.
@@ -165,7 +165,7 @@ public class MidiBus {
 	/**
 	 * Constructs a new MidiBus with the specified bus_name and registers the specified parent (PApplet or other) for callbacks. Opens the MIDI input and output devices specified by the names out_device_name and out_device_name. An empty String can be passed to in_device_name if no input MIDI device is to be opened, or to out_device_name if no output MIDI device is to be opened.
 	 * <p>
-	 * If two or more MIDI inputs have the same name, whichever appears first when {@link #list()} is called will be added, simlarly for two or more MIDI outputs with the same name. If this behavior is problematic use {@link #MidiBus(processing.core.PApplet parent, int in_device_num, int out_device_num, String bus_name)} instead.
+	 * If two or more MIDI inputs have the same name, whichever appears first when {@link #list()} is called will be added, simlarly for two or more MIDI outputs with the same name. If this behavior is problematic use {@link #MidiBus(Object parent, int in_device_num, int out_device_num, String bus_name)} instead.
 	 *
 	 * @param parent the parent to which this MidiBus is attached.
 	 * @param in_device_name the name of the MIDI input device to be opened.
@@ -1203,8 +1203,7 @@ public class MidiBus {
 
 		if(old_parent != null) {
 			if(old_parent instanceof processing.core.PApplet) {
-				((processing.core.PApplet) parent).unregisterDispose(this);
-				// ((processing.core.PApplet parent).unregisterMethod("dispose", this);
+				((processing.core.PApplet) parent).unregisterMethod("dispose", this);
 			}
 
 			method_note_on = null;
@@ -1225,8 +1224,7 @@ public class MidiBus {
 		if(parent != null) {
 
 			if(parent instanceof processing.core.PApplet) {
-				((processing.core.PApplet) parent).registerDispose(this);
-				// ((processing.core.PApplet parent).registerMethod("dispose", this);
+				((processing.core.PApplet) parent).registerMethod("dispose", this);
 			}
 
 			try {
@@ -1481,7 +1479,6 @@ public class MidiBus {
 		close();
 		if(parent instanceof processing.core.PApplet) {
 			((processing.core.PApplet) parent).unregisterDispose(this);
-			// ((processing.core.PApplet parent).unregisterMethod("dispose", this);
 		}
 	}
 	

@@ -61,7 +61,6 @@ public class Note {
 	 * @param channel the channel of the Note
 	 * @param pitch the pitch of the Note
 	 * @param velocity the velocity of the Note
-	 * @param ticks the length in ticks of the Note
 	*/
 	public Note(int channel, int pitch, int velocity) {
 		this(channel, pitch, velocity, 0, -1, null);
