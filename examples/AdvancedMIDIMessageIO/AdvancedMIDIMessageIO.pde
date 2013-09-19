@@ -11,6 +11,10 @@ void setup() {
 
   MidiBus.list(); // List all available Midi devices on STDOUT. This will show each device's index and name.
   myBus = new MidiBus(this, 0, 0); // Create a new MidiBus object
+
+  // On mac you will need to use MMJ since apple's MIDI subsystem doesn't properly support SysEx. 
+  // However MMJ doesn't support sending timestamps so you have to turn off timestamps.
+  // myBus.sendTimestamps(false);
 }
 
 void draw() {
