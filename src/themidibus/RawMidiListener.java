@@ -27,6 +27,7 @@ package themidibus;
  * @see MidiListener
  * @see SimpleMidiListener
  * @see StandardMidiListener
+ * @see ObjectMidiListener
  * @see MidiBus
 */
 public interface RawMidiListener extends MidiListener {
