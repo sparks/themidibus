@@ -22,7 +22,7 @@ package themidibus;
 /**
  * A RawMidiListener can be notified of incomming MIDI messages in raw form, usually by a MidiBus object which it is connect to. Typically it would analyse and react to incomming MIDI messages in some useful way.
  *
- * @version 006
+ * @version 007
  * @author Severin Smith
  * @see MidiListener
  * @see SimpleMidiListener

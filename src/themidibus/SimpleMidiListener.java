@@ -22,7 +22,7 @@ package themidibus;
 /**
  * A SimpleMidiListener can be notified of incomming NoteOn, NoteOff and ControllerChange MIDI messages, usually by a MidiBus object which it is connected to. Typically it would analyse and react to incomming MIDI messages in some useful way.
  *
- * @version 006
+ * @version 007
  * @author Severin Smith
  * @see MidiListener
  * @see RawMidiListener
