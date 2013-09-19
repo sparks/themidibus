@@ -58,6 +58,8 @@ public class MidiBus {
 	Method method_note_on, method_note_off, method_controller_change, method_raw_midi, method_midi_message;
 	Method method_note_on_with_bus_name, method_note_off_with_bus_name, method_controller_change_with_bus_name, method_raw_midi_with_bus_name, method_midi_message_with_bus_name;
 	Method method_note_on_wcla, method_note_off_wcla, method_controller_change_wcla;
+
+	boolean sendTimestamps;
 	
 	/* -- Constructors -- */
 
@@ -281,6 +283,8 @@ public class MidiBus {
 		output_devices = new Vector<OutputDeviceContainer>();
 		
 		listeners = new Vector<MidiListener>();
+
+		sendTimestamps = true;
 	}
 
 	/* -- Input/Output Handling -- */
@@ -851,7 +855,8 @@ public class MidiBus {
 	*/
 	public synchronized void sendMessage(MidiMessage message) {
 		for(OutputDeviceContainer container : output_devices) {
-			container.receiver.send(message, System.currentTimeMillis());
+			if(sendTimestamps) container.receiver.send(message, System.currentTimeMillis());
+			else container.receiver.send(message, 0);
 		}
 	}
 	
@@ -1350,6 +1355,24 @@ public class MidiBus {
 		if(value > max) value = max;
 		if(value < min) value = min;
 		return value;
+	}
+
+	/**
+	 * Returns whether this MidiBus is sending timestamps along with MIDI information to the MIDI subsystem.
+	 *
+	 * @return true if this MidiBus is sending timestamps.
+	*/
+	public boolean sendTimestamps() {
+		return sendTimestamps;
+	}
+
+	/**
+	 * Configure this MidiBus instance to send or not to send timestamps along with MIDI information to the MIDI subsystem.
+	 *
+	 * @param sendTimestamps set to true if you want timestamps to be sent, otherwise set to false.
+	*/
+	public void sendTimestamps(boolean sendTimestamps) {
+		this.sendTimestamps = sendTimestamps;
 	}
 	
 	/**
