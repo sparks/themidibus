@@ -1,4 +1,4 @@
--Version 006
+-Version 007
 
   Changes:
     -Added constructors to MidiBus which allow parent as Object, for use outside of Processing
@@ -7,9 +7,7 @@
     -Introduce new class called Note and ControlChange
     -Provide an object oriented interface using Note and ControlChange both via processing (PApplet) and with callbacks with listeners
     -Allow sending timestamps to be disabled so MMJ can be used
-  ToDo:
-    -Improve startup speed if possible
-    -Migrate web page to GitHub Pages
+    -Attempted to improve startup speed
 
 -Version 005
   
