@@ -31,7 +31,7 @@ The MidiBus is very straight forwards to use. A good place to start is the inclu
 
 ## Using Alternate MIDI Subsytem
 
-The Apple MIDI subsystem has a number of problems. Most notably it doesn't seem to support MIDI messages with status >= 0xF0 such as SysEx messages. You can use [MMJ](http://www.humatic.de/htools/mmj.htm) as an alternate subsystem. To do so you must also disable timestamps in your MidiBus instance otherwise MMJ won't work properly. You can do so by calling `mybus.sendTimestamp(false)`
+The Apple MIDI subsystem has a number of problems. Most notably it doesn't seem to support MIDI messages with status >= 0xF0 such as SysEx messages. You can use [MMJ](http://www.humatic.de/htools/mmj.htm) as an alternate subsystem. To do so, download mmj and add both `mmj.jar` and `libmmj.jnilib` to the midibus `library` subdirectory. You must also disable timestamps in your MidiBus instance otherwise MMJ won't work properly. You can do so by calling `mybus.sendTimestamp(false)`
 
 ## Liscence
 
