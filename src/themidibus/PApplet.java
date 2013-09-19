@@ -60,6 +60,17 @@ public class PApplet{
 	public void controllerChange(int channel, int number, int value, long timestamp, String bus_name) {
 		
 	}
+
+	/**
+	 * Is passed a ControlChange object representing controlChange event
+	 * 
+	 * @param change the ControlChange object
+	 * @see #controllerChange(int channel, int pitch, int velocity)
+	 * @see themidibus.ObjectMidiListener#controllerChange(ControlChange)
+	*/
+	public void controllerChange(ControlChange change) {
+		
+	}
 	
 	/**
 	 * Is passed the raw MidiMessage associated with every new MIDI message recieved by a MidiBus attached to this applet.
@@ -108,6 +119,18 @@ public class PApplet{
 	public void noteOff(int channel, int pitch, int velocity, long timestamp, String bus_name) {
 		
 	}
+
+	/**
+	 * Is passed a Note object representing noteOff event
+	 * 
+	 * @param note the Note object
+	 * @param note the Note object
+	 * @see #noteOff(int channel, int pitch, int velocity)
+	 * @see themidibus.ObjectMidiListener#noteOn(Note)
+	*/
+	public void noteOff(Note note) {
+		
+	}
 	
 	/**
 	 * Is passed the channel, pitch and velocity associated with every new NoteOn MIDI message recieved by a MidiBus attached to this applet.
@@ -132,6 +155,17 @@ public class PApplet{
 	 * @see #noteOn(int channel, int pitch, int velocity)
 	*/
 	public void noteOn(int channel, int pitch, int velocity, long timestamp, String bus_name) {
+		
+	}
+
+	/**
+	 * Is passed a Note object representing noteOn event
+	 * 
+	 * @param note the Note object
+	 * @see #noteOn(int channel, int pitch, int velocity)
+	 * @see themidibus.ObjectMidiListener#noteOff(Note)
+	*/
+	public void noteOn(Note note) {
 		
 	}
 	

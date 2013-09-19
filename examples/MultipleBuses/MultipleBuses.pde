@@ -61,13 +61,14 @@ void draw() {
   delay(2000);
 }
 
-void noteOn(int channel, int pitch, int velocity, String bus_name) {
+void noteOn(int channel, int pitch, int velocity, long timestamp, String bus_name) {
   println();
   println("Note On:");
   println("--------");
   println("Channel:"+channel);
   println("Pitch:"+pitch);
   println("Velocity:"+velocity);
+  println("Timestamp:"+timestamp);
   println("Recieved on Bus:"+bus_name);
   if (bus_name == "busA") {
     println("This came from IncomingA");
@@ -76,13 +77,14 @@ void noteOn(int channel, int pitch, int velocity, String bus_name) {
   }
 }
 
-void noteOff(int channel, int pitch, int velocity, String bus_name) {
+void noteOff(int channel, int pitch, int velocity, long timestamp, String bus_name) {
   println();
   println("Note Off:");
   println("--------");
   println("Channel:"+channel);
   println("Pitch:"+pitch);
   println("Velocity:"+velocity);
+  println("Timestamp:"+timestamp);
   println("Recieved on Bus:"+bus_name);
   if (bus_name == "busA") {
     println("This came from IncomingA");
@@ -91,13 +93,14 @@ void noteOff(int channel, int pitch, int velocity, String bus_name) {
   }
 }
 
-void controllerChange(int channel, int number, int value, String bus_name) {
+void controllerChange(int channel, int number, int value, long timestamp, String bus_name) {
   println();
   println("Controller Change:");
   println("--------");
   println("Channel:"+channel);
   println("Number:"+number);
   println("Value:"+value);
+  println("Timestamp:"+timestamp);
   println("Recieved on Bus:"+bus_name);
   if (bus_name == "busA") {
     println("This came from IncomingA");

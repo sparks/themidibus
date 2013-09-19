@@ -27,6 +27,7 @@ package themidibus;
  * @see MidiListener
  * @see RawMidiListener
  * @see StandardMidiListener
+ * @see ObjectMidiListener
  * @see MidiBus
 */
 

@@ -1,20 +1,20 @@
 /**
  * Copyright (c) 2009 Severin Smith
-
+ *
  * This file is part of a library called The MidiBus (themidibus) - http://www.smallbutdigital.com/themidibus.php.
-
- * themidibus is free software: you can redistribute it and/or modify
+ *
+ * The MidiBus is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
-
- * themidibus is distributed in the hope that it will be useful,
+ *
+ * The MidiBus is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
-
+ *
  * You should have received a copy of the GNU General Public License
- * along with themidibus. If not, see <http://www.gnu.org/licenses/>.
+ * along with the MidiBus. If not, see <http://www.gnu.org/licenses/>.
 */
 
 package themidibus;
@@ -29,6 +29,7 @@ import javax.sound.midi.MidiMessage;
  * @see MidiListener
  * @see RawMidiListener
  * @see SimpleMidiListener
+ * @see ObjectMidiListener
  * @see MidiBus
  * @see javax.sound.midi.MidiMessage
 */
