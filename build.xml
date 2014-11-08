@@ -5,8 +5,8 @@
 -->
 <project name="themidibus" basedir="." default="main">
 
-	<property name="core.dir" value="/Applications/Processing.app/Contents/Resources/Java/"/>
-	<property name="core-lib.dir" value="/Applications/Processing.app/Contents/Resources/Java/"/>
+	<property name="core.dir" value="/Applications/Processing.app/Contents/Java/"/>
+	<property name="core-lib.dir" value="/Applications/Processing.app/Contents/Java/"/>
 
 	<property name="src.dir" value="src"/>
 	<property name="build.dir" value="bin"/>
