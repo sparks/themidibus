@@ -25,7 +25,7 @@ void setup() {
   String[] unavailable = MidiBus.unavailableDevices(); //Returns an array of unavailable devices
   for (int i = 0;i < unavailable.length;i++) System.out.println("["+i+"] \""+unavailable[i]+"\"");
 
-  busA = new MidiBus(this, 0, 2, "busA"); //Create a first new MidiBus attached to the IncommingA Midi input device and the OutgoingA Midi output device. We will name it busA.
+  busA = new MidiBus(this, "IncomingA", "OutgoingA", "busA"); //Create a first new MidiBus attached to the IncommingA Midi input device and the OutgoingA Midi output device. We will name it busA.
   busB = new MidiBus(this, "IncomingB", "OutgoingB", "busB"); //Create a second new MidiBus attached to the IncommingB Midi input device and the OutgoingB Midi output device. We will name it busB.
 
   busA.addOutput("OutgoingC"); //Add a new output device to busA called OutgoingC
