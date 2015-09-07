@@ -664,7 +664,7 @@ public class MidiBus {
 	 * @see #clearInputs()
 	 * @see #clearAll()
 	 * @see #stop()
-	 * @see #clear()
+	 * @see #close()
 	 * @see #dispose()
 	*/
 	void closeAllMidiDevices() {
