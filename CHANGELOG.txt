@@ -1,3 +1,7 @@
+-Version 008
+  Changes:
+    -Remove register/unregister dispose to be compatible with Processing 3.0
+
 -Version 007
 
   Changes:

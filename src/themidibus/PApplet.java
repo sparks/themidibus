@@ -25,7 +25,7 @@ import javax.sound.midi.MidiMessage;
  * <p>
  * <i><b style="color:red;">Note:</b> This page is a dummy page for documentation of the MidiBus' extention of the regular PApplet's functionality, for the full documentation of PApplet please visits the <a target="_blank" href="http://dev.processing.org/reference/core/javadoc/processing/core/PApplet.html">Processing javadocs</a></i>
  *
- * @version 007
+ * @version 008
  * @author Severin Smith
  * @see MidiBus
  * @see MidiListener
