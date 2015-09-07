@@ -1202,10 +1202,6 @@ public class MidiBus {
 		Object old_parent = this.parent;
 
 		if(old_parent != null) {
-			if(old_parent instanceof processing.core.PApplet) {
-				((processing.core.PApplet) parent).unregisterMethod("dispose", this);
-			}
-
 			method_note_on = null;
 			method_note_off = null;
 			method_controller_change = null;
@@ -1477,9 +1473,6 @@ public class MidiBus {
 	*/
 	protected void finalize() {
 		close();
-		if(parent instanceof processing.core.PApplet) {
-			((processing.core.PApplet) parent).unregisterDispose(this);
-		}
 	}
 	
 	/* -- Shutting Down -- */
