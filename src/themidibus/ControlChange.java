@@ -128,7 +128,7 @@ public class ControlChange {
 	 * @return the string representation
 	*/
 	public String toString() {
-		String result = "[c:" + channel + ", v:" + number + ", n:" + value;
+		String result = "[c:" + channel + ", n:" + number + ", v:" + value;
 		if(timestamp != -1) result += ", ts:" + timestamp;
 		if(bus_name != null) result += ", b:" + bus_name;
 		result += "]";
