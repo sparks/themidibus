@@ -2,4 +2,7 @@
 bin
 reference
 library
-
+.settings/
+target/
+.project
+.classpath
