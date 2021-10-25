@@ -19,22 +19,62 @@
 
 package themidibus;
 
-import javax.sound.midi.*;
-import java.util.Vector;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Formatter;
+import java.util.List;
+
+import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MetaMessage;
+import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiDevice.Info;
+import javax.sound.midi.MidiMessage;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.MidiUnavailableException;
+import javax.sound.midi.Receiver;
+import javax.sound.midi.ShortMessage;
+import javax.sound.midi.SysexMessage;
+import javax.sound.midi.Transmitter;
 
 import processing.core.PApplet;
-import java.lang.reflect.Method;
 
 /**
- * The MidiBus class provides a simple way to send and receive MIDI within Processing sketches.
+ * The MidiBus class provides a simple way to send and receive MIDI within
+ * Processing sketches.
  * <p>
  * <h4>Typical Implementation, Simple</h4>
  * <p>
- * A typical simple Processing MIDI application would begin by invoking the static method {@link #list()} to learn what devices are available. Then using that information a new MidiBus object would be instantiated with with the desired MIDI input and/or output devices. The Processing sketch could then send midi via MidiBus's outgoing methods such as {@link #sendNoteOn(int channel, int pitch, int velocity)}, {@link #sendNoteOff(int channel, int pitch, int velocity)} and {@link #sendControllerChange(int channel, int number, int value)} and receive midi via the PApplet methods this package provides support for such as {@link PApplet#noteOn(int channel, int pitch, int velocity)}, {@link PApplet#noteOff(int channel, int pitch, int velocity)} and {@link PApplet#controllerChange(int channel, int number, int value)}.
+ * A typical simple Processing MIDI application would begin by invoking the
+ * static method {@link #list()} to learn what devices are available. Then using
+ * that information a new MidiBus object would be instantiated with with the
+ * desired MIDI input and/or output devices. The Processing sketch could then
+ * send midi via MidiBus's outgoing methods such as
+ * {@link #sendNoteOn(int channel, int pitch, int velocity)},
+ * {@link #sendNoteOff(int channel, int pitch, int velocity)} and
+ * {@link #sendControllerChange(int channel, int number, int value)} and receive
+ * midi via the PApplet methods this package provides support for such as
+ * {@link PApplet#noteOn(int channel, int pitch, int velocity)},
+ * {@link PApplet#noteOff(int channel, int pitch, int velocity)} and
+ * {@link PApplet#controllerChange(int channel, int number, int value)}.
  * <h4>Typical Implementation, Advanced</h4>
  * <p>
- * If you wish to build more complex Processing MIDI applications you can add more input and output devices to any given instance of MidiBus via the addInput() and addOutput() methods. However it is important to understand that each MidiBus object acts like 2 MIDI buses, one for input and one for output. This means, that by design, outgoing MIDI messages are sent to <i>all</i> output devices connected to a given instance of MidiBus, and incomming messages from <i>all</i> input devices connected to a given instance of MidiBus are <i>merged</i> upon reception. In practice, this means that, by design, you cannot tell which of the devices connected to a given instance of MidiBus sent a particular message, nor can you send a MIDI message to one particular device connected to that object. Instead, for independent reception/transmission to different <i>sets</i> of MIDI devices, you can instantiate more than one MidiBus object inside your Processing sketch. Each instance of MidiBus will only send MIDI messages to output devices which are connected to it and inbound MIDI messages arriving at each MidiBus can be diferentiated using the the {@link PApplet} methods with the bus_name parameter.
+ * If you wish to build more complex Processing MIDI applications you can add
+ * more input and output devices to any given instance of MidiBus via the
+ * addInput() and addOutput() methods. However it is important to understand
+ * that each MidiBus object acts like 2 MIDI buses, one for input and one for
+ * output. This means, that by design, outgoing MIDI messages are sent to
+ * <i>all</i> output devices connected to a given instance of MidiBus, and
+ * incomming messages from <i>all</i> input devices connected to a given
+ * instance of MidiBus are <i>merged</i> upon reception. In practice, this means
+ * that, by design, you cannot tell which of the devices connected to a given
+ * instance of MidiBus sent a particular message, nor can you send a MIDI
+ * message to one particular device connected to that object. Instead, for
+ * independent reception/transmission to different <i>sets</i> of MIDI devices,
+ * you can instantiate more than one MidiBus object inside your Processing
+ * sketch. Each instance of MidiBus will only send MIDI messages to output
+ * devices which are connected to it and inbound MIDI messages arriving at each
+ * MidiBus can be diferentiated using the the {@link PApplet} methods with the
+ * bus_name parameter.
  *
  * @version 008
  * @author Severin Smith
@@ -43,43 +83,47 @@ import java.lang.reflect.Method;
  * @see RawMidiListener
  * @see StandardMidiListener
  * @see SimpleMidiListener
-*/
+ */
 public class MidiBus {
-		
+
 	static MidiDevice.Info[] available_devices;
 
 	String bus_name;
-		
-	Vector<InputDeviceContainer> input_devices;
-	Vector<OutputDeviceContainer> output_devices;
 
-	Vector<MidiListener> listeners;
-	
+	List<InputDeviceContainer> input_devices;
+	List<OutputDeviceContainer> output_devices;
+
+	List<MidiListener> listeners;
+
 	Object parent;
-		
+
 	Method method_note_on, method_note_off, method_controller_change, method_raw_midi, method_midi_message;
-	Method method_note_on_with_bus_name, method_note_off_with_bus_name, method_controller_change_with_bus_name, method_raw_midi_with_bus_name, method_midi_message_with_bus_name;
+	Method method_note_on_with_bus_name, method_note_off_with_bus_name, method_controller_change_with_bus_name,
+			method_raw_midi_with_bus_name, method_midi_message_with_bus_name;
 	Method method_note_on_wcla, method_note_off_wcla, method_controller_change_wcla;
 
 	boolean sendTimestamps;
-	
+
 	/* -- Constructors -- */
 
 	/**
-	 * Constructs a new Midibus. The new Midibus's bus_name will be generated automatically.
+	 * Constructs a new Midibus. The new Midibus's bus_name will be generated
+	 * automatically.
 	 *
 	 * @see #addInput(int device_num)
 	 * @see #addInput(String device_name)
 	 * @see #addOutput(int device_num)
 	 * @see #addOutput(String device_name)
 	 * @see #list()
-	*/
+	 */
 	public MidiBus() {
 		init(null, null);
 	}
-	
+
 	/**
-	 * Constructs a new MidiBus and registers the specified parent (PApplet or other) for callbacks. No input or output MIDI devices will be opened. The new MidiBus's bus_name will be generated automatically.
+	 * Constructs a new MidiBus and registers the specified parent (PApplet or
+	 * other) for callbacks. No input or output MIDI devices will be opened. The new
+	 * MidiBus's bus_name will be generated automatically.
 	 *
 	 * @param parent the parent to which this MidiBus is attached.
 	 * @see #addInput(int device_num)
@@ -87,98 +131,126 @@ public class MidiBus {
 	 * @see #addOutput(int device_num)
 	 * @see #addOutput(String device_name)
 	 * @see #list()
-	*/
+	 */
 	public MidiBus(Object parent) {
 		init(parent, null);
 	}
 
 	/**
-	 * Constructs a new MidiBus with the specified bus_name and registers the specified parent (PApplet or other) for callbacks. No input or output MIDI devices will be opened.
+	 * Constructs a new MidiBus with the specified bus_name and registers the
+	 * specified parent (PApplet or other) for callbacks. No input or output MIDI
+	 * devices will be opened.
 	 *
-	 * @param parent the parent to which this MidiBus is attached.
+	 * @param parent   the parent to which this MidiBus is attached.
 	 * @param bus_name the String which which identifies this MidiBus.
 	 * @see #addInput(int device_num)
 	 * @see #addInput(String device_name)
 	 * @see #addOutput(int device_num)
 	 * @see #addOutput(String device_name)
 	 * @see #list()
-	*/
+	 */
 	public MidiBus(Object parent, String bus_name) {
 		init(parent, bus_name);
 	}
 
 	/**
-	 * Constructs a new MidiBus and registers the specified parent (PApplet or other) for callbacks. Opens the MIDI input and output devices specified by the indexes in_device_num and out_device_num. A value of -1 can be passed to in_device_num if no input MIDI device is to be opened, or to out_device_num if no output MIDI device is to be opened. The new MidiBus's bus_name will be generated automatically.
+	 * Constructs a new MidiBus and registers the specified parent (PApplet or
+	 * other) for callbacks. Opens the MIDI input and output devices specified by
+	 * the indexes in_device_num and out_device_num. A value of -1 can be passed to
+	 * in_device_num if no input MIDI device is to be opened, or to out_device_num
+	 * if no output MIDI device is to be opened. The new MidiBus's bus_name will be
+	 * generated automatically.
 	 *
-	 * @param parent the parent to which this MidiBus is attached.
-	 * @param in_device_num the index of the MIDI input device to be opened.
+	 * @param parent         the parent to which this MidiBus is attached.
+	 * @param in_device_num  the index of the MIDI input device to be opened.
 	 * @param out_device_num the index of the MIDI output device to be opened.
 	 * @see #addInput(int device_num)
 	 * @see #addInput(String device_name)
 	 * @see #addOutput(int device_num)
 	 * @see #addOutput(String device_name)
 	 * @see #list()
-	*/
-	public MidiBus(Object parent, int in_device_num, int out_device_num) {		
+	 */
+	public MidiBus(Object parent, int in_device_num, int out_device_num) {
 		init(parent, null);
 		addInput(in_device_num);
 		addOutput(out_device_num);
 	}
-	
+
 	/**
-	 * Constructs a new MidiBus with the specified bus_name and registers the specified parent (PApplet or other) for callbacks. Opens the MIDI input and output devices specified by the indexes in_device_num and out_device_num. A value of -1 can be passed to in_device_num if no input MIDI device is to be opened, or to out_device_num if no output MIDI device is to be opened.
+	 * Constructs a new MidiBus with the specified bus_name and registers the
+	 * specified parent (PApplet or other) for callbacks. Opens the MIDI input and
+	 * output devices specified by the indexes in_device_num and out_device_num. A
+	 * value of -1 can be passed to in_device_num if no input MIDI device is to be
+	 * opened, or to out_device_num if no output MIDI device is to be opened.
 	 *
-	 * @param parent the parent to which this MidiBus is attached.
-	 * @param in_device_num the index of the MIDI input device to be opened.
+	 * @param parent         the parent to which this MidiBus is attached.
+	 * @param in_device_num  the index of the MIDI input device to be opened.
 	 * @param out_device_num the index of the MIDI output device to be opened.
-	 * @param bus_name the String which which identifies this MidiBus.
+	 * @param bus_name       the String which which identifies this MidiBus.
 	 * @see #addInput(int device_num)
 	 * @see #addInput(String device_name)
 	 * @see #addOutput(int device_num)
 	 * @see #addOutput(String device_name)
 	 * @see #list()
-	*/
-	public MidiBus(Object parent, int in_device_num, int out_device_num, String bus_name) {		
+	 */
+	public MidiBus(Object parent, int in_device_num, int out_device_num, String bus_name) {
 		init(parent, bus_name);
 		addInput(in_device_num);
 		addOutput(out_device_num);
 	}
-	
+
 	/**
-	 * Constructs a new MidiBus and registers the specified parent (PApplet or other) for callbacks. Opens the MIDI input and output devices specified by the names in_device_name and out_device_name. An empty String can be passed to in_device_name if no input MIDI device is to be opened, or to out_device_name if no output MIDI device is to be opened. The new MidiBus's bus_name will be generated automatically.
+	 * Constructs a new MidiBus and registers the specified parent (PApplet or
+	 * other) for callbacks. Opens the MIDI input and output devices specified by
+	 * the names in_device_name and out_device_name. An empty String can be passed
+	 * to in_device_name if no input MIDI device is to be opened, or to
+	 * out_device_name if no output MIDI device is to be opened. The new MidiBus's
+	 * bus_name will be generated automatically.
 	 * <p>
-	 * If two or more MIDI inputs have the same name, whichever appears first when {@link #list()} is called will be added, simlarly for two or more MIDI outputs with the same name. If this behavior is problematic use {@link #MidiBus(Object parent, int in_device_num, int out_device_num)} instead.
+	 * If two or more MIDI inputs have the same name, whichever appears first when
+	 * {@link #list()} is called will be added, simlarly for two or more MIDI
+	 * outputs with the same name. If this behavior is problematic use
+	 * {@link #MidiBus(Object parent, int in_device_num, int out_device_num)}
+	 * instead.
 	 *
-	 * @param parent the parent to which this MidiBus is attached.
-	 * @param in_device_name the name of the MIDI input device to be opened.
+	 * @param parent          the parent to which this MidiBus is attached.
+	 * @param in_device_name  the name of the MIDI input device to be opened.
 	 * @param out_device_name the name of the MIDI output device to be opened.
 	 * @see #addInput(int device_num)
 	 * @see #addInput(String device_name)
 	 * @see #addOutput(int device_num)
 	 * @see #addOutput(String device_name)
 	 * @see #list()
-	*/
+	 */
 	public MidiBus(Object parent, String in_device_name, String out_device_name) {
 		init(parent, null);
 		addInput(in_device_name);
 		addOutput(out_device_name);
 	}
-	
+
 	/**
-	 * Constructs a new MidiBus with the specified bus_name and registers the specified parent (PApplet or other) for callbacks. Opens the MIDI input and output devices specified by the names out_device_name and out_device_name. An empty String can be passed to in_device_name if no input MIDI device is to be opened, or to out_device_name if no output MIDI device is to be opened.
+	 * Constructs a new MidiBus with the specified bus_name and registers the
+	 * specified parent (PApplet or other) for callbacks. Opens the MIDI input and
+	 * output devices specified by the names out_device_name and out_device_name. An
+	 * empty String can be passed to in_device_name if no input MIDI device is to be
+	 * opened, or to out_device_name if no output MIDI device is to be opened.
 	 * <p>
-	 * If two or more MIDI inputs have the same name, whichever appears first when {@link #list()} is called will be added, simlarly for two or more MIDI outputs with the same name. If this behavior is problematic use {@link #MidiBus(Object parent, int in_device_num, int out_device_num, String bus_name)} instead.
+	 * If two or more MIDI inputs have the same name, whichever appears first when
+	 * {@link #list()} is called will be added, simlarly for two or more MIDI
+	 * outputs with the same name. If this behavior is problematic use
+	 * {@link #MidiBus(Object parent, int in_device_num, int out_device_num, String bus_name)}
+	 * instead.
 	 *
-	 * @param parent the parent to which this MidiBus is attached.
-	 * @param in_device_name the name of the MIDI input device to be opened.
+	 * @param parent          the parent to which this MidiBus is attached.
+	 * @param in_device_name  the name of the MIDI input device to be opened.
 	 * @param out_device_name the name of the MIDI output device to be opened.
-	 * @param bus_name the String which which identifies this MidiBus.
+	 * @param bus_name        the String which which identifies this MidiBus.
 	 * @see #addInput(int device_num)
 	 * @see #addInput(String device_name)
 	 * @see #addOutput(int device_num)
 	 * @see #addOutput(String device_name)
 	 * @see #list()
-	*/
+	 */
 	public MidiBus(Object parent, String in_device_name, String out_device_name, String bus_name) {
 		init(parent, bus_name);
 		addInput(in_device_name);
@@ -186,19 +258,19 @@ public class MidiBus {
 	}
 
 	/* -- Yet even more delicious constructor flavors -- */
-	
+
 	/**
 	 * More flavors of constructor, similar to the others, but with mixed arguments
 	 *
-	 * @param parent the parent to which this MidiBus is attached.
-	 * @param in_device_num the name of the MIDI input device to be opened.
+	 * @param parent          the parent to which this MidiBus is attached.
+	 * @param in_device_num   the name of the MIDI input device to be opened.
 	 * @param out_device_name the name of the MIDI output device to be opened.
 	 * @see #addInput(int device_num)
 	 * @see #addInput(String device_name)
 	 * @see #addOutput(int device_num)
 	 * @see #addOutput(String device_name)
 	 * @see #list()
-	*/
+	 */
 	public MidiBus(Object parent, int in_device_num, String out_device_name) {
 		init(parent, null);
 		addInput(in_device_num);
@@ -208,16 +280,16 @@ public class MidiBus {
 	/**
 	 * More flavors of constructor, similar to the others, but with mixed arguments
 	 *
-	 * @param parent the parent to which this MidiBus is attached.
-	 * @param in_device_num the name of the MIDI input device to be opened.
+	 * @param parent          the parent to which this MidiBus is attached.
+	 * @param in_device_num   the name of the MIDI input device to be opened.
 	 * @param out_device_name the name of the MIDI output device to be opened.
-	 * @param bus_name the String which which identifies this MidiBus.
+	 * @param bus_name        the String which which identifies this MidiBus.
 	 * @see #addInput(int device_num)
 	 * @see #addInput(String device_name)
 	 * @see #addOutput(int device_num)
 	 * @see #addOutput(String device_name)
 	 * @see #list()
-	*/
+	 */
 	public MidiBus(Object parent, int in_device_num, String out_device_name, String bus_name) {
 		init(parent, bus_name);
 		addInput(in_device_num);
@@ -227,7 +299,7 @@ public class MidiBus {
 	/**
 	 * More flavors of constructor, similar to the others, but with mixed arguments
 	 *
-	 * @param parent the parent to which this MidiBus is attached.
+	 * @param parent         the parent to which this MidiBus is attached.
 	 * @param in_device_name the name of the MIDI input device to be opened.
 	 * @param out_device_num the name of the MIDI output device to be opened.
 	 * @see #addInput(int device_num)
@@ -235,148 +307,155 @@ public class MidiBus {
 	 * @see #addOutput(int device_num)
 	 * @see #addOutput(String device_name)
 	 * @see #list()
-	*/
+	 */
 	public MidiBus(Object parent, String in_device_name, int out_device_num) {
 		init(parent, null);
 		addInput(in_device_name);
 		addOutput(out_device_num);
 	}
-	
+
 	/**
 	 * More flavors of constructor, similar to the others, but with mixed arguments
 	 *
-	 * @param parent the parent to which this MidiBus is attached.
+	 * @param parent         the parent to which this MidiBus is attached.
 	 * @param in_device_name the name of the MIDI input device to be opened.
 	 * @param out_device_num the name of the MIDI output device to be opened.
-	 * @param bus_name the String which which identifies this MidiBus.
+	 * @param bus_name       the String which which identifies this MidiBus.
 	 * @see #addInput(int device_num)
 	 * @see #addInput(String device_name)
 	 * @see #addOutput(int device_num)
 	 * @see #addOutput(String device_name)
 	 * @see #list()
-	*/
+	 */
 	public MidiBus(Object parent, String in_device_name, int out_device_num, String bus_name) {
 		init(parent, bus_name);
 		addInput(in_device_name);
 		addOutput(out_device_num);
 	}
-	
+
 	/* -- Constructor Functions -- */
-		
+
 	/**
-	 * Perfoms the initialisation of new MidiBus objects, is private for a reason, and is only ever called within the constructors. This method exists only for the purpose of cleaner and easier to maintain code.
-	 * Creates a new (hopefully/probably) unique bus_name value for new MidiBus objects that weren't given one.
-	 * If two MidiBus object were to have the same name, this would be bad, but not fatal, so there's no point in spending too much time worrying about it.
-	*/
+	 * Perfoms the initialisation of new MidiBus objects, is private for a reason,
+	 * and is only ever called within the constructors. This method exists only for
+	 * the purpose of cleaner and easier to maintain code. Creates a new
+	 * (hopefully/probably) unique bus_name value for new MidiBus objects that
+	 * weren't given one. If two MidiBus object were to have the same name, this
+	 * would be bad, but not fatal, so there's no point in spending too much time
+	 * worrying about it.
+	 */
 	private void init(Object parent, String bus_name) {
 
 		/* -- */
 
-		if(bus_name == null) {
+		if (bus_name == null) {
 			generateBusName();
 		} else {
 			this.bus_name = bus_name;
 		}
 
 		/* -- */
-		
-		input_devices = new Vector<InputDeviceContainer>();
-		output_devices = new Vector<OutputDeviceContainer>();
-		listeners = new Vector<MidiListener>();
-		
+
+		input_devices = new ArrayList<>();
+		output_devices = new ArrayList<>();
+		listeners = new ArrayList<>();
+
 		registerParent(parent);
 
 		sendTimestamps = true;
 	}
 
 	/* -- Input/Output Handling -- */
-	
+
 	/**
 	 * Returns the names of all the attached input devices.
 	 *
 	 * @return the names of the attached inputs.
 	 * @see #attachedOutputs()
-	*/
+	 */
 	public String[] attachedInputs() {
 		MidiDevice.Info[] devices_info = attachedInputsMidiDeviceInfo();
 		String[] devices = new String[devices_info.length];
-		
-		for(int i = 0;i < devices_info.length;i++) {
+
+		for (int i = 0; i < devices_info.length; i++) {
 			devices[i] = devices_info[i].getName();
 		}
-		
+
 		return devices;
 	}
-	
+
 	/**
 	 * Returns the names of all the attached output devices.
 	 *
 	 * @return the names of the attached outputs.
 	 * @see #attachedInputs()
-	*/
+	 */
 	public String[] attachedOutputs() {
 		MidiDevice.Info[] devices_info = attachedOutputsMidiDeviceInfo();
 		String[] devices = new String[devices_info.length];
-		
-		for(int i = 0;i < devices_info.length;i++) {
+
+		for (int i = 0; i < devices_info.length; i++) {
 			devices[i] = devices_info[i].getName();
 		}
-		
+
 		return devices;
 	}
-	
+
 	/**
 	 * Returns the MidiDevice.Info of all the attached input devices.
 	 *
 	 * @return the MidiDevice.Info of the attached inputs.
-	*/
+	 */
 	MidiDevice.Info[] attachedInputsMidiDeviceInfo() {
 		MidiDevice.Info[] devices = new MidiDevice.Info[input_devices.size()];
-	
-		for(int i = 0;i < input_devices.size();i++) {
+
+		for (int i = 0; i < input_devices.size(); i++) {
 			devices[i] = input_devices.get(i).info;
 		}
-		
+
 		return devices;
 	}
-	
+
 	/**
 	 * Returns the MidiDevice.Info of all the attached output devices.
 	 *
 	 * @return the MidiDevice.Info of the attached outputs.
-	*/
+	 */
 	MidiDevice.Info[] attachedOutputsMidiDeviceInfo() {
 		MidiDevice.Info[] devices = new MidiDevice.Info[output_devices.size()];
-	
-		for(int i = 0;i < output_devices.size();i++) {
+
+		for (int i = 0; i < output_devices.size(); i++) {
 			devices[i] = output_devices.get(i).info;
 		}
-		
+
 		return devices;
 	}
-	
+
 	/**
-	 * Adds a new MIDI input device specified by the index device_num. If the MIDI input device has already been added, it will not be added again.
+	 * Adds a new MIDI input device specified by the index device_num. If the MIDI
+	 * input device has already been added, it will not be added again.
 	 *
 	 * @param device_num the index of the MIDI input device to be added.
 	 * @return true if and only if the input device was successfully added.
 	 * @see #addInput(String device_name)
 	 * @see #list()
-	*/
+	 */
 	public boolean addInput(int device_num) {
-		if(device_num == -1) return false;
-
-		MidiDevice.Info[] devices = availableInputsMidiDeviceInfo();
-		
-		if(device_num >= devices.length || device_num < 0) {
-			System.err.println("\nThe MidiBus Warning: The chosen input device numbered ["+device_num+"] was not added because it doesn't exist");
+		if (device_num == -1) {
 			return false;
 		}
-		
+
+		MidiDevice.Info[] devices = availableInputsMidiDeviceInfo();
+
+		if (device_num >= devices.length || device_num < 0) {
+			System.err.println(
+					"\nThe MidiBus Warning: The chosen input device numbered [" + device_num + "] was not added because it doesn't exist");
+			return false;
+		}
+
 		return addInput(devices[device_num]);
 	}
-	
-	
+
 	/**
 	 * Removes the MIDI input device specified by the index device_num.
 	 *
@@ -384,60 +463,69 @@ public class MidiBus {
 	 * @return true if and only if the input device was successfully removed.
 	 * @see #removeInput(String device_name)
 	 * @see #attachedInputs()
-	*/
+	 */
 	public synchronized boolean removeInput(int device_num) {
 		try {
 			InputDeviceContainer container = input_devices.get(device_num);
-	
+
 			input_devices.remove(container);
-		
+
 			container.transmitter.close();
 			container.receiver.close();
-		
+
 			return true;
-		} catch(ArrayIndexOutOfBoundsException e) {
+		} catch (ArrayIndexOutOfBoundsException e) {
 			return false;
 		}
 	}
-	
+
 	/**
-	 * Adds a new MIDI input device specified by the name device_name. If the MIDI input device has already been added, it will not be added again.
+	 * Adds a new MIDI input device specified by the name device_name. If the MIDI
+	 * input device has already been added, it will not be added again.
 	 * <p>
-	 * If two or more MIDI inputs have the same name, whichever appears first when {@link #list()} is called will be added. If this behavior is problematic use {@link #addInput(int device_num)} instead.
+	 * If two or more MIDI inputs have the same name, whichever appears first when
+	 * {@link #list()} is called will be added. If this behavior is problematic use
+	 * {@link #addInput(int device_num)} instead.
 	 *
 	 * @param device_name the name of the MIDI input device to be added.
 	 * @return true if and only if the input device was successfully added.
 	 * @see #addInput(int device_num)
 	 * @see #list()
-	*/
+	 */
 	public boolean addInput(String device_name) {
-		if(device_name.equals("")) return false;
-		
+		if (device_name.equals("")) {
+			return false;
+		}
+
 		MidiDevice.Info[] devices = availableInputsMidiDeviceInfo();
 
-		for(int i = 0;i < devices.length;i++) {
-			if(devices[i].getName().equals(device_name)) return addInput(devices[i]);
+		for (Info element : devices) {
+			if (element.getName().equals(device_name)) {
+				return addInput(element);
+			}
 		}
-		
-		System.err.println("\nThe MidiBus Warning: No available input MIDI devices named: \""+device_name+"\" were found");
+
+		System.err.println("\nThe MidiBus Warning: No available input MIDI devices named: \"" + device_name + "\" were found");
 		return false;
 	}
-	
+
 	/**
 	 * Removes the MIDI input device specified by the name device_name.
 	 * <p>
-	 * If two or more attached MIDI inputs have the same name, whichever appears first when {@link #attachedInputs()} is called will be removed. If this behavior is problematic use {@link #removeInput(int device_num)} instead.
+	 * If two or more attached MIDI inputs have the same name, whichever appears
+	 * first when {@link #attachedInputs()} is called will be removed. If this
+	 * behavior is problematic use {@link #removeInput(int device_num)} instead.
 	 *
 	 * @param device_name the name of the MIDI input device to be removed.
 	 * @return true if and only if the input device was successfully removed.
 	 * @see #removeInput(int device_num)
 	 * @see #attachedInputs()
-	*/
+	 */
 	public synchronized boolean removeInput(String device_name) {
-		for(InputDeviceContainer container : input_devices) {
-			if(container.info.getName().equals(device_name)) {
+		for (InputDeviceContainer container : input_devices) {
+			if (container.info.getName().equals(device_name)) {
 				input_devices.remove(container);
-		
+
 				container.transmitter.close();
 				container.receiver.close();
 
@@ -446,66 +534,77 @@ public class MidiBus {
 		}
 		return false;
 	}
-	
+
 	/**
-	 * Adds a new MIDI input device specified by the MidiDevice.Info device_info. If the MIDI input device has already been added, it will not be added again.
+	 * Adds a new MIDI input device specified by the MidiDevice.Info device_info. If
+	 * the MIDI input device has already been added, it will not be added again.
 	 *
 	 * @param device_info the MidiDevice.Info of the MIDI input device to be added.
 	 * @return true if and only if the input device was successfully added.
-	*/
+	 */
 	synchronized boolean addInput(MidiDevice.Info device_info) {
 		try {
 			MidiDevice new_device = MidiSystem.getMidiDevice(device_info);
-		
-			if(new_device.getMaxTransmitters() == 0) {
-				System.err.println("\nThe MidiBus Warning: The chosen input device \""+device_info.getName()+"\" was not added because it is output only");
+
+			if (new_device.getMaxTransmitters() == 0) {
+				System.err.println("\nThe MidiBus Warning: The chosen input device \"" + device_info.getName()
+						+ "\" was not added because it is output only");
 				return false;
 			}
-			
-			for(InputDeviceContainer container : input_devices) {
-				if(device_info.getName().equals(container.info.getName())) return false;
+
+			for (InputDeviceContainer container : input_devices) {
+				if (device_info.getName().equals(container.info.getName())) {
+					return false;
+				}
 			}
 
-			if(!new_device.isOpen()) new_device.open();
+			if (!new_device.isOpen()) {
+				new_device.open();
+			}
 
 			MReceiver receiver = new MReceiver();
 			Transmitter transmitter = new_device.getTransmitter();
 			transmitter.setReceiver(receiver);
-			
+
 			InputDeviceContainer new_container = new InputDeviceContainer(new_device);
 			new_container.transmitter = transmitter;
 			new_container.receiver = receiver;
-			
+
 			input_devices.add(new_container);
-			
+
 			return true;
-		} catch(MidiUnavailableException e) {
-			System.err.println("\nThe MidiBus Warning: The chosen input device \""+device_info.getName()+"\" was not added because it is unavailable");
+		} catch (MidiUnavailableException e) {
+			System.err.println("\nThe MidiBus Warning: The chosen input device \"" + device_info.getName()
+					+ "\" was not added because it is unavailable");
 			return false;
 		}
 	}
-	
+
 	/**
-	 * Adds a new MIDI output device specified by the index device_num. If the MIDI output device has already been added, it will not be added again.
+	 * Adds a new MIDI output device specified by the index device_num. If the MIDI
+	 * output device has already been added, it will not be added again.
 	 *
 	 * @param device_num the index of the MIDI output device to be added.
 	 * @return true if and only if the output device was successfully added.
 	 * @see #addOutput(String device_name)
 	 * @see #list()
-	*/
+	 */
 	public boolean addOutput(int device_num) {
-		if(device_num == -1) return false;
-
-		MidiDevice.Info[] devices = availableOutputsMidiDeviceInfo();
-		
-		if(device_num >= devices.length || device_num < 0) {
-			System.err.println("\nThe MidiBus Warning: The chosen output device numbered ["+device_num+"] was not added because it doesn't exist");
+		if (device_num == -1) {
 			return false;
 		}
-		
-		return addOutput(devices[device_num]);		
+
+		MidiDevice.Info[] devices = availableOutputsMidiDeviceInfo();
+
+		if (device_num >= devices.length || device_num < 0) {
+			System.err.println(
+					"\nThe MidiBus Warning: The chosen output device numbered [" + device_num + "] was not added because it doesn't exist");
+			return false;
+		}
+
+		return addOutput(devices[device_num]);
 	}
-	
+
 	/**
 	 * Removes the MIDI output device specified by the index device_num.
 	 *
@@ -513,59 +612,68 @@ public class MidiBus {
 	 * @return true if and only if the output device was successfully removed.
 	 * @see #removeInput(String device_name)
 	 * @see #attachedOutputs()
-	*/
+	 */
 	public synchronized boolean removeOutput(int device_num) {
 		try {
 			OutputDeviceContainer container = output_devices.get(device_num);
-	
+
 			output_devices.remove(container);
-		
+
 			container.receiver.close();
-		
+
 			return true;
-		} catch(ArrayIndexOutOfBoundsException e) {
+		} catch (ArrayIndexOutOfBoundsException e) {
 			return false;
 		}
 	}
-	
+
 	/**
-	 * Adds a new MIDI output device specified by the name device_name. If the MIDI output device has already been added, it will not be added again.
+	 * Adds a new MIDI output device specified by the name device_name. If the MIDI
+	 * output device has already been added, it will not be added again.
 	 * <p>
-	 * If two or more MIDI outputs have the same name, whichever appears first when {@link #list()} is called will be added. If this behavior is problematic use {@link #addOutput(int device_num)} instead.
+	 * If two or more MIDI outputs have the same name, whichever appears first when
+	 * {@link #list()} is called will be added. If this behavior is problematic use
+	 * {@link #addOutput(int device_num)} instead.
 	 *
 	 * @param device_name the name of the MIDI output device to be added.
 	 * @return true if and only if the output device was successfully added.
 	 * @see #addOutput(int device_num)
 	 * @see #list()
-	*/
+	 */
 	public boolean addOutput(String device_name) {
-		if(device_name.equals("")) return false;
-		
-		MidiDevice.Info[] devices = availableOutputsMidiDeviceInfo();
-		
-		for(int i = 0;i < devices.length;i++) {
-			if(devices[i].getName().equals(device_name)) return addOutput(devices[i]);
+		if (device_name.equals("")) {
+			return false;
 		}
-		
-		System.err.println("\nThe MidiBus Warning: No available input MIDI devices named: \""+device_name+"\" were found");
-		return false;	
+
+		MidiDevice.Info[] devices = availableOutputsMidiDeviceInfo();
+
+		for (Info element : devices) {
+			if (element.getName().equals(device_name)) {
+				return addOutput(element);
+			}
+		}
+
+		System.err.println("\nThe MidiBus Warning: No available input MIDI devices named: \"" + device_name + "\" were found");
+		return false;
 	}
-	
+
 	/**
 	 * Removes the MIDI output device specified by the name device_name.
 	 * <p>
-	 * If two or more attached MIDI outputs have the same name, whichever appears first when {@link #attachedOutputs()} is called will be removed. If this behavior is problematic use {@link #removeOutput(int device_num)} instead.
+	 * If two or more attached MIDI outputs have the same name, whichever appears
+	 * first when {@link #attachedOutputs()} is called will be removed. If this
+	 * behavior is problematic use {@link #removeOutput(int device_num)} instead.
 	 *
 	 * @param device_name the name of the MIDI output device to be removed.
 	 * @return true if and only if the output device was successfully removed.
 	 * @see #removeOutput(int device_num)
 	 * @see #attachedOutputs()
-	*/
+	 */
 	public synchronized boolean removeOutput(String device_name) {
-		for(OutputDeviceContainer container : output_devices) {
-			if(container.info.getName().equals(device_name)) {
+		for (OutputDeviceContainer container : output_devices) {
+			if (container.info.getName().equals(device_name)) {
 				output_devices.remove(container);
-			
+
 				container.receiver.close();
 
 				return true;
@@ -573,94 +681,105 @@ public class MidiBus {
 		}
 		return false;
 	}
-	
+
 	/**
-	 * Adds a new MIDI output device specified by the MidiDevice.Info device_info. If the MIDI output device has already been added, it will not be added again.
+	 * Adds a new MIDI output device specified by the MidiDevice.Info device_info.
+	 * If the MIDI output device has already been added, it will not be added again.
 	 *
 	 * @param device_info the MidiDevice.Info of the MIDI output device to be added.
 	 * @return true if and only if the input device was successfully added.
-	*/
+	 */
 	synchronized boolean addOutput(MidiDevice.Info device_info) {
 		try {
 			MidiDevice new_device = MidiSystem.getMidiDevice(device_info);
-		
-			if(new_device.getMaxReceivers() == 0) {
-				System.err.println("\nThe MidiBus Warning: The chosen output device \""+device_info.getName()+"\" was not added because it is input only");
+
+			if (new_device.getMaxReceivers() == 0) {
+				System.err.println("\nThe MidiBus Warning: The chosen output device \"" + device_info.getName()
+						+ "\" was not added because it is input only");
 				return false;
 			}
-			
-			for(OutputDeviceContainer container : output_devices) {
-				if(device_info.getName().equals(container.info.getName())) return false;
+
+			for (OutputDeviceContainer container : output_devices) {
+				if (device_info.getName().equals(container.info.getName())) {
+					return false;
+				}
 			}
 
-			if(!new_device.isOpen()) new_device.open();
-			
+			if (!new_device.isOpen()) {
+				new_device.open();
+			}
+
 			OutputDeviceContainer new_container = new OutputDeviceContainer(new_device);
 			new_container.receiver = new_device.getReceiver();
-						
+
 			output_devices.add(new_container);
-			
+
 			return true;
-		} catch(MidiUnavailableException e) {
-			System.err.println("\nThe MidiBus Warning: The chosen output device \""+device_info.getName()+"\" was not added because it is unavailable");
+		} catch (MidiUnavailableException e) {
+			System.err.println("\nThe MidiBus Warning: The chosen output device \"" + device_info.getName()
+					+ "\" was not added because it is unavailable");
 			return false;
 		}
 	}
-		
+
 	/**
 	 * Closes, clears and disposes of all input related Transmitters and Receivers.
 	 *
 	 * @see #clearOutputs()
 	 * @see #clearAll()
-	*/
+	 */
 	public synchronized void clearInputs() {
-		//We are purposefully not closing devices here, because in some cases that will be slow, and we might want later
-		//Also it's broken on MAC
-		try{
-			for(InputDeviceContainer container : input_devices) {
+		// We are purposefully not closing devices here, because in some cases that will
+		// be slow, and we might want later
+		// Also it's broken on MAC
+		try {
+			for (InputDeviceContainer container : input_devices) {
 				container.transmitter.close();
 				container.receiver.close();
 			}
-		} catch(Exception e) {
+		} catch (Exception e) {
 			System.err.println("The MidiBus Warning: Unexpected error during clearInputs()");
 		}
-		
+
 		input_devices.clear();
 	}
-	
+
 	/**
 	 * Closes, clears and disposes of all output related Receivers.
 	 *
 	 * @see #clearInputs()
 	 * @see #clearAll()
-	*/
+	 */
 	public synchronized void clearOutputs() {
-		//We are purposefully not closing devices here, because in some cases that will be slow, and we might want later
-		//Also it's broken on MAC
-		try{
-			for(OutputDeviceContainer container : output_devices) {
+		// We are purposefully not closing devices here, because in some cases that will
+		// be slow, and we might want later
+		// Also it's broken on MAC
+		try {
+			for (OutputDeviceContainer container : output_devices) {
 				container.receiver.close();
-			}	
-		} catch(Exception e) {
+			}
+		} catch (Exception e) {
 			System.err.println("The MidiBus Warning: Unexpected error during clearOutputs()");
 		}
-		
+
 		output_devices.clear();
 	}
-	
+
 	/**
-	 * Closes, clears and disposes of all input and output related Transmitters and Receivers.
+	 * Closes, clears and disposes of all input and output related Transmitters and
+	 * Receivers.
 	 *
 	 * @see #clearInputs()
 	 * @see #clearOutputs()
-	*/
+	 */
 	public void clearAll() {
 		clearInputs();
 		clearOutputs();
 	}
-	
+
 	/**
-	 * Closes all MidiDevices, should only be called when closing the application, will interrupt all MIDI I/O. Call publicly from stop(), close() or dispose()
+	 * Closes all MidiDevices, should only be called when closing the application,
+	 * will interrupt all MIDI I/O. Call publicly from stop(), close() or dispose()
 	 *
 	 * @see #clearOutputs()
 	 * @see #clearInputs()
@@ -668,26 +787,33 @@ public class MidiBus {
 	 * @see #stop()
 	 * @see #close()
 	 * @see #dispose()
-	*/
+	 */
 	void closeAllMidiDevices() {
-		if(MidiBus.available_devices == null) findMidiDevices();
+		if (MidiBus.available_devices == null) {
+			findMidiDevices();
+		}
 		MidiDevice device;
-		
-		for(int i = 0;i < MidiBus.available_devices.length;i++) {
+
+		for (Info element : MidiBus.available_devices) {
 			try {
-				device = MidiSystem.getMidiDevice(MidiBus.available_devices[i]);
-				if(device.isOpen()) device.close();
-			} catch(MidiUnavailableException e) {
-				//Device wasn't available, which is fine since we wanted to close it anyways
+				device = MidiSystem.getMidiDevice(element);
+				if (device.isOpen()) {
+					device.close();
+				}
+			} catch (MidiUnavailableException e) {
+				// Device wasn't available, which is fine since we wanted to close it anyways
 			}
-		}		
-		
+		}
+
 	}
-	
+
 	/* -- MIDI Out -- */
-	
+
 	/**
-	 * Sends a MIDI message with an unspecified number of bytes. The first byte should be always be the status byte. If the message is a Meta message of a System Exclusive message it can have more than 3 byte, otherwise all extra bytes will be dropped.
+	 * Sends a MIDI message with an unspecified number of bytes. The first byte
+	 * should be always be the status byte. If the message is a Meta message of a
+	 * System Exclusive message it can have more than 3 byte, otherwise all extra
+	 * bytes will be dropped.
 	 *
 	 * @param data the bytes of the MIDI message.
 	 * @see #sendMessage(int status)
@@ -701,39 +827,43 @@ public class MidiBus {
 	 * @see #sendNoteOff(Note note)
 	 * @see #sendControllerChange(int channel, int number, int value)
 	 * @see #sendControllerChange(ControlChange change)
-	*/
+	 */
 	public void sendMessage(byte[] data) {
-		if((int)((byte)data[0] & 0xFF) == MetaMessage.META) {
-				MetaMessage message = new MetaMessage();
-				try {
-					byte[] payload = new byte[data.length-2];
-					System.arraycopy(data, 2, payload, 0, data.length-2);
-					message.setMessage((int)((byte)data[1] & 0xFF), payload, data.length-2);
-					sendMessage(message);
-				} catch(InvalidMidiDataException e) {
-					System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
-				}
-			} else if((int)((byte)data[0] & 0xFF) == SysexMessage.SYSTEM_EXCLUSIVE || (int)((byte)data[0] & 0xFF) == SysexMessage.SPECIAL_SYSTEM_EXCLUSIVE) {
-				SysexMessage message = new SysexMessage();
-				try {
-					message.setMessage(data, data.length);
-					sendMessage(message);
-				} catch(InvalidMidiDataException e) {
-					System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
-				}
-			} else {
-				ShortMessage message = new ShortMessage();
-				try {
-					if(data.length > 2) message.setMessage((int)((byte)data[0] & 0xFF), (int)((byte)data[1] & 0xFF), (int)((byte)data[2] & 0xFF));
-					else if(data.length > 1) message.setMessage((int)((byte)data[0] & 0xFF), (int)((byte)data[1] & 0xFF), 0);
-					else message.setMessage((int)((byte)data[0] & 0xFF));
-					sendMessage(message);
-				} catch(InvalidMidiDataException e) {
-					System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
-				}
+		if ((data[0] & 0xFF) == MetaMessage.META) {
+			MetaMessage message = new MetaMessage();
+			try {
+				byte[] payload = new byte[data.length - 2];
+				System.arraycopy(data, 2, payload, 0, data.length - 2);
+				message.setMessage(data[1] & 0xFF, payload, data.length - 2);
+				sendMessage(message);
+			} catch (InvalidMidiDataException e) {
+				System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
 			}
+		} else if ((data[0] & 0xFF) == SysexMessage.SYSTEM_EXCLUSIVE || (data[0] & 0xFF) == SysexMessage.SPECIAL_SYSTEM_EXCLUSIVE) {
+			SysexMessage message = new SysexMessage();
+			try {
+				message.setMessage(data, data.length);
+				sendMessage(message);
+			} catch (InvalidMidiDataException e) {
+				System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
+			}
+		} else {
+			ShortMessage message = new ShortMessage();
+			try {
+				if (data.length > 2) {
+					message.setMessage(data[0] & 0xFF, data[1] & 0xFF, data[2] & 0xFF);
+				} else if (data.length > 1) {
+					message.setMessage(data[0] & 0xFF, data[1] & 0xFF, 0);
+				} else {
+					message.setMessage(data[0] & 0xFF);
+				}
+				sendMessage(message);
+			} catch (InvalidMidiDataException e) {
+				System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
+			}
+		}
 	}
-	
+
 	/**
 	 * Sends a MIDI message that takes no data bytes.
 	 *
@@ -749,23 +879,24 @@ public class MidiBus {
 	 * @see #sendNoteOff(Note note)
 	 * @see #sendControllerChange(int channel, int number, int value)
 	 * @see #sendControllerChange(ControlChange change)
-	*/
+	 */
 	public void sendMessage(int status) {
 		ShortMessage message = new ShortMessage();
 		try {
 			message.setMessage(status);
 			sendMessage(message);
-		} catch(InvalidMidiDataException e) {
+		} catch (InvalidMidiDataException e) {
 			System.out.println(e);
 			System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
 		}
 	}
-	
+
 	/**
-	 * Sends a MIDI message that takes only one data byte. If the message does not take data, the data byte is ignored.
+	 * Sends a MIDI message that takes only one data byte. If the message does not
+	 * take data, the data byte is ignored.
 	 *
 	 * @param status the status byte
-	 * @param data the data byte
+	 * @param data   the data byte
 	 * @see #sendMessage(byte[] data)
 	 * @see #sendMessage(int status)
 	 * @see #sendMessage(int status, int data1, int data2)
@@ -777,17 +908,19 @@ public class MidiBus {
 	 * @see #sendNoteOff(Note note)
 	 * @see #sendControllerChange(int channel, int number, int value)
 	 * @see #sendControllerChange(ControlChange change)
-	*/
+	 */
 	public void sendMessage(int status, int data) {
 		sendMessage(status, data, 0);
 	}
-	
+
 	/**
-	 * Sends a MIDI message that takes one or two data bytes. If the message takes only one data byte, the second data byte is ignored; if the message does not take any data bytes, both data bytes are ignored.
+	 * Sends a MIDI message that takes one or two data bytes. If the message takes
+	 * only one data byte, the second data byte is ignored; if the message does not
+	 * take any data bytes, both data bytes are ignored.
 	 *
 	 * @param status the status byte.
-	 * @param data1 the first data byte.
-	 * @param data2 the second data byte.
+	 * @param data1  the first data byte.
+	 * @param data2  the second data byte.
 	 * @see #sendMessage(byte[] data)
 	 * @see #sendMessage(int status)
 	 * @see #sendMessage(int status, int data)
@@ -799,24 +932,26 @@ public class MidiBus {
 	 * @see #sendNoteOff(Note note)
 	 * @see #sendControllerChange(int channel, int number, int value)
 	 * @see #sendControllerChange(ControlChange change)
-	*/
+	 */
 	public void sendMessage(int status, int data1, int data2) {
 		ShortMessage message = new ShortMessage();
 		try {
 			message.setMessage(status, data1, data2);
 			sendMessage(message);
-		} catch(InvalidMidiDataException e) {
+		} catch (InvalidMidiDataException e) {
 			System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
 		}
 	}
-	
+
 	/**
-	 * Sends a channel message which takes up to two data bytes. If the message only takes one data byte, the second data byte is ignored; if the message does not take any data bytes, both data bytes are ignored.
+	 * Sends a channel message which takes up to two data bytes. If the message only
+	 * takes one data byte, the second data byte is ignored; if the message does not
+	 * take any data bytes, both data bytes are ignored.
 	 *
 	 * @param command the MIDI command represented by this message.
 	 * @param channel the channel associated with the message.
-	 * @param data1 the first data byte.
-	 * @param data2 the second data byte.
+	 * @param data1   the first data byte.
+	 * @param data2   the second data byte.
 	 * @see #sendMessage(byte[] data)
 	 * @see #sendMessage(int status)
 	 * @see #sendMessage(int status, int data)
@@ -828,17 +963,17 @@ public class MidiBus {
 	 * @see #sendNoteOff(Note note)
 	 * @see #sendControllerChange(int channel, int number, int value)
 	 * @see #sendControllerChange(ControlChange change)
-	*/
+	 */
 	public void sendMessage(int command, int channel, int data1, int data2) {
 		ShortMessage message = new ShortMessage();
 		try {
 			message.setMessage(command, channel, data1, data2);
 			sendMessage(message);
-		} catch(InvalidMidiDataException e) {
+		} catch (InvalidMidiDataException e) {
 			System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
 		}
 	}
-	
+
 	/**
 	 * Sends a MidiMessage object.
 	 *
@@ -854,19 +989,22 @@ public class MidiBus {
 	 * @see #sendNoteOff(Note note)
 	 * @see #sendControllerChange(int channel, int number, int value)
 	 * @see #sendControllerChange(ControlChange change)
-	*/
+	 */
 	public synchronized void sendMessage(MidiMessage message) {
-		for(OutputDeviceContainer container : output_devices) {
-			if(sendTimestamps) container.receiver.send(message, System.currentTimeMillis());
-			else container.receiver.send(message, 0);
+		for (OutputDeviceContainer container : output_devices) {
+			if (sendTimestamps) {
+				container.receiver.send(message, System.currentTimeMillis());
+			} else {
+				container.receiver.send(message, 0);
+			}
 		}
 	}
-	
+
 	/**
 	 * Sends a NoteOn message to a channel with the specified pitch and velocity.
 	 *
-	 * @param channel the channel associated with the message.
-	 * @param pitch the pitch associated with the message.
+	 * @param channel  the channel associated with the message.
+	 * @param pitch    the pitch associated with the message.
 	 * @param velocity the velocity associated with the message.
 	 * @see #sendMessage(byte[] data)
 	 * @see #sendMessage(int status)
@@ -880,17 +1018,17 @@ public class MidiBus {
 	 * @see #sendControllerChange(int channel, int number, int value)
 	 * @see #sendControllerChange(ControlChange change)
 	 * 
-	*/
+	 */
 	public void sendNoteOn(int channel, int pitch, int velocity) {
 		ShortMessage message = new ShortMessage();
 		try {
-			message.setMessage(ShortMessage.NOTE_ON, constrain(channel,0,15), constrain(pitch,0,127), constrain(velocity,0,127));
+			message.setMessage(ShortMessage.NOTE_ON, constrain(channel, 0, 15), constrain(pitch, 0, 127), constrain(velocity, 0, 127));
 			sendMessage(message);
-		} catch(InvalidMidiDataException e) {
+		} catch (InvalidMidiDataException e) {
 			System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
 		}
 	}
-	
+
 	/**
 	 * Sends a NoteOn message to a channel with the specified Note.
 	 *
@@ -906,16 +1044,16 @@ public class MidiBus {
 	 * @see #sendNoteOff(Note note)
 	 * @see #sendControllerChange(int channel, int number, int value)
 	 * @see #sendControllerChange(ControlChange change)
-	*/
+	 */
 	public void sendNoteOn(Note note) {
 		sendNoteOn(note.channel(), note.pitch(), note.velocity());
 	}
-	
+
 	/**
 	 * Sends a NoteOff message to a channel with the specified pitch and velocity.
 	 *
-	 * @param channel the channel associated with the message.
-	 * @param pitch the pitch associated with the message.
+	 * @param channel  the channel associated with the message.
+	 * @param pitch    the pitch associated with the message.
 	 * @param velocity the velocity associated with the message.
 	 * @see #sendMessage(byte[] data)
 	 * @see #sendMessage(int status)
@@ -928,17 +1066,17 @@ public class MidiBus {
 	 * @see #sendNoteOff(Note note)
 	 * @see #sendControllerChange(int channel, int number, int value)
 	 * @see #sendControllerChange(ControlChange change)
-	*/
+	 */
 	public void sendNoteOff(int channel, int pitch, int velocity) {
 		ShortMessage message = new ShortMessage();
 		try {
-			message.setMessage(ShortMessage.NOTE_OFF, constrain(channel,0,15), constrain(pitch,0,127), constrain(velocity,0,127));
+			message.setMessage(ShortMessage.NOTE_OFF, constrain(channel, 0, 15), constrain(pitch, 0, 127), constrain(velocity, 0, 127));
 			sendMessage(message);
-		} catch(InvalidMidiDataException e) {
+		} catch (InvalidMidiDataException e) {
 			System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
 		}
 	}
-	
+
 	/**
 	 * Sends a NoteOff message to a channel with the specified Note.
 	 *
@@ -954,17 +1092,18 @@ public class MidiBus {
 	 * @see #sendNoteOff(int channel, int pitch, int velocity)
 	 * @see #sendControllerChange(int channel, int number, int value)
 	 * @see #sendControllerChange(ControlChange change)
-	*/
+	 */
 	public void sendNoteOff(Note note) {
 		sendNoteOff(note.channel, note.pitch(), note.velocity());
 	}
-	
+
 	/**
-	 * Sends a ControllerChange message to a channel with the specified number and value.
+	 * Sends a ControllerChange message to a channel with the specified number and
+	 * value.
 	 *
 	 * @param channel the channel associated with the message.
-	 * @param number the number associated with the message.
-	 * @param value the value associated with the message.
+	 * @param number  the number associated with the message.
+	 * @param value   the value associated with the message.
 	 * @see #sendMessage(byte[] data)
 	 * @see #sendMessage(int status)
 	 * @see #sendMessage(int status, int data)
@@ -976,19 +1115,20 @@ public class MidiBus {
 	 * @see #sendNoteOff(int channel, int pitch, int velocity)
 	 * @see #sendNoteOff(Note note)
 	 * @see #sendControllerChange(ControlChange change)
-	*/
+	 */
 	public void sendControllerChange(int channel, int number, int value) {
 		ShortMessage message = new ShortMessage();
 		try {
-			message.setMessage(ShortMessage.CONTROL_CHANGE, constrain(channel,0,15), constrain(number,0,127), constrain(value,0,127));
+			message.setMessage(ShortMessage.CONTROL_CHANGE, constrain(channel, 0, 15), constrain(number, 0, 127), constrain(value, 0, 127));
 			sendMessage(message);
-		} catch(InvalidMidiDataException e) {
+		} catch (InvalidMidiDataException e) {
 			System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
 		}
 	}
 
 	/**
-	 * Sends a ControllerChange message to a channel with the specified ControlChange.
+	 * Sends a ControllerChange message to a channel with the specified
+	 * ControlChange.
 	 *
 	 * @param change the ControlChange object for the message.
 	 * @see #sendMessage(byte[] data)
@@ -1002,208 +1142,236 @@ public class MidiBus {
 	 * @see #sendNoteOff(int channel, int pitch, int velocity)
 	 * @see #sendNoteOff(Note note)
 	 * @see #sendControllerChange(int channel, int number, int value)
-	*/
+	 */
 	public void sendControllerChange(ControlChange change) {
 		sendControllerChange(change.channel(), change.number(), change.value());
 	}
-	
+
 	/* -- MIDI In -- */
-	
+
 	/**
-	 * Notifies all types of listeners of a new MIDI message from one of the MIDI input devices.
+	 * Notifies all types of listeners of a new MIDI message from one of the MIDI
+	 * input devices.
 	 *
 	 * @param message the new inbound MidiMessage.
-	*/
+	 */
 	void notifyListeners(MidiMessage message, long timeStamp) {
 		byte[] data = message.getMessage();
-		
-		for(MidiListener listener : listeners) {
-		
+
+		for (MidiListener listener : listeners) {
+
 			/* -- RawMidiListener -- */
-		
-			if(listener instanceof RawMidiListener) ((RawMidiListener)listener).rawMidiMessage(data);
-		
+
+			if (listener instanceof RawMidiListener) {
+				((RawMidiListener) listener).rawMidiMessage(data);
+			}
+
 			/* -- SimpleMidiListener -- */
-			
-			if(listener instanceof SimpleMidiListener) {
-				if((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_ON) {
-					((SimpleMidiListener)listener).noteOn((int)(data[0] & 0x0F),(int)(data[1] & 0xFF),(int)(data[2] & 0xFF));
-				} else if((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_OFF) {
-					((SimpleMidiListener)listener).noteOff((int)(data[0] & 0x0F),(int)(data[1] & 0xFF),(int)(data[2] & 0xFF));
-				} else if((int)((byte)data[0] & 0xF0) == ShortMessage.CONTROL_CHANGE) {
-					((SimpleMidiListener)listener).controllerChange((int)(data[0] & 0x0F),(int)(data[1] & 0xFF),(int)(data[2] & 0xFF));
+
+			if (listener instanceof SimpleMidiListener) {
+				if ((data[0] & 0xF0) == ShortMessage.NOTE_ON) {
+					((SimpleMidiListener) listener).noteOn(data[0] & 0x0F, data[1] & 0xFF, data[2] & 0xFF);
+				} else if ((data[0] & 0xF0) == ShortMessage.NOTE_OFF) {
+					((SimpleMidiListener) listener).noteOff(data[0] & 0x0F, data[1] & 0xFF, data[2] & 0xFF);
+				} else if ((data[0] & 0xF0) == ShortMessage.CONTROL_CHANGE) {
+					((SimpleMidiListener) listener).controllerChange(data[0] & 0x0F, data[1] & 0xFF, data[2] & 0xFF);
 				}
 			}
-		
+
 			/* -- StandardMidiListener -- */
-		
-			if(listener instanceof StandardMidiListener) ((StandardMidiListener)listener).midiMessage(message, timeStamp);
-			
+
+			if (listener instanceof StandardMidiListener) {
+				((StandardMidiListener) listener).midiMessage(message, timeStamp);
+			}
+
 			/* -- ObjectMidiListener -- */
 
-			if(listener instanceof ObjectMidiListener) {
-				if((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_ON) {
-					((ObjectMidiListener)listener).noteOn(new Note((int)(data[0] & 0x0F),(int)(data[1] & 0xFF),(int)(data[2] & 0xFF)));
-				} else if((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_OFF) {
-					((ObjectMidiListener)listener).noteOff(new Note((int)(data[0] & 0x0F),(int)(data[1] & 0xFF),(int)(data[2] & 0xFF)));
-				} else if((int)((byte)data[0] & 0xF0) == ShortMessage.CONTROL_CHANGE) {
-					((ObjectMidiListener)listener).controllerChange(new ControlChange((int)(data[0] & 0x0F),(int)(data[1] & 0xFF),(int)(data[2] & 0xFF)));
+			if (listener instanceof ObjectMidiListener) {
+				if ((data[0] & 0xF0) == ShortMessage.NOTE_ON) {
+					((ObjectMidiListener) listener).noteOn(new Note(data[0] & 0x0F, data[1] & 0xFF, data[2] & 0xFF));
+				} else if ((data[0] & 0xF0) == ShortMessage.NOTE_OFF) {
+					((ObjectMidiListener) listener).noteOff(new Note(data[0] & 0x0F, data[1] & 0xFF, data[2] & 0xFF));
+				} else if ((data[0] & 0xF0) == ShortMessage.CONTROL_CHANGE) {
+					((ObjectMidiListener) listener).controllerChange(new ControlChange(data[0] & 0x0F, data[1] & 0xFF, data[2] & 0xFF));
 				}
 			}
 
 		}
 	}
-	
+
 	/**
-	 * Notifies any of the supported methods implemented inside the parent of a new MIDI message from one of the MIDI input devices.
+	 * Notifies any of the supported methods implemented inside the parent of a new
+	 * MIDI message from one of the MIDI input devices.
 	 *
 	 * @param message the new inbound MidiMessage.
-	*/
+	 */
 	void notifyParent(MidiMessage message, long timeStamp) {
-		if(parent == null) return;
+		if (parent == null) {
+			return;
+		}
 
 		byte[] data = message.getMessage();
 
-		if((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_ON) {
-			if(method_note_on != null) {
+		if ((data[0] & 0xF0) == ShortMessage.NOTE_ON) {
+			if (method_note_on != null) {
 				try {
-					method_note_on.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF) });
-				} catch(Exception e) {
-					System.err.println("\nThe MidiBus Warning: Disabling noteOn(int channel, int pitch, int velocity) because an unkown exception was thrown and caught");
+					method_note_on.invoke(parent, new Object[] { (int) (data[0] & 0x0F), (int) (data[1] & 0xFF), (int) (data[2] & 0xFF) });
+				} catch (Exception e) {
+					System.err.println(
+							"\nThe MidiBus Warning: Disabling noteOn(int channel, int pitch, int velocity) because an unkown exception was thrown and caught");
 					e.printStackTrace();
 					method_note_on = null;
 				}
-			
+
 			}
-			if(method_note_on_with_bus_name != null) {
+			if (method_note_on_with_bus_name != null) {
 				try {
-					method_note_on_with_bus_name.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp, bus_name });
-				} catch(Exception e) {
-					System.err.println("\nThe MidiBus Warning: Disabling noteOn(int channel, int pitch, int velocity, String bus_name) with bus_name because an unkown exception was thrown and caught");
+					method_note_on_with_bus_name.invoke(parent,
+							new Object[] { (int) (data[0] & 0x0F), (int) (data[1] & 0xFF), (int) (data[2] & 0xFF), timeStamp, bus_name });
+				} catch (Exception e) {
+					System.err.println(
+							"\nThe MidiBus Warning: Disabling noteOn(int channel, int pitch, int velocity, String bus_name) with bus_name because an unkown exception was thrown and caught");
 					e.printStackTrace();
 					method_note_on_with_bus_name = null;
 				}
 			}
-			if(method_note_on_wcla != null){
+			if (method_note_on_wcla != null) {
 				try {
-					method_note_on_wcla.invoke(parent, new Note((int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp, bus_name));
-				} catch(Exception e) {
-					System.err.println("\nThe MidiBus Warning: Disabling noteOn(Note note) because an unkown exception was thrown and caught");
+					method_note_on_wcla.invoke(parent, new Note(data[0] & 0x0F, data[1] & 0xFF, data[2] & 0xFF, timeStamp, bus_name));
+				} catch (Exception e) {
+					System.err.println(
+							"\nThe MidiBus Warning: Disabling noteOn(Note note) because an unkown exception was thrown and caught");
 					e.printStackTrace();
 					method_note_on_wcla = null;
 				}
 			}
-		} else if((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_OFF) {
-			if(method_note_off != null) {
+		} else if ((data[0] & 0xF0) == ShortMessage.NOTE_OFF) {
+			if (method_note_off != null) {
 				try {
-					method_note_off.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF) });
-				} catch(Exception e) {
-					System.err.println("\nThe MidiBus Warning: Disabling noteOff(int channel, int pitch, int velocity) because an unkown exception was thrown and caught");
+					method_note_off.invoke(parent, new Object[] { (int) (data[0] & 0x0F), (int) (data[1] & 0xFF), (int) (data[2] & 0xFF) });
+				} catch (Exception e) {
+					System.err.println(
+							"\nThe MidiBus Warning: Disabling noteOff(int channel, int pitch, int velocity) because an unkown exception was thrown and caught");
 					e.printStackTrace();
 					method_note_off = null;
 				}
 			}
-			if(method_note_off_with_bus_name != null) {
+			if (method_note_off_with_bus_name != null) {
 				try {
-					method_note_off_with_bus_name.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp, bus_name });
-				} catch(Exception e) {
-					System.err.println("\nThe MidiBus Warning: Disabling noteOff(int channel, int pitch, int velocity, String bus_name) with bus_name because an unkown exception was thrown and caught");
+					method_note_off_with_bus_name.invoke(parent,
+							new Object[] { (int) (data[0] & 0x0F), (int) (data[1] & 0xFF), (int) (data[2] & 0xFF), timeStamp, bus_name });
+				} catch (Exception e) {
+					System.err.println(
+							"\nThe MidiBus Warning: Disabling noteOff(int channel, int pitch, int velocity, String bus_name) with bus_name because an unkown exception was thrown and caught");
 					e.printStackTrace();
 					method_note_off_with_bus_name = null;
 				}
 			}
-			if(method_note_off_wcla != null){
+			if (method_note_off_wcla != null) {
 				try {
-					method_note_off_wcla.invoke(parent, new Note((int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp, bus_name));
-				} catch(Exception e) {
-					System.err.println("\nThe MidiBus Warning: Disabling noteOff(Note note) because an unkown exception was thrown and caught");
+					method_note_off_wcla.invoke(parent, new Note(data[0] & 0x0F, data[1] & 0xFF, data[2] & 0xFF, timeStamp, bus_name));
+				} catch (Exception e) {
+					System.err.println(
+							"\nThe MidiBus Warning: Disabling noteOff(Note note) because an unkown exception was thrown and caught");
 					e.printStackTrace();
 					method_note_off_wcla = null;
 				}
 			}
-		} else if((int)((byte)data[0] & 0xF0) == ShortMessage.CONTROL_CHANGE) {
-			if(method_controller_change != null) {
+		} else if ((data[0] & 0xF0) == ShortMessage.CONTROL_CHANGE) {
+			if (method_controller_change != null) {
 				try {
-					method_controller_change.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF) });
-				} catch(Exception e) {
-					System.err.println("\nThe MidiBus Warning: Disabling controllerChange(int channel, int number, int value) because an unkown exception was thrown and caught");
+					method_controller_change.invoke(parent,
+							new Object[] { (int) (data[0] & 0x0F), (int) (data[1] & 0xFF), (int) (data[2] & 0xFF) });
+				} catch (Exception e) {
+					System.err.println(
+							"\nThe MidiBus Warning: Disabling controllerChange(int channel, int number, int value) because an unkown exception was thrown and caught");
 					e.printStackTrace();
 					method_controller_change = null;
 				}
 			}
-			if(method_controller_change_with_bus_name != null) {
+			if (method_controller_change_with_bus_name != null) {
 				try {
-					method_controller_change_with_bus_name.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp, bus_name });
-				} catch(Exception e) {
-					System.err.println("\nThe MidiBus Warning: Disabling controllerChange(int channel, int number, int value, String bus_name) with bus_name because an unkown exception was thrown and caught");
+					method_controller_change_with_bus_name.invoke(parent,
+							new Object[] { (int) (data[0] & 0x0F), (int) (data[1] & 0xFF), (int) (data[2] & 0xFF), timeStamp, bus_name });
+				} catch (Exception e) {
+					System.err.println(
+							"\nThe MidiBus Warning: Disabling controllerChange(int channel, int number, int value, String bus_name) with bus_name because an unkown exception was thrown and caught");
 					e.printStackTrace();
 					method_controller_change_with_bus_name = null;
 				}
 			}
-			if(method_controller_change_wcla != null){
+			if (method_controller_change_wcla != null) {
 				try {
-					method_controller_change_wcla.invoke(parent, new ControlChange((int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp, bus_name));
-				} catch(Exception e) {
-					System.err.println("\nThe MidiBus Warning: Disabling noteOff(Note note) because an unkown exception was thrown and caught");
+					method_controller_change_wcla.invoke(parent,
+							new ControlChange(data[0] & 0x0F, data[1] & 0xFF, data[2] & 0xFF, timeStamp, bus_name));
+				} catch (Exception e) {
+					System.err.println(
+							"\nThe MidiBus Warning: Disabling noteOff(Note note) because an unkown exception was thrown and caught");
 					e.printStackTrace();
 					method_controller_change_wcla = null;
 				}
 			}
 		}
-		
-		if(method_raw_midi != null) {
+
+		if (method_raw_midi != null) {
 			try {
 				method_raw_midi.invoke(parent, new Object[] { data });
-			} catch(Exception e) {
-				System.err.println("\nThe MidiBus Warning: Disabling rawMidi(byte[] data) because an unkown exception was thrown and caught");
+			} catch (Exception e) {
+				System.err
+						.println("\nThe MidiBus Warning: Disabling rawMidi(byte[] data) because an unkown exception was thrown and caught");
 				e.printStackTrace();
 				method_raw_midi = null;
 			}
 		}
-		if(method_raw_midi_with_bus_name != null) {
+		if (method_raw_midi_with_bus_name != null) {
 			try {
 				method_raw_midi_with_bus_name.invoke(parent, new Object[] { data, timeStamp, bus_name });
-			} catch(Exception e) {
-				System.err.println("\nThe MidiBus Warning: Disabling rawMidi(byte[] data, String bus_name) with bus_name because an unkown exception was thrown and caught");
+			} catch (Exception e) {
+				System.err.println(
+						"\nThe MidiBus Warning: Disabling rawMidi(byte[] data, String bus_name) with bus_name because an unkown exception was thrown and caught");
 				e.printStackTrace();
 				method_raw_midi_with_bus_name = null;
 			}
 		}
-		
-		if(method_midi_message != null) {
+
+		if (method_midi_message != null) {
 			try {
 				method_midi_message.invoke(parent, new Object[] { message });
-			} catch(Exception e) {
-				System.err.println("\nThe MidiBus Warning: Disabling midiMessage(MidiMessage message) because an unkown exception was thrown and caught");
+			} catch (Exception e) {
+				System.err.println(
+						"\nThe MidiBus Warning: Disabling midiMessage(MidiMessage message) because an unkown exception was thrown and caught");
 				e.printStackTrace();
 				method_midi_message = null;
 			}
 		}
-		if(method_midi_message_with_bus_name != null) {
+		if (method_midi_message_with_bus_name != null) {
 			try {
 				method_midi_message_with_bus_name.invoke(parent, new Object[] { message, timeStamp, bus_name });
-			} catch(Exception e) {
-				System.err.println("\nThe MidiBus Warning: Disabling midiMessage(MidiMessage message, String bus_name) with bus_name because an unkown exception was thrown and caught");
+			} catch (Exception e) {
+				System.err.println(
+						"\nThe MidiBus Warning: Disabling midiMessage(MidiMessage message, String bus_name) with bus_name because an unkown exception was thrown and caught");
 				e.printStackTrace();
 				method_midi_message_with_bus_name = null;
 			}
 		}
-		
+
 	}
-	
+
 	/* -- Listener Handling -- */
 
 	/**
-	 * Registers an Object as the parent in order to recieve method callbacks as per {@link PApplet}. Calling this will replace the previous parent Object if any was set.
+	 * Registers an Object as the parent in order to recieve method callbacks as per
+	 * {@link PApplet}. Calling this will replace the previous parent Object if any
+	 * was set.
 	 *
 	 * @param parent the object to register.
 	 * @return the previous parent object if any was set.
 	 * @see #addMidiListener(MidiListener listener)
-	*/
+	 */
 	public Object registerParent(Object parent) {
 		Object old_parent = this.parent;
 
-		if(old_parent != null) {
+		if (old_parent != null) {
 			method_note_on = null;
 			method_note_off = null;
 			method_controller_change = null;
@@ -1219,87 +1387,93 @@ public class MidiBus {
 
 		this.parent = parent;
 
-		if(parent != null) {
+		if (parent != null) {
 
-			if(parent instanceof processing.core.PApplet) {
+			if (parent instanceof processing.core.PApplet) {
 				((processing.core.PApplet) parent).registerMethod("dispose", this);
 			}
 
 			try {
 				method_note_on = parent.getClass().getMethod("noteOn", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE });
-			} catch(Exception e) {
+			} catch (Exception e) {
 				// no such method, or an error.. which is fine, just ignore
 			}
-			
+
 			try {
 				method_note_off = parent.getClass().getMethod("noteOff", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE });
-			} catch(Exception e) {
+			} catch (Exception e) {
 				// no such method, or an error.. which is fine, just ignore
 			}
-			
+
 			try {
-				method_controller_change = parent.getClass().getMethod("controllerChange", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE });
-			} catch(Exception e) {
+				method_controller_change = parent.getClass().getMethod("controllerChange",
+						new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE });
+			} catch (Exception e) {
 				// no such method, or an error.. which is fine, just ignore
 			}
-			
+
 			try {
 				method_raw_midi = parent.getClass().getMethod("rawMidi", new Class[] { byte[].class });
-			} catch(Exception e) {
+			} catch (Exception e) {
 				// no such method, or an error.. which is fine, just ignore
 			}
-			
+
 			try {
 				method_midi_message = parent.getClass().getMethod("midiMessage", new Class[] { MidiMessage.class });
-			} catch(Exception e) {
-				// no such method, or an error.. which is fine, just ignore
-			}
-			
-			try {
-				method_note_on_with_bus_name = parent.getClass().getMethod("noteOn", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, Long.TYPE, String.class });
-			} catch(Exception e) {
-				// no such method, or an error.. which is fine, just ignore
-			}
-			
-			try {
-				method_note_off_with_bus_name = parent.getClass().getMethod("noteOff", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, Long.TYPE, String.class });
-			} catch(Exception e) {
+			} catch (Exception e) {
 				// no such method, or an error.. which is fine, just ignore
 			}
 
 			try {
-				method_controller_change_with_bus_name = parent.getClass().getMethod("controllerChange", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, Long.TYPE, String.class });
-			} catch(Exception e) {
-				// no such method, or an error.. which is fine, just ignore
-			}
-			
-			try {
-				method_raw_midi_with_bus_name = parent.getClass().getMethod("rawMidi", new Class[] { byte[].class, Long.TYPE, String.class });
-			} catch(Exception e) {
-				// no such method, or an error.. which is fine, just ignore
-			}
-			
-			try {
-				method_midi_message_with_bus_name = parent.getClass().getMethod("midiMessage", new Class[] { MidiMessage.class, Long.TYPE, String.class });
-			} catch(Exception e) {
+				method_note_on_with_bus_name = parent.getClass().getMethod("noteOn",
+						new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, Long.TYPE, String.class });
+			} catch (Exception e) {
 				// no such method, or an error.. which is fine, just ignore
 			}
 
 			try {
-				method_note_on_wcla = parent.getClass().getMethod("noteOn", new Class[] { Note.class});
-			} catch(Exception e) {
+				method_note_off_with_bus_name = parent.getClass().getMethod("noteOff",
+						new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, Long.TYPE, String.class });
+			} catch (Exception e) {
 				// no such method, or an error.. which is fine, just ignore
 			}
-			
+
+			try {
+				method_controller_change_with_bus_name = parent.getClass().getMethod("controllerChange",
+						new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE, Long.TYPE, String.class });
+			} catch (Exception e) {
+				// no such method, or an error.. which is fine, just ignore
+			}
+
+			try {
+				method_raw_midi_with_bus_name = parent.getClass().getMethod("rawMidi",
+						new Class[] { byte[].class, Long.TYPE, String.class });
+			} catch (Exception e) {
+				// no such method, or an error.. which is fine, just ignore
+			}
+
+			try {
+				method_midi_message_with_bus_name = parent.getClass().getMethod("midiMessage",
+						new Class[] { MidiMessage.class, Long.TYPE, String.class });
+			} catch (Exception e) {
+				// no such method, or an error.. which is fine, just ignore
+			}
+
+			try {
+				method_note_on_wcla = parent.getClass().getMethod("noteOn", new Class[] { Note.class });
+			} catch (Exception e) {
+				// no such method, or an error.. which is fine, just ignore
+			}
+
 			try {
 				method_note_off_wcla = parent.getClass().getMethod("noteOff", new Class[] { Note.class });
-			} catch(Exception e) {
+			} catch (Exception e) {
 				// no such method, or an error.. which is fine, just ignore
 			}
 
 			try {
 				method_controller_change_wcla = parent.getClass().getMethod("controllerChange", new Class[] { ControlChange.class });
-			} catch(Exception e) {
+			} catch (Exception e) {
 				// no such method, or an error.. which is fine, just ignore
 			}
 
@@ -1307,247 +1481,282 @@ public class MidiBus {
 
 		return old_parent;
 	}
-	
+
 	/**
-	 * 	Adds a listener who will be notified each time a new MIDI message is received from a MIDI input device. If the listener has already been added, it will not be added again.
+	 * Adds a listener who will be notified each time a new MIDI message is received
+	 * from a MIDI input device. If the listener has already been added, it will not
+	 * be added again.
 	 *
 	 * @param listener the listener to add.
 	 * @return true if and only the listener was sucessfully added.
 	 * @see #removeMidiListener(MidiListener listener)
 	 * @see #registerParent(Object parent)
-	*/
+	 */
 	public boolean addMidiListener(MidiListener listener) {
-		for(MidiListener current : listeners) if(current == listener) return false;
-		
+		for (MidiListener current : listeners) {
+			if (current == listener) {
+				return false;
+			}
+		}
+
 		listeners.add(listener);
-				
+
 		return true;
 	}
-	
+
 	/**
 	 * Removes a given listener.
 	 *
 	 * @param listener the listener to remove.
 	 * @return true if and only the listener was sucessfully removed.
 	 * @see #addMidiListener(MidiListener listener)
-	*/
+	 */
 	public boolean removeMidiListener(MidiListener listener) {
-		for(MidiListener current : listeners) {
-			if(current == listener) {
+		for (MidiListener current : listeners) {
+			if (current == listener) {
 				listeners.remove(listener);
 				return true;
 			}
 		}
 		return false;
 	}
-	
-	
+
 	/* -- Utilites -- */
-	
+
 	/**
 	 * It's just convient ... move along...
-	*/
+	 */
 	int constrain(int value, int min, int max) {
-		if(value > max) value = max;
-		if(value < min) value = min;
+		if (value > max) {
+			value = max;
+		}
+		if (value < min) {
+			value = min;
+		}
 		return value;
 	}
 
 	/**
-	 * Returns whether this MidiBus is sending timestamps along with MIDI information to the MIDI subsystem.
+	 * Returns whether this MidiBus is sending timestamps along with MIDI
+	 * information to the MIDI subsystem.
 	 *
 	 * @return true if this MidiBus is sending timestamps.
-	*/
+	 */
 	public boolean sendTimestamps() {
 		return sendTimestamps;
 	}
 
 	/**
-	 * Configure this MidiBus instance to send or not to send timestamps along with MIDI information to the MIDI subsystem.
+	 * Configure this MidiBus instance to send or not to send timestamps along with
+	 * MIDI information to the MIDI subsystem.
 	 *
-	 * @param sendTimestamps set to true if you want timestamps to be sent, otherwise set to false.
-	*/
+	 * @param sendTimestamps set to true if you want timestamps to be sent,
+	 *                       otherwise set to false.
+	 */
 	public void sendTimestamps(boolean sendTimestamps) {
 		this.sendTimestamps = sendTimestamps;
 	}
-	
+
 	/**
 	 * Returns the name of this MidiBus.
 	 *
 	 * @return the name of this MidiBus.
 	 * @see #setBusName(String bus_name)
 	 * @see #generateBusName()
-	*/
+	 */
 	public String getBusName() {
 		return bus_name;
 	}
-	
+
 	/**
 	 * Changes the name of this MidiBus.
 	 *
 	 * @param bus_name the new name of this MidiBus.
 	 * @see #getBusName()
 	 * @see #generateBusName()
-	*/
+	 */
 	public void setBusName(String bus_name) {
 		this.bus_name = bus_name;
 	}
-	
+
 	/**
 	 * Generate a name for this MidiBus instance.
 	 *
 	 * @see #setBusName(String bus_name)
 	 * @see #getBusName()
-	*/
+	 */
 	public void generateBusName() {
-		String id = new Formatter().format("%08d", System.currentTimeMillis()%100000000).toString();
-		bus_name = "MidiBus_"+id;
+		String id = new Formatter().format("%08d", System.currentTimeMillis() % 100000000).toString();
+		bus_name = "MidiBus_" + id;
 	}
 
 	/* -- Object -- */
-	
+
 	/**
 	 * Returns a string representation of the object.
 	 *
 	 * @return a string representation of the object.
 	 */
+	@Override
 	public String toString() {
-		String output = "MidiBus: "+bus_name+" [";
-		output += input_devices.size()+" input(s), ";
-		output += output_devices.size()+" output(s), ";
-		output += listeners.size()+" listener(s)]";
+		String output = "MidiBus: " + bus_name + " [";
+		output += input_devices.size() + " input(s), ";
+		output += output_devices.size() + " output(s), ";
+		output += listeners.size() + " listener(s)]";
 		return output;
 	}
-	
+
 	/**
 	 * Indicates whether some other object is "equal to" this one.
 	 *
 	 * @param obj the reference object with which to compare.
 	 * @return if this object is the same as the obj argument; false otherwise.
 	 */
+	@Override
 	public boolean equals(Object obj) {
-		if(obj instanceof MidiBus) {
-			MidiBus midibus = (MidiBus)obj;
-			if(!this.getBusName().equals(midibus.getBusName())) return false;
-			if(!this.input_devices.equals(midibus.input_devices)) return false;
-			if(!this.output_devices.equals(midibus.output_devices)) return false;
-			if(!this.listeners.equals(midibus.listeners)) return false;
+		if (obj instanceof MidiBus) {
+			MidiBus midibus = (MidiBus) obj;
+			if (!this.getBusName().equals(midibus.getBusName()) || !this.input_devices.equals(midibus.input_devices) || !this.output_devices.equals(midibus.output_devices) || !this.listeners.equals(midibus.listeners)) {
+				return false;
+			}
 			return true;
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Creates and returns a copy of this object.
 	 *
 	 * @return a clone of this instance.
 	 */
+	@Override
 	public MidiBus clone() {
 		MidiBus clone = new MidiBus(parent, bus_name);
-		
-		for(InputDeviceContainer container : input_devices) {
+
+		for (InputDeviceContainer container : input_devices) {
 			clone.addInput(container.info);
 		}
-		
-		for(OutputDeviceContainer container : output_devices) {
+
+		for (OutputDeviceContainer container : output_devices) {
 			clone.addOutput(container.info);
 		}
-		
-		for(MidiListener listener : listeners) {
+
+		for (MidiListener listener : listeners) {
 			clone.addMidiListener(listener);
 		}
-		
+
 		return clone;
 	}
-	
+
 	/**
 	 * Returns a hash code value for the object.
 	 *
 	 * @return a hash code value for this object.
 	 */
+	@Override
 	public int hashCode() {
-		return bus_name.hashCode()+input_devices.hashCode()+output_devices.hashCode()+listeners.hashCode();
+		return bus_name.hashCode() + input_devices.hashCode() + output_devices.hashCode() + listeners.hashCode();
 	}
-	
+
 	/**
 	 * Override the finalize() method from java.lang.Object.
 	 *
-	*/
+	 */
+	@Override
 	protected void finalize() {
 		close();
 	}
-	
+
 	/* -- Shutting Down -- */
-	
+
 	/**
-	 * Closes this MidiBus and all connections it has with other MIDI devices. This method exists as per standard javax.sound.midi syntax. It is functionaly equivalent to stop() and dispose().
+	 * Closes this MidiBus and all connections it has with other MIDI devices. This
+	 * method exists as per standard javax.sound.midi syntax. It is functionaly
+	 * equivalent to stop() and dispose().
 	 *
 	 * @see #stop()
 	 * @see #dispose()
-	*/
-	public void close() {		
+	 */
+	public void close() {
 		closeAllMidiDevices();
 	}
-		
+
 	/**
-	 * Closes this MidiBus and all connections it has with other MIDI devices. This method exit as per standard Processing syntax for users who are doing their sketch cleanup themselves using the stop() function. It is functionaly equivalent to close() and dispose().
+	 * Closes this MidiBus and all connections it has with other MIDI devices. This
+	 * method exit as per standard Processing syntax for users who are doing their
+	 * sketch cleanup themselves using the stop() function. It is functionaly
+	 * equivalent to close() and dispose().
 	 *
 	 * @see #close()
 	 * @see #dispose()
-	*/
+	 */
 	public void stop() {
 		close();
 	}
-	
+
 	/**
-	 * Closes this MidiBus and all connections it has with other MIDI devices. This method exit as per standard Processing library syntax and is called automatically whenever the parent applet shuts down. It is functionaly equivalent to close() and stop().
+	 * Closes this MidiBus and all connections it has with other MIDI devices. This
+	 * method exit as per standard Processing library syntax and is called
+	 * automatically whenever the parent applet shuts down. It is functionaly
+	 * equivalent to close() and stop().
 	 *
 	 * @see #close()
 	 * @see #stop()
-	*/
+	 */
 	public void dispose() {
 		close();
 	}
-	
+
 	/* -- Static methods -- */
-	
+
 	/**
-	 * List all installed MIDI devices. The index, name and type (input/output/unavailable) of each devices will be indicated. 
+	 * List all installed MIDI devices. The index, name and type
+	 * (input/output/unavailable) of each devices will be indicated.
 	 *
 	 * @see #availableInputs()
 	 * @see #availableOutputs()
 	 * @see #unavailableDevices()
-	*/
+	 */
 	static public void list() {
 		String[] available_inputs = availableInputs();
 		String[] available_outputs = availableOutputs();
 		String[] unavailable = unavailableDevices();
-		
-		if(available_inputs.length == 0 && available_outputs.length == 0 && unavailable.length == 0) return;
-		
+
+		if (available_inputs.length == 0 && available_outputs.length == 0 && unavailable.length == 0) {
+			return;
+		}
+
 		System.out.println("\nAvailable MIDI Devices:");
-		if(available_inputs.length != 0) {
+		if (available_inputs.length != 0) {
 			System.out.println("----------Input----------");
-			for(int i = 0;i < available_inputs.length;i++) System.out.println("["+i+"] \""+available_inputs[i]+"\"");
+			for (int i = 0; i < available_inputs.length; i++) {
+				System.out.println("[" + i + "] \"" + available_inputs[i] + "\"");
+			}
 		}
-		if(available_outputs.length != 0) {
+		if (available_outputs.length != 0) {
 			System.out.println("----------Output----------");
-			for(int i = 0;i < available_outputs.length;i++) System.out.println("["+i+"] \""+available_outputs[i]+"\"");
+			for (int i = 0; i < available_outputs.length; i++) {
+				System.out.println("[" + i + "] \"" + available_outputs[i] + "\"");
+			}
 		}
-		if(unavailable.length != 0) {
+		if (unavailable.length != 0) {
 			System.out.println("----------Unavailable----------");
-			for(int i = 0;i < unavailable.length;i++) System.out.println("["+i+"] \""+unavailable[i]+"\"");
+			for (int i = 0; i < unavailable.length; i++) {
+				System.out.println("[" + i + "] \"" + unavailable[i] + "\"");
+			}
 		}
 	}
 
 	/**
-	 * Rescan for Midi Devices. This is autocalled once when the MidiBus starts up. It should be called again if you need to refresh the list of available MidiDevices while your program is running.
+	 * Rescan for Midi Devices. This is autocalled once when the MidiBus starts up.
+	 * It should be called again if you need to refresh the list of available
+	 * MidiDevices while your program is running.
 	 *
-	*/
+	 */
 	static public void findMidiDevices() {
 		MidiBus.available_devices = MidiSystem.getMidiDeviceInfo();
 	}
-	
+
 	/**
 	 * Returns the names of all the available input devices.
 	 *
@@ -1555,18 +1764,18 @@ public class MidiBus {
 	 * @see #list()
 	 * @see #availableOutputs()
 	 * @see #unavailableDevices()
-	*/
+	 */
 	static public String[] availableInputs() {
 		MidiDevice.Info[] devices_info = availableInputsMidiDeviceInfo();
 		String[] devices = new String[devices_info.length];
-		
-		for(int i = 0;i < devices_info.length;i++) {
+
+		for (int i = 0; i < devices_info.length; i++) {
 			devices[i] = devices_info[i].getName();
 		}
-		
+
 		return devices;
 	}
-	
+
 	/**
 	 * Returns the names of all the available output devices.
 	 *
@@ -1574,18 +1783,18 @@ public class MidiBus {
 	 * @see #list()
 	 * @see #availableInputs()
 	 * @see #unavailableDevices()
-	*/
+	 */
 	static public String[] availableOutputs() {
 		MidiDevice.Info[] devices_info = availableOutputsMidiDeviceInfo();
 		String[] devices = new String[devices_info.length];
-		
-		for(int i = 0;i < devices_info.length;i++) {
+
+		for (int i = 0; i < devices_info.length; i++) {
 			devices[i] = devices_info[i].getName();
 		}
-		
+
 		return devices;
 	}
-	
+
 	/**
 	 * Returns the names of all the unavailable devices.
 	 *
@@ -1593,193 +1802,223 @@ public class MidiBus {
 	 * @see #list()
 	 * @see #availableInputs()
 	 * @see #availableOutputs()
-	*/
+	 */
 	static public String[] unavailableDevices() {
 		MidiDevice.Info[] devices_info = unavailableMidiDeviceInfo();
 		String[] devices = new String[devices_info.length];
-		
-		for(int i = 0;i < devices_info.length;i++) {
+
+		for (int i = 0; i < devices_info.length; i++) {
 			devices[i] = devices_info[i].getName();
 		}
-		
+
 		return devices;
 	}
-	
+
 	/**
 	 * Returns the MidiDevice.Info of all the available input devices.
 	 *
 	 * @return the MidiDevice.Info of the available inputs.
-	*/
+	 */
 	static MidiDevice.Info[] availableInputsMidiDeviceInfo() {
-		if(MidiBus.available_devices == null) findMidiDevices();
+		if (MidiBus.available_devices == null) {
+			findMidiDevices();
+		}
 		MidiDevice device;
-		
-		Vector<MidiDevice.Info> devices_list = new Vector<MidiDevice.Info>();
 
-		for(int i = 0;i < MidiBus.available_devices.length;i++) {
+		List<MidiDevice.Info> devices_list = new ArrayList<>();
+
+		for (Info element : MidiBus.available_devices) {
 			try {
-				device = MidiSystem.getMidiDevice(MidiBus.available_devices[i]);
-				//This open close checks to make sure the announced device is truely available
-				//There are many reports on Windows that some devices lie about their availability
-				//(For instance the Microsoft GS Wavetable Synth)
-				//But in theory I guess this could happen on any OS, so I'll just do it all the time.
+				device = MidiSystem.getMidiDevice(element);
+				// This open close checks to make sure the announced device is truely available
+				// There are many reports on Windows that some devices lie about their
+				// availability
+				// (For instance the Microsoft GS Wavetable Synth)
+				// But in theory I guess this could happen on any OS, so I'll just do it all the
+				// time.
 				// if(!device.isOpen()) {
-				// 	device.open();
-				// 	device.close();
+				// device.open();
+				// device.close();
 				// }
-				if (device.getMaxTransmitters() != 0) devices_list.add(MidiBus.available_devices[i]);
-			} catch(MidiUnavailableException e) {
-				//Device was unavailable which is fine, we only care about available inputs
+				if (device.getMaxTransmitters() != 0) {
+					devices_list.add(element);
+				}
+			} catch (MidiUnavailableException e) {
+				// Device was unavailable which is fine, we only care about available inputs
 			}
 		}
 
 		MidiDevice.Info[] devices = new MidiDevice.Info[devices_list.size()];
-		
+
 		devices_list.toArray(devices);
-		
+
 		return devices;
 	}
-	
+
 	/**
 	 * Returns the MidiDevice.Info of all the available output devices.
 	 *
 	 * @return the MidiDevice.Info of the available output.
-	*/
+	 */
 	static MidiDevice.Info[] availableOutputsMidiDeviceInfo() {
-		if(MidiBus.available_devices == null) findMidiDevices();
+		if (MidiBus.available_devices == null) {
+			findMidiDevices();
+		}
 		MidiDevice device;
-		
-		Vector<MidiDevice.Info> devices_list = new Vector<MidiDevice.Info>();
-		
-		for(int i = 0;i < MidiBus.available_devices.length;i++) {
+
+		List<MidiDevice.Info> devices_list = new ArrayList<>();
+
+		for (Info element : MidiBus.available_devices) {
 			try {
-				device = MidiSystem.getMidiDevice(MidiBus.available_devices[i]);
-				//This open close checks to make sure the announced device is truely available
-				//There are many reports on Windows that some devices lie about their availability
-				//(For instance the Microsoft GS Wavetable Synth)
-				//But in theory I guess this could happen on any OS, so I'll just do it all the time.
+				device = MidiSystem.getMidiDevice(element);
+				// This open close checks to make sure the announced device is truely available
+				// There are many reports on Windows that some devices lie about their
+				// availability
+				// (For instance the Microsoft GS Wavetable Synth)
+				// But in theory I guess this could happen on any OS, so I'll just do it all the
+				// time.
 				// if(!device.isOpen()) {
-				// 	device.open();
-				// 	device.close();
+				// device.open();
+				// device.close();
 				// }
-				if (device.getMaxReceivers() != 0) devices_list.add(MidiBus.available_devices[i]);
-			} catch(MidiUnavailableException e) {
-				//Device was unavailable which is fine, we only care about available output
+				if (device.getMaxReceivers() != 0) {
+					devices_list.add(element);
+				}
+			} catch (MidiUnavailableException e) {
+				// Device was unavailable which is fine, we only care about available output
 			}
 		}
-		
+
 		MidiDevice.Info[] devices = new MidiDevice.Info[devices_list.size()];
-		
+
 		devices_list.toArray(devices);
-		
+
 		return devices;
 	}
-	
+
 	/**
 	 * Returns the MidiDevice.Info of all the unavailable devices.
 	 *
 	 * @return the MidiDevice.Info of the unavailable devices.
-	*/
+	 */
 	static MidiDevice.Info[] unavailableMidiDeviceInfo() {
-		if(MidiBus.available_devices == null) findMidiDevices();
+		if (MidiBus.available_devices == null) {
+			findMidiDevices();
+		}
 		MidiDevice device;
-		
-		Vector<MidiDevice.Info> devices_list = new Vector<MidiDevice.Info>();
-		
-		for(int i = 0;i < MidiBus.available_devices.length;i++) {
+
+		List<MidiDevice.Info> devices_list = new ArrayList<>();
+
+		for (Info element : MidiBus.available_devices) {
 			try {
-				device = MidiSystem.getMidiDevice(MidiBus.available_devices[i]);
-				//This open close checks to make sure the announced device is truely available
-				//There are many reports on Windows that some devices lie about their availability
-				//(For instance the Microsoft GS Wavetable Synth)
-				//But in theory I guess this could happen on any OS, so I'll just do it all the time.
+				device = MidiSystem.getMidiDevice(element);
+				// This open close checks to make sure the announced device is truely available
+				// There are many reports on Windows that some devices lie about their
+				// availability
+				// (For instance the Microsoft GS Wavetable Synth)
+				// But in theory I guess this could happen on any OS, so I'll just do it all the
+				// time.
 				// if(!device.isOpen()) {
-				// 	device.open();
-				// 	device.close();
+				// device.open();
+				// device.close();
 				// }
-			} catch(MidiUnavailableException e) {
-				devices_list.add(MidiBus.available_devices[i]);
+			} catch (MidiUnavailableException e) {
+				devices_list.add(element);
 			}
 		}
-		
+
 		MidiDevice.Info[] devices = new MidiDevice.Info[devices_list.size()];
-		
+
 		devices_list.toArray(devices);
-		
+
 		return devices;
 	}
-		
+
 	/* -- Nested Classes -- */
-	
+
 	private class MReceiver implements Receiver {
-				
+
 		MReceiver() {
 
 		}
-		
+
+		@Override
 		public void close() {
 
 		}
-		
-	 	public void send(MidiMessage message, long timeStamp) {
-			
-			if(message.getStatus() == ShortMessage.NOTE_ON && message.getMessage()[2] == 0) {
+
+		@Override
+		public void send(MidiMessage message, long timeStamp) {
+
+			if (message.getStatus() == ShortMessage.NOTE_ON && message.getMessage()[2] == 0) {
 				try {
-					ShortMessage tmp_message = (ShortMessage)message;
+					ShortMessage tmp_message = (ShortMessage) message;
 					tmp_message.setMessage(ShortMessage.NOTE_OFF, tmp_message.getData1(), tmp_message.getData2());
 					message = tmp_message;
-				} catch(Exception e) {
+				} catch (Exception e) {
 					System.err.println("\nThe MidiBus Warning: Mystery error during noteOn (0 velocity) to noteOff conversion");
 				}
 			}
-						
+
 			notifyListeners(message, timeStamp);
 			notifyParent(message, timeStamp);
 		}
-		
-	}	
-	
+
+	}
+
 	private class InputDeviceContainer {
-				
+
 		MidiDevice.Info info;
-		
+
 		Transmitter transmitter;
 		Receiver receiver;
-		
+
 		InputDeviceContainer(MidiDevice device) {
 			this.info = device.getDeviceInfo();
 		}
-		
+
+		@Override
 		public boolean equals(Object container) {
-			if(container instanceof InputDeviceContainer && ((InputDeviceContainer)container).info.getName().equals(this.info.getName())) return true;
-			else return false;
+			if (container instanceof InputDeviceContainer
+					&& ((InputDeviceContainer) container).info.getName().equals(this.info.getName())) {
+				return true;
+			} else {
+				return false;
+			}
 		}
-		
+
+		@Override
 		public int hashCode() {
 			return info.getName().hashCode();
 		}
-		
+
 	}
-	
+
 	private class OutputDeviceContainer {
-			
+
 		MidiDevice.Info info;
-		
+
 		Receiver receiver;
-		
+
 		OutputDeviceContainer(MidiDevice device) {
 			this.info = device.getDeviceInfo();
 		}
-		
+
+		@Override
 		public boolean equals(Object container) {
-			if(container instanceof OutputDeviceContainer && ((OutputDeviceContainer)container).info.getName().equals(this.info.getName())) return true;
-			else return false;
+			if (container instanceof OutputDeviceContainer
+					&& ((OutputDeviceContainer) container).info.getName().equals(this.info.getName())) {
+				return true;
+			} else {
+				return false;
+			}
 		}
-		
+
+		@Override
 		public int hashCode() {
 			return info.getName().hashCode();
 		}
-		
+
 	}
-	
+
 }

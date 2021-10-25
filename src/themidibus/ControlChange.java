@@ -27,7 +27,7 @@ package themidibus;
  * @see MidiBus
  * @see ObjectMidiListener
  * @see Note
-*/
+ */
 
 public class ControlChange {
 
@@ -42,23 +42,22 @@ public class ControlChange {
 	 * Constructs a ControlChange object
 	 * 
 	 * @param channel the channel of the ControlChange
-	 * @param number the number of the ControlChange
-	 * @param value the value of the ControlChange
-	*/
+	 * @param number  the number of the ControlChange
+	 * @param value   the value of the ControlChange
+	 */
 	public ControlChange(int channel, int number, int value) {
 		this(channel, number, value, -1, null);
 	}
 
-
 	/**
 	 * Constructs a ControlChange object
 	 * 
-	 * @param channel the channel of the ControlChange
-	 * @param number the number of the ControlChange
-	 * @param value the value of the ControlChange
+	 * @param channel   the channel of the ControlChange
+	 * @param number    the number of the ControlChange
+	 * @param value     the value of the ControlChange
 	 * @param timestamp the timestamp of the ControlChange
-	 * @param bus_name the name of MidiBus associated with the ControlChange 
-	*/
+	 * @param bus_name  the name of MidiBus associated with the ControlChange
+	 */
 	public ControlChange(int channel, int number, int value, long timestamp, String bus_name) {
 		this.channel = channel;
 		this.number = number;
@@ -72,7 +71,7 @@ public class ControlChange {
 	 * Set channel of the ControlChange
 	 * 
 	 * @param channel the channel to set
-	*/
+	 */
 	public void setChannel(int channel) {
 		this.channel = channel;
 	}
@@ -81,7 +80,7 @@ public class ControlChange {
 	 * Return the channel of the ControlChange
 	 * 
 	 * @return the channel
-	*/
+	 */
 	public int channel() {
 		return channel;
 	}
@@ -90,7 +89,7 @@ public class ControlChange {
 	 * Set number of the ControlChange
 	 * 
 	 * @param number the number to set
-	*/
+	 */
 	public void setNumber(int number) {
 		this.number = number;
 	}
@@ -99,7 +98,7 @@ public class ControlChange {
 	 * Return the number of the ControlChange
 	 * 
 	 * @return the number
-	*/
+	 */
 	public int number() {
 		return number;
 	}
@@ -108,7 +107,7 @@ public class ControlChange {
 	 * Set value of the ControlChange
 	 * 
 	 * @param value the value to set
-	*/
+	 */
 	public void setValue(int value) {
 		this.value = value;
 	}
@@ -117,20 +116,27 @@ public class ControlChange {
 	 * Return the value of the ControlChange
 	 * 
 	 * @return the value
-	*/
+	 */
 	public int value() {
 		return value;
 	}
 
 	/**
-	 * Returns a string in the format [c:channel, n:number, v:value, ts:timestamp, b:bus_name] e.g "[c:0, n:65, v:123, ts:1234, b:bus123]". If timestamp or bus_name isn't set, it is omitted.
+	 * Returns a string in the format [c:channel, n:number, v:value, ts:timestamp,
+	 * b:bus_name] e.g "[c:0, n:65, v:123, ts:1234, b:bus123]". If timestamp or
+	 * bus_name isn't set, it is omitted.
 	 *
 	 * @return the string representation
-	*/
+	 */
+	@Override
 	public String toString() {
 		String result = "[c:" + channel + ", n:" + number + ", v:" + value;
-		if(timestamp != -1) result += ", ts:" + timestamp;
-		if(bus_name != null) result += ", b:" + bus_name;
+		if (timestamp != -1) {
+			result += ", ts:" + timestamp;
+		}
+		if (bus_name != null) {
+			result += ", b:" + bus_name;
+		}
 		result += "]";
 
 		return result;
@@ -140,21 +146,34 @@ public class ControlChange {
 	 * Check if all fields are equal.
 	 *
 	 * @return true if both objects can be considered to be equals
-	*/
+	 */
+	@Override
 	public boolean equals(Object obj) {
-		if(this == obj) return true;
-		if(obj == null) return false;
+		if (this == obj) {
+			return true;
+		}
+		if ((obj == null) || (getClass() != obj.getClass())) {
+			return false;
+		}
 
-		if(getClass() != obj.getClass()) return false;
+		ControlChange other = (ControlChange) obj;
 
-		ControlChange other = (ControlChange)obj;
+		if (other.channel != this.channel) {
+			return false;
+		}
+		if (other.number != this.number) {
+			return false;
+		}
+		if (other.value != this.value) {
+			return false;
+		}
 
-		if(other.channel != this.channel) return false;
-		if(other.number != this.number) return false;
-		if(other.value != this.value) return false;
-
-		if(other.timestamp != this.timestamp) return false;
-		if(other.bus_name != this.bus_name) return false;
+		if (other.timestamp != this.timestamp) {
+			return false;
+		}
+		if (other.bus_name != this.bus_name) {
+			return false;
+		}
 
 		return true;
 	}

@@ -20,7 +20,10 @@
 package themidibus;
 
 /**
- * A ObjectMidiListener can be notified of incomming NoteOn, NoteOff and ControllerChange events via {@link Note} and {@link ControlChange} objects, usually by a MidiBus object which it is connected to. Typically it would analyse and react to incomming messages in some useful way.
+ * A ObjectMidiListener can be notified of incomming NoteOn, NoteOff and
+ * ControllerChange events via {@link Note} and {@link ControlChange} objects,
+ * usually by a MidiBus object which it is connected to. Typically it would
+ * analyse and react to incomming messages in some useful way.
  *
  * @version 008
  * @author Severin Smith, Marc Koderer
@@ -31,29 +34,32 @@ package themidibus;
  * @see Note
  * @see ControlChange
  * @see MidiBus
-*/
+ */
 
 public interface ObjectMidiListener extends MidiListener {
-	
+
 	/**
-	 * Objects notifying this ObjectMidiListener of a new NoteOn events call this method.
+	 * Objects notifying this ObjectMidiListener of a new NoteOn events call this
+	 * method.
 	 * 
 	 * @param note the note object associated with this event
-	*/
+	 */
 	public void noteOn(Note note);
-	
+
 	/**
-	 * Objects notifying this ObjectMidiListener of a new NoteOff events call this method.
+	 * Objects notifying this ObjectMidiListener of a new NoteOff events call this
+	 * method.
 	 * 
 	 * @param note the note object associated with this event
-	*/
+	 */
 	public void noteOff(Note note);
-	
+
 	/**
-	 * Objects notifying this ObjectMidiListener of a new ControllerChange events call this method.
+	 * Objects notifying this ObjectMidiListener of a new ControllerChange events
+	 * call this method.
 	 * 
 	 * @param change the ControlChange object associated with this event
-	*/
+	 */
 	public void controllerChange(ControlChange change);
-	
+
 }

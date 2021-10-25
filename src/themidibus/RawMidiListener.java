@@ -20,7 +20,9 @@
 package themidibus;
 
 /**
- * A RawMidiListener can be notified of incomming MIDI messages in raw form, usually by a MidiBus object which it is connect to. Typically it would analyse and react to incomming MIDI messages in some useful way.
+ * A RawMidiListener can be notified of incomming MIDI messages in raw form,
+ * usually by a MidiBus object which it is connect to. Typically it would
+ * analyse and react to incomming MIDI messages in some useful way.
  *
  * @version 008
  * @author Severin Smith
@@ -29,12 +31,13 @@ package themidibus;
  * @see StandardMidiListener
  * @see ObjectMidiListener
  * @see MidiBus
-*/
+ */
 public interface RawMidiListener extends MidiListener {
 	/**
-	 * Objects notifying this RawMidiListener of a new MIDI message call this method and pass the raw message to it.
+	 * Objects notifying this RawMidiListener of a new MIDI message call this method
+	 * and pass the raw message to it.
 	 * 
 	 * @param data the data bytes that make up the MIDI message
-	*/
+	 */
 	public void rawMidiMessage(byte[] data);
 }

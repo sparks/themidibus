@@ -20,7 +20,10 @@
 package themidibus;
 
 /**
- * A SimpleMidiListener can be notified of incomming NoteOn, NoteOff and ControllerChange MIDI messages, usually by a MidiBus object which it is connected to. Typically it would analyse and react to incomming MIDI messages in some useful way.
+ * A SimpleMidiListener can be notified of incomming NoteOn, NoteOff and
+ * ControllerChange MIDI messages, usually by a MidiBus object which it is
+ * connected to. Typically it would analyse and react to incomming MIDI messages
+ * in some useful way.
  *
  * @version 008
  * @author Severin Smith
@@ -29,35 +32,38 @@ package themidibus;
  * @see StandardMidiListener
  * @see ObjectMidiListener
  * @see MidiBus
-*/
+ */
 
 public interface SimpleMidiListener extends MidiListener {
-	
+
 	/**
-	 * Objects notifying this SimpleMidiListener of a new NoteOn MIDI message call this method.
+	 * Objects notifying this SimpleMidiListener of a new NoteOn MIDI message call
+	 * this method.
 	 * 
-	 * @param channel the channel on which the NoteOn arrived
-	 * @param pitch the pitch associated with the NoteOn
+	 * @param channel  the channel on which the NoteOn arrived
+	 * @param pitch    the pitch associated with the NoteOn
 	 * @param velocity the velocity associated with the NoteOn
-	*/
+	 */
 	public void noteOn(int channel, int pitch, int velocity);
-	
+
 	/**
-	 * Objects notifying this SimpleMidiListener of a new NoteOff MIDI message call this method.
+	 * Objects notifying this SimpleMidiListener of a new NoteOff MIDI message call
+	 * this method.
 	 * 
-	 * @param channel the channel on which the NoteOff arrived
-	 * @param pitch the pitch associated with the NoteOff
+	 * @param channel  the channel on which the NoteOff arrived
+	 * @param pitch    the pitch associated with the NoteOff
 	 * @param velocity the velocity associated with the NoteOff
-	*/
+	 */
 	public void noteOff(int channel, int pitch, int velocity);
-	
+
 	/**
-	 * Objects notifying this SimpleMidiListener of a new ControllerChange MIDI message call this method.
+	 * Objects notifying this SimpleMidiListener of a new ControllerChange MIDI
+	 * message call this method.
 	 * 
 	 * @param channel the channel on which the ContollerChange arrived
-	 * @param number the controller number associated with the ContollerChange
-	 * @param value the controller value associated with the ContollerChange
-	*/
+	 * @param number  the controller number associated with the ContollerChange
+	 * @param value   the controller value associated with the ContollerChange
+	 */
 	public void controllerChange(int channel, int number, int value);
-	
+
 }
