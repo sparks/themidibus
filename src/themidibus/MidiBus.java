@@ -269,7 +269,6 @@ public class MidiBus {
 	 * If two MidiBus object were to have the same name, this would be bad, but not fatal, so there's no point in spending too much time worrying about it.
 	*/
 	private void init(Object parent, String bus_name) {
-		registerParent(parent);
 
 		/* -- */
 
@@ -283,8 +282,9 @@ public class MidiBus {
 		
 		input_devices = new Vector<InputDeviceContainer>();
 		output_devices = new Vector<OutputDeviceContainer>();
-		
 		listeners = new Vector<MidiListener>();
+		
+		registerParent(parent);
 
 		sendTimestamps = true;
 	}
