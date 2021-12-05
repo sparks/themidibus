@@ -38,6 +38,7 @@ public interface StandardMidiListener extends MidiListener {
 	 * Objects notifying this StandardMidiListener of a new MIDI message call this method and pass the MidiMessage
 	 * 
 	 * @param message the MidiMessage received
+	 * @param timeStamp the timestamp of the midiMessage
 	*/
 	public void midiMessage(MidiMessage message, long timeStamp);
 }
