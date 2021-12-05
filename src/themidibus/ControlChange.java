@@ -22,7 +22,7 @@ package themidibus;
 /**
  * The ControlChange class represents a change in value from a controller.
  * 
- * @version 008
+ * @version 009
  * @author Severin Smith, Marc Koderer
  * @see MidiBus
  * @see ObjectMidiListener

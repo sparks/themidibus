@@ -1,3 +1,8 @@
+-Version 009
+	Changes:
+		-Fix a NullPointer happening on boot in Processing 4 beta
+		-There is a known NullPointer when closing sketchesin Processing 4, but this appears to be a bug in Processing.
+
 -Version 008
   Changes:
     -Remove register/unregister dispose to be compatible with Processing 3.0

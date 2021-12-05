@@ -24,7 +24,7 @@ import javax.sound.midi.MidiMessage;
 /**
  * A StandardMidiListener can be notified of incomming MIDI messages in MidiMessage form, usually by a MidiBus object which it is connected to. Typically it would analyse and react to incomming MIDI messages in some useful way.
  *
- * @version 008
+ * @version 009
  * @author Severin Smith
  * @see MidiListener
  * @see RawMidiListener

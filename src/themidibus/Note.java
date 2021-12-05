@@ -22,7 +22,7 @@ package themidibus;
 /**
  * The Note class represents a pressed or released key.
  * 
- * @version 008
+ * @version 009
  * @author Severin Smith, Marc Koderer
  * @see MidiBus
  * @see ObjectMidiListener
