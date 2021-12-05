@@ -218,9 +218,9 @@ public class Note {
 	*/
 	public String toString() {
 		String result = "[" + name() + ", c:" + channel + ", p:" + pitch + ", v:" + velocity;
-		if(ticks != 0) result += ", t:" + ticks;
-		if(timestamp != -1) result += ", ts:" + timestamp;
-		if(bus_name != null) result += ", b:" + bus_name;
+		if (ticks != 0) result += ", t:" + ticks;
+		if (timestamp != -1) result += ", ts:" + timestamp;
+		if (bus_name != null) result += ", b:" + bus_name;
 		result += "]";
 
 		return result;
@@ -232,21 +232,21 @@ public class Note {
 	 * @return true if both objects can be considered to be equals
 	*/
 	public boolean equals(Object obj) {
-		if(this == obj) return true;
-		if(obj == null) return false;
+		if (this == obj) return true;
+		if (obj == null) return false;
 
-		if(getClass() != obj.getClass()) return false;
+		if (getClass() != obj.getClass()) return false;
 
 		Note other = (Note)obj;
 
-		if(other.channel != this.channel) return false;
-		if(other.pitch != this.pitch) return false;
-		if(other.velocity != this.velocity) return false;
+		if (other.channel != this.channel) return false;
+		if (other.pitch != this.pitch) return false;
+		if (other.velocity != this.velocity) return false;
 
-		if(other.ticks != this.ticks) return false;
+		if (other.ticks != this.ticks) return false;
 
-		if(other.timestamp != this.timestamp) return false;
-		if(other.bus_name != this.bus_name) return false;
+		if (other.timestamp != this.timestamp) return false;
+		if (other.bus_name != this.bus_name) return false;
 
 		return true;
 	}

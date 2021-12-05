@@ -271,7 +271,7 @@ public class MidiBus {
 	private void init(Object parent, String bus_name) {
 		/* -- */
 
-		if(bus_name == null) {
+		if (bus_name == null) {
 			generateBusName();
 		} else {
 			this.bus_name = bus_name;
@@ -301,7 +301,7 @@ public class MidiBus {
 		MidiDevice.Info[] devices_info = attachedInputsMidiDeviceInfo();
 		String[] devices = new String[devices_info.length];
 		
-		for(int i = 0;i < devices_info.length;i++) {
+		for (int i = 0;i < devices_info.length;i++) {
 			devices[i] = devices_info[i].getName();
 		}
 		
@@ -318,7 +318,7 @@ public class MidiBus {
 		MidiDevice.Info[] devices_info = attachedOutputsMidiDeviceInfo();
 		String[] devices = new String[devices_info.length];
 		
-		for(int i = 0;i < devices_info.length;i++) {
+		for (int i = 0;i < devices_info.length;i++) {
 			devices[i] = devices_info[i].getName();
 		}
 		
@@ -333,7 +333,7 @@ public class MidiBus {
 	MidiDevice.Info[] attachedInputsMidiDeviceInfo() {
 		MidiDevice.Info[] devices = new MidiDevice.Info[input_devices.size()];
 	
-		for(int i = 0;i < input_devices.size();i++) {
+		for (int i = 0;i < input_devices.size();i++) {
 			devices[i] = input_devices.get(i).info;
 		}
 		
@@ -348,7 +348,7 @@ public class MidiBus {
 	MidiDevice.Info[] attachedOutputsMidiDeviceInfo() {
 		MidiDevice.Info[] devices = new MidiDevice.Info[output_devices.size()];
 	
-		for(int i = 0;i < output_devices.size();i++) {
+		for (int i = 0;i < output_devices.size();i++) {
 			devices[i] = output_devices.get(i).info;
 		}
 		
@@ -364,11 +364,11 @@ public class MidiBus {
 	 * @see #list()
 	*/
 	public boolean addInput(int device_num) {
-		if(device_num == -1) return false;
+		if (device_num == -1) return false;
 
 		MidiDevice.Info[] devices = availableInputsMidiDeviceInfo();
 		
-		if(device_num >= devices.length || device_num < 0) {
+		if (device_num >= devices.length || device_num < 0) {
 			System.err.println("\nThe MidiBus Warning: The chosen input device numbered ["+device_num+"] was not added because it doesn't exist");
 			return false;
 		}
@@ -411,12 +411,12 @@ public class MidiBus {
 	 * @see #list()
 	*/
 	public boolean addInput(String device_name) {
-		if(device_name.equals("")) return false;
+		if (device_name.equals("")) return false;
 		
 		MidiDevice.Info[] devices = availableInputsMidiDeviceInfo();
 
-		for(int i = 0;i < devices.length;i++) {
-			if(devices[i].getName().equals(device_name)) return addInput(devices[i]);
+		for (int i = 0;i < devices.length;i++) {
+			if (devices[i].getName().equals(device_name)) return addInput(devices[i]);
 		}
 		
 		System.err.println("\nThe MidiBus Warning: No available input MIDI devices named: \""+device_name+"\" were found");
@@ -434,8 +434,8 @@ public class MidiBus {
 	 * @see #attachedInputs()
 	*/
 	public synchronized boolean removeInput(String device_name) {
-		for(InputDeviceContainer container : input_devices) {
-			if(container.info.getName().equals(device_name)) {
+		for (InputDeviceContainer container : input_devices) {
+			if (container.info.getName().equals(device_name)) {
 				input_devices.remove(container);
 		
 				container.transmitter.close();
@@ -457,16 +457,16 @@ public class MidiBus {
 		try {
 			MidiDevice new_device = MidiSystem.getMidiDevice(device_info);
 		
-			if(new_device.getMaxTransmitters() == 0) {
+			if (new_device.getMaxTransmitters() == 0) {
 				System.err.println("\nThe MidiBus Warning: The chosen input device \""+device_info.getName()+"\" was not added because it is output only");
 				return false;
 			}
 			
-			for(InputDeviceContainer container : input_devices) {
-				if(device_info.getName().equals(container.info.getName())) return false;
+			for (InputDeviceContainer container : input_devices) {
+				if (device_info.getName().equals(container.info.getName())) return false;
 			}
 
-			if(!new_device.isOpen()) new_device.open();
+			if (!new_device.isOpen()) new_device.open();
 
 			MReceiver receiver = new MReceiver();
 			Transmitter transmitter = new_device.getTransmitter();
@@ -494,11 +494,11 @@ public class MidiBus {
 	 * @see #list()
 	*/
 	public boolean addOutput(int device_num) {
-		if(device_num == -1) return false;
+		if (device_num == -1) return false;
 
 		MidiDevice.Info[] devices = availableOutputsMidiDeviceInfo();
 		
-		if(device_num >= devices.length || device_num < 0) {
+		if (device_num >= devices.length || device_num < 0) {
 			System.err.println("\nThe MidiBus Warning: The chosen output device numbered ["+device_num+"] was not added because it doesn't exist");
 			return false;
 		}
@@ -539,12 +539,12 @@ public class MidiBus {
 	 * @see #list()
 	*/
 	public boolean addOutput(String device_name) {
-		if(device_name.equals("")) return false;
+		if (device_name.equals("")) return false;
 		
 		MidiDevice.Info[] devices = availableOutputsMidiDeviceInfo();
 		
-		for(int i = 0;i < devices.length;i++) {
-			if(devices[i].getName().equals(device_name)) return addOutput(devices[i]);
+		for (int i = 0;i < devices.length;i++) {
+			if (devices[i].getName().equals(device_name)) return addOutput(devices[i]);
 		}
 		
 		System.err.println("\nThe MidiBus Warning: No available input MIDI devices named: \""+device_name+"\" were found");
@@ -562,8 +562,8 @@ public class MidiBus {
 	 * @see #attachedOutputs()
 	*/
 	public synchronized boolean removeOutput(String device_name) {
-		for(OutputDeviceContainer container : output_devices) {
-			if(container.info.getName().equals(device_name)) {
+		for (OutputDeviceContainer container : output_devices) {
+			if (container.info.getName().equals(device_name)) {
 				output_devices.remove(container);
 			
 				container.receiver.close();
@@ -584,16 +584,16 @@ public class MidiBus {
 		try {
 			MidiDevice new_device = MidiSystem.getMidiDevice(device_info);
 		
-			if(new_device.getMaxReceivers() == 0) {
+			if (new_device.getMaxReceivers() == 0) {
 				System.err.println("\nThe MidiBus Warning: The chosen output device \""+device_info.getName()+"\" was not added because it is input only");
 				return false;
 			}
 			
-			for(OutputDeviceContainer container : output_devices) {
-				if(device_info.getName().equals(container.info.getName())) return false;
+			for (OutputDeviceContainer container : output_devices) {
+				if (device_info.getName().equals(container.info.getName())) return false;
 			}
 
-			if(!new_device.isOpen()) new_device.open();
+			if (!new_device.isOpen()) new_device.open();
 			
 			OutputDeviceContainer new_container = new OutputDeviceContainer(new_device);
 			new_container.receiver = new_device.getReceiver();
@@ -617,7 +617,7 @@ public class MidiBus {
 		//We are purposefully not closing devices here, because in some cases that will be slow, and we might want later
 		//Also it's broken on MAC
 		try{
-			for(InputDeviceContainer container : input_devices) {
+			for (InputDeviceContainer container : input_devices) {
 				container.transmitter.close();
 				container.receiver.close();
 			}
@@ -638,7 +638,7 @@ public class MidiBus {
 		//We are purposefully not closing devices here, because in some cases that will be slow, and we might want later
 		//Also it's broken on MAC
 		try{
-			for(OutputDeviceContainer container : output_devices) {
+			for (OutputDeviceContainer container : output_devices) {
 				container.receiver.close();
 			}	
 		} catch(Exception e) {
@@ -670,17 +670,17 @@ public class MidiBus {
 	 * @see #dispose()
 	*/
 	void closeAllMidiDevices() {
-		if(MidiBus.available_devices == null) findMidiDevices();
+		if (MidiBus.available_devices == null) findMidiDevices();
 
-		if(MidiBus.available_devices == null) return;
+		if (MidiBus.available_devices == null) return;
 
 		MidiDevice device;
 		
-		for(int i = 0;i < MidiBus.available_devices.length;i++) {
+		for (int i = 0;i < MidiBus.available_devices.length;i++) {
 			try {
 				device = MidiSystem.getMidiDevice(MidiBus.available_devices[i]);
-				if(device == null) continue;
-				if(device.isOpen()) device.close();
+				if (device == null) continue;
+				if (device.isOpen()) device.close();
 			} catch(MidiUnavailableException e) {
 				//Device wasn't available, which is fine since we wanted to close it anyways
 			}
@@ -707,7 +707,7 @@ public class MidiBus {
 	 * @see #sendControllerChange(ControlChange change)
 	*/
 	public void sendMessage(byte[] data) {
-		if((int)((byte)data[0] & 0xFF) == MetaMessage.META) {
+		if ((int)((byte)data[0] & 0xFF) == MetaMessage.META) {
 				MetaMessage message = new MetaMessage();
 				try {
 					byte[] payload = new byte[data.length-2];
@@ -717,7 +717,7 @@ public class MidiBus {
 				} catch(InvalidMidiDataException e) {
 					System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
 				}
-			} else if((int)((byte)data[0] & 0xFF) == SysexMessage.SYSTEM_EXCLUSIVE || (int)((byte)data[0] & 0xFF) == SysexMessage.SPECIAL_SYSTEM_EXCLUSIVE) {
+			} else if ((int)((byte)data[0] & 0xFF) == SysexMessage.SYSTEM_EXCLUSIVE || (int)((byte)data[0] & 0xFF) == SysexMessage.SPECIAL_SYSTEM_EXCLUSIVE) {
 				SysexMessage message = new SysexMessage();
 				try {
 					message.setMessage(data, data.length);
@@ -728,8 +728,8 @@ public class MidiBus {
 			} else {
 				ShortMessage message = new ShortMessage();
 				try {
-					if(data.length > 2) message.setMessage((int)((byte)data[0] & 0xFF), (int)((byte)data[1] & 0xFF), (int)((byte)data[2] & 0xFF));
-					else if(data.length > 1) message.setMessage((int)((byte)data[0] & 0xFF), (int)((byte)data[1] & 0xFF), 0);
+					if (data.length > 2) message.setMessage((int)((byte)data[0] & 0xFF), (int)((byte)data[1] & 0xFF), (int)((byte)data[2] & 0xFF));
+					else if (data.length > 1) message.setMessage((int)((byte)data[0] & 0xFF), (int)((byte)data[1] & 0xFF), 0);
 					else message.setMessage((int)((byte)data[0] & 0xFF));
 					sendMessage(message);
 				} catch(InvalidMidiDataException e) {
@@ -860,8 +860,8 @@ public class MidiBus {
 	 * @see #sendControllerChange(ControlChange change)
 	*/
 	public synchronized void sendMessage(MidiMessage message) {
-		for(OutputDeviceContainer container : output_devices) {
-			if(sendTimestamps) container.receiver.send(message, System.currentTimeMillis());
+		for (OutputDeviceContainer container : output_devices) {
+			if (sendTimestamps) container.receiver.send(message, System.currentTimeMillis());
 			else container.receiver.send(message, 0);
 		}
 	}
@@ -1021,36 +1021,36 @@ public class MidiBus {
 	void notifyListeners(MidiMessage message, long timeStamp) {
 		byte[] data = message.getMessage();
 		
-		for(MidiListener listener : listeners) {
+		for (MidiListener listener : listeners) {
 		
 			/* -- RawMidiListener -- */
 		
-			if(listener instanceof RawMidiListener) ((RawMidiListener)listener).rawMidiMessage(data);
+			if (listener instanceof RawMidiListener) ((RawMidiListener)listener).rawMidiMessage(data);
 		
 			/* -- SimpleMidiListener -- */
 			
-			if(listener instanceof SimpleMidiListener) {
-				if((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_ON) {
+			if (listener instanceof SimpleMidiListener) {
+				if ((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_ON) {
 					((SimpleMidiListener)listener).noteOn((int)(data[0] & 0x0F),(int)(data[1] & 0xFF),(int)(data[2] & 0xFF));
-				} else if((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_OFF) {
+				} else if ((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_OFF) {
 					((SimpleMidiListener)listener).noteOff((int)(data[0] & 0x0F),(int)(data[1] & 0xFF),(int)(data[2] & 0xFF));
-				} else if((int)((byte)data[0] & 0xF0) == ShortMessage.CONTROL_CHANGE) {
+				} else if ((int)((byte)data[0] & 0xF0) == ShortMessage.CONTROL_CHANGE) {
 					((SimpleMidiListener)listener).controllerChange((int)(data[0] & 0x0F),(int)(data[1] & 0xFF),(int)(data[2] & 0xFF));
 				}
 			}
 		
 			/* -- StandardMidiListener -- */
 		
-			if(listener instanceof StandardMidiListener) ((StandardMidiListener)listener).midiMessage(message, timeStamp);
+			if (listener instanceof StandardMidiListener) ((StandardMidiListener)listener).midiMessage(message, timeStamp);
 			
 			/* -- ObjectMidiListener -- */
 
-			if(listener instanceof ObjectMidiListener) {
-				if((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_ON) {
+			if (listener instanceof ObjectMidiListener) {
+				if ((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_ON) {
 					((ObjectMidiListener)listener).noteOn(new Note((int)(data[0] & 0x0F),(int)(data[1] & 0xFF),(int)(data[2] & 0xFF)));
-				} else if((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_OFF) {
+				} else if ((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_OFF) {
 					((ObjectMidiListener)listener).noteOff(new Note((int)(data[0] & 0x0F),(int)(data[1] & 0xFF),(int)(data[2] & 0xFF)));
-				} else if((int)((byte)data[0] & 0xF0) == ShortMessage.CONTROL_CHANGE) {
+				} else if ((int)((byte)data[0] & 0xF0) == ShortMessage.CONTROL_CHANGE) {
 					((ObjectMidiListener)listener).controllerChange(new ControlChange((int)(data[0] & 0x0F),(int)(data[1] & 0xFF),(int)(data[2] & 0xFF)));
 				}
 			}
@@ -1064,12 +1064,12 @@ public class MidiBus {
 	 * @param message the new inbound MidiMessage.
 	*/
 	void notifyParent(MidiMessage message, long timeStamp) {
-		if(parent == null) return;
+		if (parent == null) return;
 
 		byte[] data = message.getMessage();
 
-		if((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_ON) {
-			if(method_note_on != null) {
+		if ((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_ON) {
+			if (method_note_on != null) {
 				try {
 					method_note_on.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF) });
 				} catch(Exception e) {
@@ -1079,7 +1079,7 @@ public class MidiBus {
 				}
 			
 			}
-			if(method_note_on_with_bus_name != null) {
+			if (method_note_on_with_bus_name != null) {
 				try {
 					method_note_on_with_bus_name.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp, bus_name });
 				} catch(Exception e) {
@@ -1088,7 +1088,7 @@ public class MidiBus {
 					method_note_on_with_bus_name = null;
 				}
 			}
-			if(method_note_on_wcla != null){
+			if (method_note_on_wcla != null) {
 				try {
 					method_note_on_wcla.invoke(parent, new Note((int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp, bus_name));
 				} catch(Exception e) {
@@ -1097,8 +1097,8 @@ public class MidiBus {
 					method_note_on_wcla = null;
 				}
 			}
-		} else if((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_OFF) {
-			if(method_note_off != null) {
+		} else if ((int)((byte)data[0] & 0xF0) == ShortMessage.NOTE_OFF) {
+			if (method_note_off != null) {
 				try {
 					method_note_off.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF) });
 				} catch(Exception e) {
@@ -1107,7 +1107,7 @@ public class MidiBus {
 					method_note_off = null;
 				}
 			}
-			if(method_note_off_with_bus_name != null) {
+			if (method_note_off_with_bus_name != null) {
 				try {
 					method_note_off_with_bus_name.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp, bus_name });
 				} catch(Exception e) {
@@ -1116,7 +1116,7 @@ public class MidiBus {
 					method_note_off_with_bus_name = null;
 				}
 			}
-			if(method_note_off_wcla != null){
+			if (method_note_off_wcla != null) {
 				try {
 					method_note_off_wcla.invoke(parent, new Note((int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp, bus_name));
 				} catch(Exception e) {
@@ -1125,8 +1125,8 @@ public class MidiBus {
 					method_note_off_wcla = null;
 				}
 			}
-		} else if((int)((byte)data[0] & 0xF0) == ShortMessage.CONTROL_CHANGE) {
-			if(method_controller_change != null) {
+		} else if ((int)((byte)data[0] & 0xF0) == ShortMessage.CONTROL_CHANGE) {
+			if (method_controller_change != null) {
 				try {
 					method_controller_change.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF) });
 				} catch(Exception e) {
@@ -1135,7 +1135,7 @@ public class MidiBus {
 					method_controller_change = null;
 				}
 			}
-			if(method_controller_change_with_bus_name != null) {
+			if (method_controller_change_with_bus_name != null) {
 				try {
 					method_controller_change_with_bus_name.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp, bus_name });
 				} catch(Exception e) {
@@ -1144,7 +1144,7 @@ public class MidiBus {
 					method_controller_change_with_bus_name = null;
 				}
 			}
-			if(method_controller_change_wcla != null){
+			if (method_controller_change_wcla != null) {
 				try {
 					method_controller_change_wcla.invoke(parent, new ControlChange((int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp, bus_name));
 				} catch(Exception e) {
@@ -1155,7 +1155,7 @@ public class MidiBus {
 			}
 		}
 		
-		if(method_raw_midi != null) {
+		if (method_raw_midi != null) {
 			try {
 				method_raw_midi.invoke(parent, new Object[] { data });
 			} catch(Exception e) {
@@ -1164,7 +1164,7 @@ public class MidiBus {
 				method_raw_midi = null;
 			}
 		}
-		if(method_raw_midi_with_bus_name != null) {
+		if (method_raw_midi_with_bus_name != null) {
 			try {
 				method_raw_midi_with_bus_name.invoke(parent, new Object[] { data, timeStamp, bus_name });
 			} catch(Exception e) {
@@ -1174,7 +1174,7 @@ public class MidiBus {
 			}
 		}
 		
-		if(method_midi_message != null) {
+		if (method_midi_message != null) {
 			try {
 				method_midi_message.invoke(parent, new Object[] { message });
 			} catch(Exception e) {
@@ -1183,7 +1183,7 @@ public class MidiBus {
 				method_midi_message = null;
 			}
 		}
-		if(method_midi_message_with_bus_name != null) {
+		if (method_midi_message_with_bus_name != null) {
 			try {
 				method_midi_message_with_bus_name.invoke(parent, new Object[] { message, timeStamp, bus_name });
 			} catch(Exception e) {
@@ -1207,7 +1207,7 @@ public class MidiBus {
 	public Object registerParent(Object parent) {
 		Object old_parent = this.parent;
 
-		if(old_parent != null) {
+		if (old_parent != null) {
 			method_note_on = null;
 			method_note_off = null;
 			method_controller_change = null;
@@ -1223,9 +1223,9 @@ public class MidiBus {
 
 		this.parent = parent;
 
-		if(parent != null) {
+		if (parent != null) {
 
-			if(parent instanceof processing.core.PApplet) {
+			if (parent instanceof processing.core.PApplet) {
 				((processing.core.PApplet) parent).registerMethod("dispose", this);
 			}
 
@@ -1321,7 +1321,7 @@ public class MidiBus {
 	 * @see #registerParent(Object parent)
 	*/
 	public boolean addMidiListener(MidiListener listener) {
-		for(MidiListener current : listeners) if(current == listener) return false;
+		for (MidiListener current : listeners) if (current == listener) return false;
 		
 		listeners.add(listener);
 				
@@ -1336,8 +1336,8 @@ public class MidiBus {
 	 * @see #addMidiListener(MidiListener listener)
 	*/
 	public boolean removeMidiListener(MidiListener listener) {
-		for(MidiListener current : listeners) {
-			if(current == listener) {
+		for (MidiListener current : listeners) {
+			if (current == listener) {
 				listeners.remove(listener);
 				return true;
 			}
@@ -1352,8 +1352,8 @@ public class MidiBus {
 	 * It's just convient ... move along...
 	*/
 	int constrain(int value, int min, int max) {
-		if(value > max) value = max;
-		if(value < min) value = min;
+		if (value > max) value = max;
+		if (value < min) value = min;
 		return value;
 	}
 
@@ -1430,12 +1430,12 @@ public class MidiBus {
 	 * @return if this object is the same as the obj argument; false otherwise.
 	 */
 	public boolean equals(Object obj) {
-		if(obj instanceof MidiBus) {
+		if (obj instanceof MidiBus) {
 			MidiBus midibus = (MidiBus)obj;
-			if(!this.getBusName().equals(midibus.getBusName())) return false;
-			if(!this.input_devices.equals(midibus.input_devices)) return false;
-			if(!this.output_devices.equals(midibus.output_devices)) return false;
-			if(!this.listeners.equals(midibus.listeners)) return false;
+			if (!this.getBusName().equals(midibus.getBusName())) return false;
+			if (!this.input_devices.equals(midibus.input_devices)) return false;
+			if (!this.output_devices.equals(midibus.output_devices)) return false;
+			if (!this.listeners.equals(midibus.listeners)) return false;
 			return true;
 		}
 		return false;
@@ -1449,15 +1449,15 @@ public class MidiBus {
 	public MidiBus clone() {
 		MidiBus clone = new MidiBus(parent, bus_name);
 		
-		for(InputDeviceContainer container : input_devices) {
+		for (InputDeviceContainer container : input_devices) {
 			clone.addInput(container.info);
 		}
 		
-		for(OutputDeviceContainer container : output_devices) {
+		for (OutputDeviceContainer container : output_devices) {
 			clone.addOutput(container.info);
 		}
 		
-		for(MidiListener listener : listeners) {
+		for (MidiListener listener : listeners) {
 			clone.addMidiListener(listener);
 		}
 		
@@ -1527,20 +1527,20 @@ public class MidiBus {
 		String[] available_outputs = availableOutputs();
 		String[] unavailable = unavailableDevices();
 		
-		if(available_inputs.length == 0 && available_outputs.length == 0 && unavailable.length == 0) return;
+		if (available_inputs.length == 0 && available_outputs.length == 0 && unavailable.length == 0) return;
 		
 		System.out.println("\nAvailable MIDI Devices:");
-		if(available_inputs.length != 0) {
+		if (available_inputs.length != 0) {
 			System.out.println("----------Input----------");
-			for(int i = 0;i < available_inputs.length;i++) System.out.println("["+i+"] \""+available_inputs[i]+"\"");
+			for (int i = 0;i < available_inputs.length;i++) System.out.println("["+i+"] \""+available_inputs[i]+"\"");
 		}
-		if(available_outputs.length != 0) {
+		if (available_outputs.length != 0) {
 			System.out.println("----------Output----------");
-			for(int i = 0;i < available_outputs.length;i++) System.out.println("["+i+"] \""+available_outputs[i]+"\"");
+			for (int i = 0;i < available_outputs.length;i++) System.out.println("["+i+"] \""+available_outputs[i]+"\"");
 		}
-		if(unavailable.length != 0) {
+		if (unavailable.length != 0) {
 			System.out.println("----------Unavailable----------");
-			for(int i = 0;i < unavailable.length;i++) System.out.println("["+i+"] \""+unavailable[i]+"\"");
+			for (int i = 0;i < unavailable.length;i++) System.out.println("["+i+"] \""+unavailable[i]+"\"");
 		}
 	}
 
@@ -1564,7 +1564,7 @@ public class MidiBus {
 		MidiDevice.Info[] devices_info = availableInputsMidiDeviceInfo();
 		String[] devices = new String[devices_info.length];
 		
-		for(int i = 0;i < devices_info.length;i++) {
+		for (int i = 0;i < devices_info.length;i++) {
 			devices[i] = devices_info[i].getName();
 		}
 		
@@ -1583,7 +1583,7 @@ public class MidiBus {
 		MidiDevice.Info[] devices_info = availableOutputsMidiDeviceInfo();
 		String[] devices = new String[devices_info.length];
 		
-		for(int i = 0;i < devices_info.length;i++) {
+		for (int i = 0;i < devices_info.length;i++) {
 			devices[i] = devices_info[i].getName();
 		}
 		
@@ -1602,7 +1602,7 @@ public class MidiBus {
 		MidiDevice.Info[] devices_info = unavailableMidiDeviceInfo();
 		String[] devices = new String[devices_info.length];
 		
-		for(int i = 0;i < devices_info.length;i++) {
+		for (int i = 0;i < devices_info.length;i++) {
 			devices[i] = devices_info[i].getName();
 		}
 		
@@ -1615,19 +1615,19 @@ public class MidiBus {
 	 * @return the MidiDevice.Info of the available inputs.
 	*/
 	static MidiDevice.Info[] availableInputsMidiDeviceInfo() {
-		if(MidiBus.available_devices == null) findMidiDevices();
+		if (MidiBus.available_devices == null) findMidiDevices();
 		MidiDevice device;
 		
 		Vector<MidiDevice.Info> devices_list = new Vector<MidiDevice.Info>();
 
-		for(int i = 0;i < MidiBus.available_devices.length;i++) {
+		for (int i = 0;i < MidiBus.available_devices.length;i++) {
 			try {
 				device = MidiSystem.getMidiDevice(MidiBus.available_devices[i]);
 				//This open close checks to make sure the announced device is truely available
 				//There are many reports on Windows that some devices lie about their availability
 				//(For instance the Microsoft GS Wavetable Synth)
 				//But in theory I guess this could happen on any OS, so I'll just do it all the time.
-				// if(!device.isOpen()) {
+				// if (!device.isOpen()) {
 				// 	device.open();
 				// 	device.close();
 				// }
@@ -1650,19 +1650,19 @@ public class MidiBus {
 	 * @return the MidiDevice.Info of the available output.
 	*/
 	static MidiDevice.Info[] availableOutputsMidiDeviceInfo() {
-		if(MidiBus.available_devices == null) findMidiDevices();
+		if (MidiBus.available_devices == null) findMidiDevices();
 		MidiDevice device;
 		
 		Vector<MidiDevice.Info> devices_list = new Vector<MidiDevice.Info>();
 		
-		for(int i = 0;i < MidiBus.available_devices.length;i++) {
+		for (int i = 0;i < MidiBus.available_devices.length;i++) {
 			try {
 				device = MidiSystem.getMidiDevice(MidiBus.available_devices[i]);
 				//This open close checks to make sure the announced device is truely available
 				//There are many reports on Windows that some devices lie about their availability
 				//(For instance the Microsoft GS Wavetable Synth)
 				//But in theory I guess this could happen on any OS, so I'll just do it all the time.
-				// if(!device.isOpen()) {
+				// if (!device.isOpen()) {
 				// 	device.open();
 				// 	device.close();
 				// }
@@ -1685,19 +1685,19 @@ public class MidiBus {
 	 * @return the MidiDevice.Info of the unavailable devices.
 	*/
 	static MidiDevice.Info[] unavailableMidiDeviceInfo() {
-		if(MidiBus.available_devices == null) findMidiDevices();
+		if (MidiBus.available_devices == null) findMidiDevices();
 		MidiDevice device;
 		
 		Vector<MidiDevice.Info> devices_list = new Vector<MidiDevice.Info>();
 		
-		for(int i = 0;i < MidiBus.available_devices.length;i++) {
+		for (int i = 0;i < MidiBus.available_devices.length;i++) {
 			try {
 				device = MidiSystem.getMidiDevice(MidiBus.available_devices[i]);
 				//This open close checks to make sure the announced device is truely available
 				//There are many reports on Windows that some devices lie about their availability
 				//(For instance the Microsoft GS Wavetable Synth)
 				//But in theory I guess this could happen on any OS, so I'll just do it all the time.
-				// if(!device.isOpen()) {
+				// if (!device.isOpen()) {
 				// 	device.open();
 				// 	device.close();
 				// }
@@ -1727,7 +1727,7 @@ public class MidiBus {
 		
 	 	public void send(MidiMessage message, long timeStamp) {
 			
-			if(message.getStatus() == ShortMessage.NOTE_ON && message.getMessage()[2] == 0) {
+			if (message.getStatus() == ShortMessage.NOTE_ON && message.getMessage()[2] == 0) {
 				try {
 					ShortMessage tmp_message = (ShortMessage)message;
 					tmp_message.setMessage(ShortMessage.NOTE_OFF, tmp_message.getData1(), tmp_message.getData2());
@@ -1755,7 +1755,7 @@ public class MidiBus {
 		}
 		
 		public boolean equals(Object container) {
-			if(container instanceof InputDeviceContainer && ((InputDeviceContainer)container).info.getName().equals(this.info.getName())) return true;
+			if (container instanceof InputDeviceContainer && ((InputDeviceContainer)container).info.getName().equals(this.info.getName())) return true;
 			else return false;
 		}
 		
@@ -1776,7 +1776,7 @@ public class MidiBus {
 		}
 		
 		public boolean equals(Object container) {
-			if(container instanceof OutputDeviceContainer && ((OutputDeviceContainer)container).info.getName().equals(this.info.getName())) return true;
+			if (container instanceof OutputDeviceContainer && ((OutputDeviceContainer)container).info.getName().equals(this.info.getName())) return true;
 			else return false;
 		}
 		

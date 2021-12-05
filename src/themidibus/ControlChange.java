@@ -129,8 +129,8 @@ public class ControlChange {
 	*/
 	public String toString() {
 		String result = "[c:" + channel + ", n:" + number + ", v:" + value;
-		if(timestamp != -1) result += ", ts:" + timestamp;
-		if(bus_name != null) result += ", b:" + bus_name;
+		if (timestamp != -1) result += ", ts:" + timestamp;
+		if (bus_name != null) result += ", b:" + bus_name;
 		result += "]";
 
 		return result;
@@ -142,19 +142,19 @@ public class ControlChange {
 	 * @return true if both objects can be considered to be equals
 	*/
 	public boolean equals(Object obj) {
-		if(this == obj) return true;
-		if(obj == null) return false;
+		if (this == obj) return true;
+		if (obj == null) return false;
 
-		if(getClass() != obj.getClass()) return false;
+		if (getClass() != obj.getClass()) return false;
 
 		ControlChange other = (ControlChange)obj;
 
-		if(other.channel != this.channel) return false;
-		if(other.number != this.number) return false;
-		if(other.value != this.value) return false;
+		if (other.channel != this.channel) return false;
+		if (other.number != this.number) return false;
+		if (other.value != this.value) return false;
 
-		if(other.timestamp != this.timestamp) return false;
-		if(other.bus_name != this.bus_name) return false;
+		if (other.timestamp != this.timestamp) return false;
+		if (other.bus_name != this.bus_name) return false;
 
 		return true;
 	}
