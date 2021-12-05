@@ -42,7 +42,8 @@
 		<javadoc sourcepath="${src.dir}" destdir="${ref.dir}" author="true" version="true" classpathref="classpath"/>
 	</target>
 	
-	<target name="zip">
+	<target name="zip" depends="jar, doc">
+		<antcall target="clean"/>
 		<zip destfile="${ant.project.name}.zip">
 			<zipfileset dir="." excludes="**/*.DS_Store, .gitignore, **/.git, **/.git/**/*, TODO.txt" prefix="${ant.project.name}"/>
 		</zip>
