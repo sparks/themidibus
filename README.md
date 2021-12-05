@@ -9,7 +9,7 @@ If you want to install the MidiBus manually you can get the latest stable build 
 # Resources and Documentation
 
 * [GitHub page](http://github.com/sparks/themidibus)
-* [The MidiBus Online Javadocs](http://smallbutdigital.com/themidibus/themidibus/package-summary.html)
+* [The MidiBus Online Javadocs](http://www.smallbutdigital.com/docs/themidibus/themidibus/package-summary.html)
 
 # A Few Quick Notes
 
