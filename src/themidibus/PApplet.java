@@ -33,7 +33,7 @@ import javax.sound.midi.MidiMessage;
  * @see StandardMidiListener
  * @see SimpleMidiListener
 */
-public class PApplet{	
+public class PApplet {
 	
 	/**
 	 * Is passed the channel, controller number and contoller value associated with every new ContollerChange MIDI message recieved by a MidiBus attached to this applet.

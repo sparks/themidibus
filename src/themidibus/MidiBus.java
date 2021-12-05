@@ -269,8 +269,6 @@ public class MidiBus {
 	 * If two MidiBus object were to have the same name, this would be bad, but not fatal, so there's no point in spending too much time worrying about it.
 	*/
 	private void init(Object parent, String bus_name) {
-		registerParent(parent);
-
 		/* -- */
 
 		if(bus_name == null) {
@@ -287,6 +285,8 @@ public class MidiBus {
 		listeners = new Vector<MidiListener>();
 
 		sendTimestamps = true;
+
+		registerParent(parent);
 	}
 
 	/* -- Input/Output Handling -- */
@@ -671,11 +671,15 @@ public class MidiBus {
 	*/
 	void closeAllMidiDevices() {
 		if(MidiBus.available_devices == null) findMidiDevices();
+
+		if(MidiBus.available_devices == null) return;
+
 		MidiDevice device;
 		
 		for(int i = 0;i < MidiBus.available_devices.length;i++) {
 			try {
 				device = MidiSystem.getMidiDevice(MidiBus.available_devices[i]);
+				if(device == null) continue;
 				if(device.isOpen()) device.close();
 			} catch(MidiUnavailableException e) {
 				//Device wasn't available, which is fine since we wanted to close it anyways
