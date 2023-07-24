@@ -22,7 +22,7 @@
   
   Changes:
     -Added library.properties for Processing 2.0
-    -Added permanent URL for latest version http://www.smallbutdigital.com/releases/themidibus/themidibus-latest.zip and library.properties file http://www.smallbutdigital.com/releases/themidibus/themidibus-latest.txt
+    -Added permanent URL for latest version https://www.smallbutdigital.com/releases/themidibus/themidibus-latest.zip and library.properties file https://www.smallbutdigital.com/releases/themidibus/themidibus-latest.txt
   
   Bug Fixes:
     -Fixed two small issues in sendMessage(byte[] data) which made the method mostly useless before.

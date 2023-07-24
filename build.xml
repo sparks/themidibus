@@ -1,7 +1,7 @@
 <!-- 
 	Generic Ant build.xml file for Processing libraries
 	Severin Smith
-	http://www.smallbutdigital.com
+	https://www.smallbutdigital.com
 -->
 <project name="themidibus" basedir="." default="main">
 
