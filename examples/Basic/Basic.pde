@@ -19,9 +19,15 @@ void setup() {
   //myBus = new MidiBus(this, "IncomingDeviceName", "OutgoingDeviceName"); // Create a new MidiBus using the device names to select the Midi input and output devices respectively.
 
   // or for testing you could ...
-  //                 Parent  In        Out
-  //                   |     |          |
-  myBus = new MidiBus(this, -1, "Java Sound Synthesizer"); // Create a new MidiBus with no input device and the default Java Sound Synthesizer as the output device.
+  //                   Parent  In        Out
+  //                     |     |          |
+  //myBus = new MidiBus(this, -1, "Java Sound Synthesizer");
+  //Create a new MidiBus with no input device and the default Java Sound Synthesizer as the output device.
+  //
+  // if the parent value is null ('NullPointerException' in the console) one thing you can do is try this...
+  //                   Parent                 In        Out
+  //                     |                     |         |
+  myBus = new MidiBus(new java.lang.Object(), -1, "Java Sound Synthesizer"); // Create a new parent object for the MidiBus
 }
 
 void draw() {
