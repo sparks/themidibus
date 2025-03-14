@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2009 Severin Smith
  *
- * This file is part of a library called The MidiBus (themidibus) - https://www.smallbutdigital.com/themidibus.php.
+ * This file is part of a library called The MidiBus (themidibus) - http://www.smallbutdigital.com/themidibus.php.
  *
  * The MidiBus is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,7 +28,7 @@
  * <hr>
  * <h2>Related Documentation</h2>
  * <ul>
- * <li><a href="https://www.smallbutdigital.com/themidibus.php">The MidiBus website: examples, updates, documentation, etc</a></li>
+ * <li><a href="http://www.smallbutdigital.com/themidibus.php">The MidiBus website: examples, updates, documentation, etc</a></li>
  * <li><a href="http://java.sun.com/j2se/1.5.0/docs/api/javax/sound/midi/package-summary.html">javax.sound.midi Package</a></li>
  * <li><a href="http://java.sun.com/docs/books/tutorial/sound/index.html">Java Sound Tutorials</a></li>
  * <li><a href="http://www.srm.com/qtma/davidsmidispec.html">MIDI Specification Reference</a></li>

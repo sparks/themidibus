@@ -4,12 +4,12 @@ The MidiBus is a MIDI library for [Processing](http://www.processing.org/) which
 
 The best way to install the MidiBus is via the [Processing Library Manager](http://wiki.processing.org/w/How_to_Install_a_Contributed_Library). This way Processing will automatically notify you when a new version is available.
 
-If you want to install the MidiBus manually you can get the latest stable build including binaries, examples and documentation [via direct downloadd](https://www.smallbutdigital.com/releases/themidibus/themidibus-latest.zip).
+If you want to install the MidiBus manually you can get the latest stable build including binaries, examples and documentation [via direct downloadd](http://www.smallbutdigital.com/releases/themidibus/themidibus-latest.zip).
 
 # Resources and Documentation
 
 * [GitHub page](http://github.com/sparks/themidibus)
-* [The MidiBus Online Javadocs](https://www.smallbutdigital.com/docs/themidibus/themidibus/package-summary.html)
+* [The MidiBus Online Javadocs](http://www.smallbutdigital.com/docs/themidibus/themidibus/package-summary.html)
 
 # A Few Quick Notes
 
@@ -17,7 +17,7 @@ Before you get started, it is important to understand that the MidiBus offers li
 
 # Getting Started
 
-The MidiBus is very straight forwards to use. A good place to start is the included Basic.pde example. From there you can look at the JavaDocs either [online](https://www.smallbutdigital.com/docs/themidibus/themidibus/package-summary.html) or bundled with your library in the "reference" subdirectory. The JavaDocs are a comprehensive reference of all the MidiBus' available functionality. There are also a few advanced examples which can (hopefully) help answer most common questions: how to work with multiple input/output devices, how to send uncommon MIDI messages and how to receive uncommon MIDI messages.
+The MidiBus is very straight forwards to use. A good place to start is the included Basic.pde example. From there you can look at the JavaDocs either [online](http://www.smallbutdigital.com/docs/themidibus/themidibus/package-summary.html) or bundled with your library in the "reference" subdirectory. The JavaDocs are a comprehensive reference of all the MidiBus' available functionality. There are also a few advanced examples which can (hopefully) help answer most common questions: how to work with multiple input/output devices, how to send uncommon MIDI messages and how to receive uncommon MIDI messages.
 
 Please do not hesitate to contact me with any questions, comments or bug reports.
 
