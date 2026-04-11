@@ -37,7 +37,7 @@
 
 	<target name="compile">
 		<mkdir dir="${build.dir}"/>
-		<javac srcdir="${src.dir}" sourcepath="" destdir="${build.dir}" classpathref="classpath" fork="yes" executable="${processing.javac}">
+		<javac srcdir="${src.dir}" sourcepath="" destdir="${build.dir}" classpathref="classpath" fork="yes" executable="${processing.javac}" includeantruntime="false">
 			<exclude name="**/PApplet.java"/>
 		</javac>
 	</target>
