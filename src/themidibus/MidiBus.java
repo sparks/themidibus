@@ -25,6 +25,7 @@ import java.util.Formatter;
 
 import processing.core.PApplet;
 import java.lang.reflect.Method;
+import uk.co.xfactorylibrarians.coremidi4j.CoreMidiDeviceProvider;
 
 /**
  * The MidiBus class provides a simple way to send and receive MIDI within Processing sketches.
@@ -1225,9 +1226,9 @@ public class MidiBus {
 
 		if (parent != null) {
 
-			if (parent instanceof processing.core.PApplet) {
-				((processing.core.PApplet) parent).registerMethod("dispose", this);
-			}
+			// if (parent instanceof processing.core.PApplet) {
+			// 	((processing.core.PApplet) parent).registerMethod("dispose", this);
+			// }
 
 			try {
 				method_note_on = parent.getClass().getMethod("noteOn", new Class[] { Integer.TYPE, Integer.TYPE, Integer.TYPE });
@@ -1549,7 +1550,8 @@ public class MidiBus {
 	 *
 	*/
 	static public void findMidiDevices() {
-		MidiBus.available_devices = MidiSystem.getMidiDeviceInfo();
+		// if (MidiBus.available_devices != null) return;
+		MidiBus.available_devices = CoreMidiDeviceProvider.getMidiDeviceInfo();
 	}
 	
 	/**
