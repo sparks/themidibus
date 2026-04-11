@@ -5,18 +5,28 @@
 -->
 <project name="themidibus" basedir="." default="main">
 
-	<property name="core.dir" value="/Applications/Processing.app/Contents/Java/"/>
-	<property name="core-lib.dir" value="/Applications/Processing.app/Contents/Java/"/>
+	<property environment="env"/>
+
+	<!-- Both env vars are required. See README.md for setup instructions. -->
+	<fail message="PROCESSING_CORE_DIR is not set. Point it at Processing's core/library/ directory. See README.md for setup.">
+		<condition><not><isset property="env.PROCESSING_CORE_DIR"/></not></condition>
+	</fail>
+	<fail message="PROCESSING_JAVAC is not set. Point it at the javac binary inside Processing's bundled JDK. See README.md for setup.">
+		<condition><not><isset property="env.PROCESSING_JAVAC"/></not></condition>
+	</fail>
+
+	<property name="processing.core.dir" value="${env.PROCESSING_CORE_DIR}"/>
+	<property name="processing.javac" value="${env.PROCESSING_JAVAC}"/>
 
 	<property name="src.dir" value="src"/>
 	<property name="build.dir" value="bin"/>
 	<property name="ref.dir" value="reference"/>
 
 	<path id="classpath">
-		<fileset dir="${core.dir}">
+		<fileset dir="${processing.core.dir}">
 			<include name="**/*.jar"/>
 		</fileset>
-		<fileset dir="${core-lib.dir}">
+		<fileset dir="./lib">
 			<include name="**/*.jar"/>
 		</fileset>
 	</path>
@@ -27,7 +37,7 @@
 
 	<target name="compile">
 		<mkdir dir="${build.dir}"/>
-		<javac srcdir="${src.dir}" sourcepath="" destdir="${build.dir}" classpathref="classpath">
+		<javac srcdir="${src.dir}" sourcepath="" destdir="${build.dir}" classpathref="classpath" fork="yes" executable="${processing.javac}">
 			<exclude name="**/PApplet.java"/>
 		</javac>
 	</target>
