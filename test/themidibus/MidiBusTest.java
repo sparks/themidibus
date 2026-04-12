@@ -75,6 +75,7 @@ public class MidiBusTest {
 		runLayer("Layer 7 (IAC round-trip loopback)",   MidiBusTest::layer7_iacLoopback);
 		runLayer("Layer 8 (bypassCoreMidi4J escape)",   MidiBusTest::layer8_bypassFlag);
 		runLayer("Layer 9 (Apple-native SysEx direction)", MidiBusTest::layer9_appleSysexDirectionality);
+		runLayer("Layer 10 (throwErrors flag)",            MidiBusTest::layer10_throwErrors);
 
 		System.out.println();
 		System.out.println("=== Summary ===");
@@ -947,6 +948,66 @@ public class MidiBusTest {
 			try { if (out != null && out.isOpen()) out.close(); } catch (Exception ignore) {}
 			if (listen.isAlive()) listen.destroyForcibly();
 		}
+	}
+
+	/* ========================================================= */
+	/* Layer 10 - throwErrors flag                                */
+	/* ========================================================= */
+
+	static void layer10_throwErrors() throws Exception {
+		// Default: throwErrors is false — bad addInput returns false, no throw.
+		MidiBus bus = new MidiBus();
+		assertTrue(!bus.throwErrors(), "throwErrors defaults to false");
+		boolean result = bus.addInput(9999);
+		assertTrue(!result, "addInput(9999) returns false when throwErrors is off");
+		layerPassCount++; // if we got here, no exception was thrown
+
+		// Enable throwErrors — same call should now throw.
+		bus.throwErrors(true);
+		assertTrue(bus.throwErrors(), "throwErrors returns true after setting");
+
+		boolean threw = false;
+		try {
+			bus.addInput(9999);
+		} catch (RuntimeException e) {
+			threw = true;
+		}
+		assertTrue(threw, "addInput(9999) throws RuntimeException when throwErrors is on");
+
+		// addOutput with bad index should also throw.
+		threw = false;
+		try {
+			bus.addOutput(9999);
+		} catch (RuntimeException e) {
+			threw = true;
+		}
+		assertTrue(threw, "addOutput(9999) throws RuntimeException when throwErrors is on");
+
+		// addInput with bad name should throw.
+		threw = false;
+		try {
+			bus.addInput("NonExistentDevice12345");
+		} catch (RuntimeException e) {
+			threw = true;
+		}
+		assertTrue(threw, "addInput(badName) throws RuntimeException when throwErrors is on");
+
+		// addOutput with bad name should throw.
+		threw = false;
+		try {
+			bus.addOutput("NonExistentDevice12345");
+		} catch (RuntimeException e) {
+			threw = true;
+		}
+		assertTrue(threw, "addOutput(badName) throws RuntimeException when throwErrors is on");
+
+		// Disable again — should go back to silent.
+		bus.throwErrors(false);
+		result = bus.addInput(9999);
+		assertTrue(!result, "addInput(9999) returns false after disabling throwErrors");
+		layerPassCount++; // no exception thrown
+
+		bus.close();
 	}
 
 	/* ========================================================= */

@@ -16,6 +16,13 @@
 		 example sketches (see ant test, test/themidibus/MidiBusTest.java).
 		-Externalized Processing paths in build.xml to PROCESSING_CORE_DIR and
 		 PROCESSING_JAVAC environment variables.
+		-Added MidiBus.throwErrors(boolean) opt-in strict error mode. When enabled,
+		 operations that would normally print a warning to stderr and fail silently
+		 (e.g. addInput/addOutput with a bad device, sendMessage with invalid data)
+		 will throw a RuntimeException instead. Where the underlying cause is a
+		 checked exception (MidiUnavailableException, InvalidMidiDataException),
+		 it is preserved as the RuntimeException's cause. Default is false
+		 (existing behavior unchanged).
 		-Added MidiBus.bypassCoreMidi4J(boolean) escape hatch for users who want
 		 to fall back to the built-in Java MIDI implementation. Must be called
 		 before any MidiBus constructor. Prints a loud warning to stderr when

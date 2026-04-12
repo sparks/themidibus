@@ -71,6 +71,7 @@ public class MidiBus {
 	Method method_note_on_wcla, method_note_off_wcla, method_controller_change_wcla;
 
 	boolean sendTimestamps;
+	boolean throwErrors;
 	
 	/* -- Constructors -- */
 
@@ -296,6 +297,7 @@ public class MidiBus {
 		listeners = new Vector<MidiListener>();
 
 		sendTimestamps = true;
+		throwErrors = false;
 
 		registerParent(parent);
 	}
@@ -371,6 +373,7 @@ public class MidiBus {
 	 *
 	 * @param device_num the index of the MIDI input device to be added.
 	 * @return true if and only if the input device was successfully added.
+	 * @throws RuntimeException if the device cannot be added and {@link #throwErrors(boolean)} is enabled.
 	 * @see #addInput(String device_name)
 	 * @see #list()
 	*/
@@ -380,7 +383,9 @@ public class MidiBus {
 		MidiDevice.Info[] devices = availableInputsMidiDeviceInfo();
 		
 		if (device_num >= devices.length || device_num < 0) {
-			System.err.println("\nThe MidiBus Warning: The chosen input device numbered ["+device_num+"] was not added because it doesn't exist");
+			String msg = "The chosen input device numbered ["+device_num+"] was not added because it doesn't exist";
+			System.err.println("\nThe MidiBus Warning: " + msg);
+			if (throwErrors) throw new RuntimeException(msg);
 			return false;
 		}
 		
@@ -418,6 +423,7 @@ public class MidiBus {
 	 *
 	 * @param device_name the name of the MIDI input device to be added.
 	 * @return true if and only if the input device was successfully added.
+	 * @throws RuntimeException if the device cannot be added and {@link #throwErrors(boolean)} is enabled.
 	 * @see #addInput(int device_num)
 	 * @see #list()
 	*/
@@ -430,10 +436,12 @@ public class MidiBus {
 			if (devices[i].getName().equals(device_name)) return addInput(devices[i]);
 		}
 		
-		System.err.println("\nThe MidiBus Warning: No available input MIDI devices named: \""+device_name+"\" were found");
+		String msg = "No available input MIDI devices named: \""+device_name+"\" were found";
+		System.err.println("\nThe MidiBus Warning: " + msg);
+		if (throwErrors) throw new RuntimeException(msg);
 		return false;
 	}
-	
+
 	/**
 	 * Removes the MIDI input device specified by the name device_name.
 	 * <p>
@@ -469,7 +477,9 @@ public class MidiBus {
 			MidiDevice new_device = MidiSystem.getMidiDevice(device_info);
 		
 			if (new_device.getMaxTransmitters() == 0) {
-				System.err.println("\nThe MidiBus Warning: The chosen input device \""+device_info.getName()+"\" was not added because it is output only");
+				String msg = "The chosen input device \""+device_info.getName()+"\" was not added because it is output only";
+				System.err.println("\nThe MidiBus Warning: " + msg);
+				if (throwErrors) throw new RuntimeException(msg);
 				return false;
 			}
 			
@@ -492,15 +502,17 @@ public class MidiBus {
 			return true;
 		} catch(MidiUnavailableException e) {
 			System.err.println("\nThe MidiBus Warning: The chosen input device \""+device_info.getName()+"\" was not added because it is unavailable");
+			if (throwErrors) throw new RuntimeException(e);
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Adds a new MIDI output device specified by the index device_num. If the MIDI output device has already been added, it will not be added again.
 	 *
 	 * @param device_num the index of the MIDI output device to be added.
 	 * @return true if and only if the output device was successfully added.
+	 * @throws RuntimeException if the device cannot be added and {@link #throwErrors(boolean)} is enabled.
 	 * @see #addOutput(String device_name)
 	 * @see #list()
 	*/
@@ -510,7 +522,9 @@ public class MidiBus {
 		MidiDevice.Info[] devices = availableOutputsMidiDeviceInfo();
 		
 		if (device_num >= devices.length || device_num < 0) {
-			System.err.println("\nThe MidiBus Warning: The chosen output device numbered ["+device_num+"] was not added because it doesn't exist");
+			String msg = "The chosen output device numbered ["+device_num+"] was not added because it doesn't exist";
+			System.err.println("\nThe MidiBus Warning: " + msg);
+			if (throwErrors) throw new RuntimeException(msg);
 			return false;
 		}
 		
@@ -546,6 +560,7 @@ public class MidiBus {
 	 *
 	 * @param device_name the name of the MIDI output device to be added.
 	 * @return true if and only if the output device was successfully added.
+	 * @throws RuntimeException if the device cannot be added and {@link #throwErrors(boolean)} is enabled.
 	 * @see #addOutput(int device_num)
 	 * @see #list()
 	*/
@@ -558,8 +573,10 @@ public class MidiBus {
 			if (devices[i].getName().equals(device_name)) return addOutput(devices[i]);
 		}
 		
-		System.err.println("\nThe MidiBus Warning: No available input MIDI devices named: \""+device_name+"\" were found");
-		return false;	
+		String msg = "No available output MIDI devices named: \""+device_name+"\" were found";
+		System.err.println("\nThe MidiBus Warning: " + msg);
+		if (throwErrors) throw new RuntimeException(msg);
+		return false;
 	}
 	
 	/**
@@ -596,7 +613,9 @@ public class MidiBus {
 			MidiDevice new_device = MidiSystem.getMidiDevice(device_info);
 		
 			if (new_device.getMaxReceivers() == 0) {
-				System.err.println("\nThe MidiBus Warning: The chosen output device \""+device_info.getName()+"\" was not added because it is input only");
+				String msg = "The chosen output device \""+device_info.getName()+"\" was not added because it is input only";
+				System.err.println("\nThe MidiBus Warning: " + msg);
+				if (throwErrors) throw new RuntimeException(msg);
 				return false;
 			}
 			
@@ -614,10 +633,11 @@ public class MidiBus {
 			return true;
 		} catch(MidiUnavailableException e) {
 			System.err.println("\nThe MidiBus Warning: The chosen output device \""+device_info.getName()+"\" was not added because it is unavailable");
+			if (throwErrors) throw new RuntimeException(e);
 			return false;
 		}
 	}
-		
+
 	/**
 	 * Closes, clears and disposes of all input related Transmitters and Receivers.
 	 *
@@ -705,6 +725,7 @@ public class MidiBus {
 	 * Sends a MIDI message with an unspecified number of bytes. The first byte should be always be the status byte. If the message is a Meta message of a System Exclusive message it can have more than 3 byte, otherwise all extra bytes will be dropped.
 	 *
 	 * @param data the bytes of the MIDI message.
+	 * @throws RuntimeException if the data is invalid and {@link #throwErrors(boolean)} is enabled. The cause will be the original InvalidMidiDataException.
 	 * @see #sendMessage(int status)
 	 * @see #sendMessage(int status, int data)
 	 * @see #sendMessage(int status, int data1, int data2)
@@ -727,6 +748,7 @@ public class MidiBus {
 					sendMessage(message);
 				} catch(InvalidMidiDataException e) {
 					System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
+					if (throwErrors) throw new RuntimeException(e);
 				}
 			} else if ((int)((byte)data[0] & 0xFF) == SysexMessage.SYSTEM_EXCLUSIVE || (int)((byte)data[0] & 0xFF) == SysexMessage.SPECIAL_SYSTEM_EXCLUSIVE) {
 				if (bypassCoreMidi4J) printBypassCoreMidi4JWarning("sendMessage(byte[]) with SysEx payload");
@@ -736,6 +758,7 @@ public class MidiBus {
 					sendMessage(message);
 				} catch(InvalidMidiDataException e) {
 					System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
+					if (throwErrors) throw new RuntimeException(e);
 				}
 			} else {
 				ShortMessage message = new ShortMessage();
@@ -746,6 +769,7 @@ public class MidiBus {
 					sendMessage(message);
 				} catch(InvalidMidiDataException e) {
 					System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
+					if (throwErrors) throw new RuntimeException(e);
 				}
 			}
 	}
@@ -754,6 +778,7 @@ public class MidiBus {
 	 * Sends a MIDI message that takes no data bytes.
 	 *
 	 * @param status the status byte
+	 * @throws RuntimeException if the data is invalid and {@link #throwErrors(boolean)} is enabled. The cause will be the original InvalidMidiDataException.
 	 * @see #sendMessage(byte[] data)
 	 * @see #sendMessage(int status, int data)
 	 * @see #sendMessage(int status, int data1, int data2)
@@ -774,14 +799,16 @@ public class MidiBus {
 		} catch(InvalidMidiDataException e) {
 			System.out.println(e);
 			System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
+			if (throwErrors) throw new RuntimeException(e);
 		}
 	}
-	
+
 	/**
 	 * Sends a MIDI message that takes only one data byte. If the message does not take data, the data byte is ignored.
 	 *
 	 * @param status the status byte
 	 * @param data the data byte
+	 * @throws RuntimeException if the data is invalid and {@link #throwErrors(boolean)} is enabled. The cause will be the original InvalidMidiDataException.
 	 * @see #sendMessage(byte[] data)
 	 * @see #sendMessage(int status)
 	 * @see #sendMessage(int status, int data1, int data2)
@@ -804,6 +831,7 @@ public class MidiBus {
 	 * @param status the status byte.
 	 * @param data1 the first data byte.
 	 * @param data2 the second data byte.
+	 * @throws RuntimeException if the data is invalid and {@link #throwErrors(boolean)} is enabled. The cause will be the original InvalidMidiDataException.
 	 * @see #sendMessage(byte[] data)
 	 * @see #sendMessage(int status)
 	 * @see #sendMessage(int status, int data)
@@ -823,6 +851,7 @@ public class MidiBus {
 			sendMessage(message);
 		} catch(InvalidMidiDataException e) {
 			System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
+			if (throwErrors) throw new RuntimeException(e);
 		}
 	}
 	
@@ -833,6 +862,7 @@ public class MidiBus {
 	 * @param channel the channel associated with the message.
 	 * @param data1 the first data byte.
 	 * @param data2 the second data byte.
+	 * @throws RuntimeException if the data is invalid and {@link #throwErrors(boolean)} is enabled. The cause will be the original InvalidMidiDataException.
 	 * @see #sendMessage(byte[] data)
 	 * @see #sendMessage(int status)
 	 * @see #sendMessage(int status, int data)
@@ -852,6 +882,7 @@ public class MidiBus {
 			sendMessage(message);
 		} catch(InvalidMidiDataException e) {
 			System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
+			if (throwErrors) throw new RuntimeException(e);
 		}
 	}
 	
@@ -895,6 +926,7 @@ public class MidiBus {
 	 * @param channel the channel associated with the message.
 	 * @param pitch the pitch associated with the message.
 	 * @param velocity the velocity associated with the message.
+	 * @throws RuntimeException if the data is invalid and {@link #throwErrors(boolean)} is enabled. The cause will be the original InvalidMidiDataException.
 	 * @see #sendMessage(byte[] data)
 	 * @see #sendMessage(int status)
 	 * @see #sendMessage(int status, int data)
@@ -906,7 +938,7 @@ public class MidiBus {
 	 * @see #sendNoteOff(Note note)
 	 * @see #sendControllerChange(int channel, int number, int value)
 	 * @see #sendControllerChange(ControlChange change)
-	 * 
+	 *
 	*/
 	public void sendNoteOn(int channel, int pitch, int velocity) {
 		ShortMessage message = new ShortMessage();
@@ -915,6 +947,7 @@ public class MidiBus {
 			sendMessage(message);
 		} catch(InvalidMidiDataException e) {
 			System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
+			if (throwErrors) throw new RuntimeException(e);
 		}
 	}
 	
@@ -922,6 +955,7 @@ public class MidiBus {
 	 * Sends a NoteOn message to a channel with the specified Note.
 	 *
 	 * @param note the Note object for the message.
+	 * @throws RuntimeException if the data is invalid and {@link #throwErrors(boolean)} is enabled. The cause will be the original InvalidMidiDataException.
 	 * @see #sendMessage(byte[] data)
 	 * @see #sendMessage(int status)
 	 * @see #sendMessage(int status, int data)
@@ -944,6 +978,7 @@ public class MidiBus {
 	 * @param channel the channel associated with the message.
 	 * @param pitch the pitch associated with the message.
 	 * @param velocity the velocity associated with the message.
+	 * @throws RuntimeException if the data is invalid and {@link #throwErrors(boolean)} is enabled. The cause will be the original InvalidMidiDataException.
 	 * @see #sendMessage(byte[] data)
 	 * @see #sendMessage(int status)
 	 * @see #sendMessage(int status, int data)
@@ -963,6 +998,7 @@ public class MidiBus {
 			sendMessage(message);
 		} catch(InvalidMidiDataException e) {
 			System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
+			if (throwErrors) throw new RuntimeException(e);
 		}
 	}
 	
@@ -970,6 +1006,7 @@ public class MidiBus {
 	 * Sends a NoteOff message to a channel with the specified Note.
 	 *
 	 * @param note the Note object for the message.
+	 * @throws RuntimeException if the data is invalid and {@link #throwErrors(boolean)} is enabled. The cause will be the original InvalidMidiDataException.
 	 * @see #sendMessage(byte[] data)
 	 * @see #sendMessage(int status)
 	 * @see #sendMessage(int status, int data)
@@ -992,6 +1029,7 @@ public class MidiBus {
 	 * @param channel the channel associated with the message.
 	 * @param number the number associated with the message.
 	 * @param value the value associated with the message.
+	 * @throws RuntimeException if the data is invalid and {@link #throwErrors(boolean)} is enabled. The cause will be the original InvalidMidiDataException.
 	 * @see #sendMessage(byte[] data)
 	 * @see #sendMessage(int status)
 	 * @see #sendMessage(int status, int data)
@@ -1011,6 +1049,7 @@ public class MidiBus {
 			sendMessage(message);
 		} catch(InvalidMidiDataException e) {
 			System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
+			if (throwErrors) throw new RuntimeException(e);
 		}
 	}
 
@@ -1018,6 +1057,7 @@ public class MidiBus {
 	 * Sends a ControllerChange message to a channel with the specified ControlChange.
 	 *
 	 * @param change the ControlChange object for the message.
+	 * @throws RuntimeException if the data is invalid and {@link #throwErrors(boolean)} is enabled. The cause will be the original InvalidMidiDataException.
 	 * @see #sendMessage(byte[] data)
 	 * @see #sendMessage(int status)
 	 * @see #sendMessage(int status, int data)
@@ -1396,6 +1436,26 @@ public class MidiBus {
 	*/
 	public void sendTimestamps(boolean sendTimestamps) {
 		this.sendTimestamps = sendTimestamps;
+	}
+
+	/**
+	 * Returns whether this MidiBus will throw exceptions on errors instead of printing warnings to stderr.
+	 *
+	 * @return true if this MidiBus will throw errors.
+	 * @see #throwErrors(boolean)
+	*/
+	public boolean throwErrors() {
+		return throwErrors;
+	}
+
+	/**
+	 * Configure this MidiBus instance to throw exceptions on errors instead of silently printing warnings to stderr. When enabled, operations like {@link #addInput(int)}, {@link #addOutput(int)}, and send methods will throw a RuntimeException (or a RuntimeException wrapping the original checked exception) if they fail. The original exception is available via {@link RuntimeException#getCause()}.
+	 *
+	 * @param throwErrors set to true to throw errors, false (default) for warnings only.
+	 * @see #throwErrors()
+	*/
+	public void throwErrors(boolean throwErrors) {
+		this.throwErrors = throwErrors;
 	}
 
 	/**
