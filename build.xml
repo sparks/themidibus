@@ -1,4 +1,4 @@
-<!-- 
+<!--
 	Generic Ant build.xml file for Processing libraries
 	Severin Smith
 	http://www.smallbutdigital.com
@@ -19,10 +19,12 @@
 	<property name="processing.javac" value="${env.PROCESSING_JAVAC}"/>
 
 	<property name="src.dir" value="src"/>
-	<property name="build.dir" value="bin"/>
-	<property name="ref.dir" value="reference"/>
+	<property name="output.dir" value="output"/>
+	<property name="build.dir" value="${output.dir}/bin"/>
+	<property name="library.dir" value="${output.dir}/library"/>
+	<property name="ref.dir" value="${output.dir}/reference"/>
 	<property name="test.src.dir" value="test"/>
-	<property name="test.build.dir" value="bin-test"/>
+	<property name="test.build.dir" value="${output.dir}/bin-test"/>
 
 	<path id="classpath">
 		<fileset dir="${processing.core.dir}">
@@ -34,7 +36,7 @@
 	</path>
 
 	<target name="clean">
-		<delete dir="${build.dir}"/>
+		<delete dir="${output.dir}"/>
 	</target>
 
 	<target name="compile">
@@ -45,12 +47,12 @@
 	</target>
 
 	<target name="jar" depends="compile">
-		<mkdir dir="library"/>
-		<jar destfile="library/${ant.project.name}.jar" basedir="${build.dir}"/>
+		<mkdir dir="${library.dir}"/>
+		<jar destfile="${library.dir}/${ant.project.name}.jar" basedir="${build.dir}"/>
 		<!-- Processing loads every *.jar in a library's library/ dir onto its
 		     runtime classpath, so runtime deps from lib/ must be copied across.
 		     lib/ is build-time only; library/ is what ships to users. -->
-		<copy todir="library">
+		<copy todir="${library.dir}">
 			<fileset dir="lib">
 				<include name="**/*.jar"/>
 			</fileset>
@@ -61,11 +63,12 @@
 		<mkdir dir="${ref.dir}"/>
 		<javadoc sourcepath="${src.dir}" destdir="${ref.dir}" author="true" version="true" classpathref="classpath"/>
 	</target>
-	
+
 	<target name="zip" depends="jar, doc">
-		<antcall target="clean"/>
-		<zip destfile="${ant.project.name}.zip">
-			<zipfileset dir="." excludes="**/*.DS_Store, .gitignore, **/.git, **/.git/**/*, TODO.txt" prefix="${ant.project.name}"/>
+		<delete dir="${build.dir}"/>
+		<zip destfile="${output.dir}/${ant.project.name}.zip">
+			<zipfileset dir="." prefix="${ant.project.name}" includes="CHANGELOG.txt, LGPL3-LICENSE.txt, README.md, library.properties, examples/**/*, src/**/*" excludes="**/*.DS_Store"/>
+			<zipfileset dir="${output.dir}" prefix="${ant.project.name}" includes="library/**/*, reference/**/*" excludes="**/*.DS_Store"/>
 		</zip>
 	</target>
 
@@ -74,13 +77,13 @@
 		<javac srcdir="${test.src.dir}" destdir="${test.build.dir}" fork="yes" executable="${processing.javac}" includeantruntime="false">
 			<classpath>
 				<path refid="classpath"/>
-				<pathelement location="library/${ant.project.name}.jar"/>
+				<pathelement location="${library.dir}/${ant.project.name}.jar"/>
 			</classpath>
 		</javac>
 		<java classname="themidibus.MidiBusTest" fork="true" failonerror="true">
 			<classpath>
 				<path refid="classpath"/>
-				<pathelement location="library/${ant.project.name}.jar"/>
+				<pathelement location="${library.dir}/${ant.project.name}.jar"/>
 				<pathelement location="${test.build.dir}"/>
 			</classpath>
 		</java>
@@ -88,7 +91,7 @@
 	</target>
 
 	<target name="main" depends="jar">
-		<antcall target="clean"/>
+		<delete dir="${build.dir}"/>
 	</target>
 
 </project>

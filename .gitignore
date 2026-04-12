@@ -1,6 +1,2 @@
 *.DS_Store
-bin
-bin-test
-reference
-library
-*.zip
+output
