@@ -72,6 +72,21 @@ Alongside the reflection-based parent callbacks, the library also offers a conve
 
 The Apple-native Java MIDI subsystem historically has not supported SysEx and messages with status byte ≥ `0xF0`. Also more recently it sometimes just doesn't work at all. This library works around that by depending on CoreMIDI4J (`lib/coremidi4j-1.6.jar`) for device enumeration. The older workaround (MMJ) is still mentioned in README.md and in `package-info.java`, and `sendTimestamps(false)` is the compatibility hook for that case — do not remove it even though CoreMIDI4J is now the default path.
 
+**The SysEx deficiency in Apple's native stack is still real as of macOS 14 / JDK 17 (verified empirically).** A direct loopback probe that opened IAC Driver via both stacks in the same JVM produced this result: Apple native (`com.sun.media.sound.MidiInDevice`/`MidiOutDevice`) delivers short messages fine but silently drops SysEx messages; CoreMIDI4J (`CoreMidiSource`/`CoreMidiDestination`) delivers both. So the CoreMIDI4J dependency cannot be dropped without regressing `AdvancedMIDIMessageIO.pde` and any user code that relies on SysEx (patch dumps, controller config, MMC, etc.).
+
+Rerun `./scripts/compare-midi-backends.sh` (source: `scripts/CompareMidiBackends.java`) after any macOS or JDK upgrade to verify the answer hasn't changed. The script requires IAC online (see Testing section) and prints a results table plus a verdict line — if Apple native ever starts delivering SysEx, the verdict will say "CoreMIDI4J dependency may no longer be needed" instead of the usual "still required."
+
+**How minimal the dependency actually is.** The ONLY CoreMIDI4J type imported anywhere in `src/` is `CoreMidiDeviceProvider`, and its only use is a single static method call in `MidiBus.findMidiDevices()` at `src/themidibus/MidiBus.java:1554`. `CoreMidiDeviceProvider.getMidiDeviceInfo()` is not "just the CoreMIDI4J devices" — it returns a curated full device list where CoreMIDI4J entries replace Apple's broken wrappers for CoreMIDI devices while non-CoreMIDI devices (Gervill, Real Time Sequencer) pass through unchanged. That's why Gervill still shows up in `availableOutputs()`. The Receiver/Transmitter objects used for actual I/O come back through standard `javax.sound.midi.MidiSystem.getMidiDevice(...)` — no direct references to `CoreMidiReceiver`/`CoreMidiTransmitter`/etc. anywhere. If CoreMIDI4J ever needs to be swapped for a replacement, the blast radius is one line.
+
+**Future JDK native-access restrictions.** Running under JDK 17 produces this warning on startup:
+```
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by uk.co.xfactorylibrarians.coremidi4j.Loader
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+```
+This is just a warning today; a future JDK will block `System.load()` unless the sketch opts in. If that breaks CoreMIDI4J, the upgrade path is bumping `lib/coremidi4j-*.jar` to a newer version (1.6 dates from 2020; check upstream before assuming it hasn't been addressed). Nothing in themidibus's code needs to change for that.
+
 ## Release artifacts
 
 `library/themidibus.jar` is the built JAR; it is gitignored but produced by `ant jar`. `library.properties` (read by Processing's Library Manager) holds the version — bump both `version` (int) and `prettyVersion` (string) there for releases, and add a `CHANGELOG.txt` entry. The `ant zip` target produces the file users download via the "themidibus-latest.zip" URL referenced in README.md.

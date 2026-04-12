@@ -118,6 +118,16 @@ To verify setup without running the full suite:
 
 `check-iac.sh` is a one-line wrapper around `scripts/iac-probe.swift`, which opens IAC directly through CoreMIDI (no Java) and does a live loopback round-trip. Exit codes: 0 = IAC is ready, 1 = no IAC device found, 2 = IAC visible but "Device is online" unchecked, 3 = CoreMIDI API error. Requires Xcode Command Line Tools (`xcode-select --install`) for `swift` to be available.
 
+## Verifying whether CoreMIDI4J is still needed
+
+`themidibus` bundles `lib/coremidi4j-1.6.jar` because Apple's native `javax.sound.midi` implementation has historically dropped SysEx messages on macOS. If you want to check whether that's still true on your current macOS + JDK combination (e.g. after an upgrade), run:
+
+```
+./scripts/compare-midi-backends.sh
+```
+
+This opens an IAC Driver loopback through both back-ends and tests short messages and SysEx round-trip on each, printing a results table and a verdict. Requires IAC Driver online (run `./scripts/setup-iac.sh` first). Expected output as of macOS 14 / JDK 17: Apple native delivers short messages but drops SysEx, CoreMIDI4J delivers both — CoreMIDI4J stays.
+
 # Caveats, Problems with SysEx, Alternate MIDI for java
 
 The Apple MIDI subsystem has a number of problems. Most notably it doesn't seem to support MIDI messages with a status byte `>= 0xF0` such as SysEx messages. You can use [MMJ](http://www.humatic.de/htools/mmj.htm) as an alternate subsystem. To do so, download mmj and add both `mmj.jar` and `libmmj.jnilib` to the midibus `library` subdirectory. You will also need to disable timestamps in your MidiBus instance otherwise MMJ won't work properly. You can do this by calling `mybus.sendTimestamp(false)`
