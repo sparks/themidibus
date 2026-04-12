@@ -80,9 +80,18 @@ The suite is organized into seven layers (see `test/themidibus/MidiBusTest.java`
 
 Layer 6 verifies the full send pipeline against the Java Sound Synthesizer (Gervill), which ships with every JDK. It mirrors the send sequences in `Basic.pde`, `BasicWithClasses.pde`, and `AdvancedMIDIMessageIO.pde`. If Gervill is not present, the layer is skipped cleanly.
 
-Layer 7 verifies the full receive pipeline — and the `NOTE_ON`-with-velocity-0 → `NOTE_OFF` rewrite in `MReceiver` — by looping MIDI back through macOS's IAC Driver. This is the only layer that needs user setup (see below). If IAC is unconfigured or not routing messages, the layer is skipped cleanly and the overall run still passes.
+Layer 7 verifies the full receive pipeline — and the `NOTE_ON`-with-velocity-0 → `NOTE_OFF` rewrite in `MReceiver` — by looping MIDI back through macOS's IAC Driver. This is the only layer that needs user setup (see below). Two preconditions must be met:
+
+1. The CoreMIDI-level IAC loopback is working, as verified by `scripts/iac-probe.swift` (a pure CoreMIDI program, no Java involved — see "Why a Swift probe" below).
+2. Java MIDI can actually receive from the IAC endpoint. Java MIDI is notoriously flaky on macOS; CoreMIDI-level routing can be working fine while the Java-side receive layer (via CoreMIDI4J) silently drops messages.
+
+If either precondition fails, Layer 7 is skipped with a precise diagnostic that tells you which one. The overall run still passes.
 
 Layers that cannot run are reported as `SKIP` in the summary, not as failures.
+
+### Why a Swift probe?
+
+The skip-or-run decision for Layer 7 must be orthogonal to Java MIDI. If we used Java to ask "is IAC ready?", a false negative would hide a legitimate setup issue ("IAC is fine, your Java layer is broken") and a false positive would flood the summary with assertion failures that are really Java flakiness. `scripts/iac-probe.swift` is ~100 lines of Swift + CoreMIDI that opens IAC via the native API, sends a NOTE_ON, and verifies loopback — completely independent of Java. The test suite shells out to it to decide whether Layer 7 is runnable at all.
 
 ## IAC Driver setup (for Layer 7)
 
@@ -107,7 +116,7 @@ To verify setup without running the full suite:
 ./scripts/check-iac.sh
 ```
 
-This does a live loopback probe (sends a MIDI message through IAC and waits for it to return) and exits 0 if the round-trip works, 1 if it doesn't. A printed `IAC ready: …` means you're ready for `ant test`. Name-presence alone isn't enough — if "Device is online" is unchecked, the device shows up in the Java MIDI system but won't forward messages, and the probe will tell you so.
+`check-iac.sh` is a one-line wrapper around `scripts/iac-probe.swift`, which opens IAC directly through CoreMIDI (no Java) and does a live loopback round-trip. Exit codes: 0 = IAC is ready, 1 = no IAC device found, 2 = IAC visible but "Device is online" unchecked, 3 = CoreMIDI API error. Requires Xcode Command Line Tools (`xcode-select --install`) for `swift` to be available.
 
 # Caveats, Problems with SysEx, Alternate MIDI for java
 

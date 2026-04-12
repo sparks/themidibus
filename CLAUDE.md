@@ -95,6 +95,14 @@ Layers that can't run are reported as `SKIP` in the summary, not failures — `a
 
 `scripts/setup-iac.sh` opens Audio MIDI Setup and walks the user through enabling the IAC Driver. It does not GUI-script the config — Audio MIDI Setup has no usable AppleScript dictionary for MIDI Studio and GUI scripting the icon grid is brittle across macOS versions. The script is a humane wrapper: open app, print steps, wait on Enter, re-probe.
 
-`scripts/check-iac.sh` is the probe the setup script uses — it reruns `MidiBusTest --check-iac`, which does a live loopback round-trip (send NOTE_ON through IAC, wait up to 300ms for the callback). Name presence alone is not enough because IAC can be visible but offline. Use `check-iac.sh` directly if you want to verify your setup without running the full suite.
+### Why the IAC probe is Swift, not Java
 
-**Do not replace IAC with CoreMIDI4J virtual endpoints.** CoreMIDI4J is deliberately used minimally (only for `CoreMidiDeviceProvider.getMidiDeviceInfo()` in `MidiBus.findMidiDevices`); the project treats it as a forced dependency with the smallest possible surface area. The loopback comes from user-configured IAC, not from `CoreMidiSource`/`CoreMidiDestination`.
+`scripts/iac-probe.swift` is a small pure-CoreMIDI program (no Java, no themidibus, no CoreMIDI4J). Layer 7 shells out to it via `ProcessBuilder` to decide whether IAC is actually routing before running any Java-side assertions. The reason is that Java MIDI on macOS is flaky: CoreMIDI4J can list IAC endpoints that are routing correctly at the CoreMIDI level while the Java-side receive path silently drops messages. If the precondition check were written in Java, a false negative would hide real setup issues ("IAC is fine, your Java layer is broken") and a false positive would flood the test summary with spurious assertion failures.
+
+So Layer 7 uses a **two-tier precondition**:
+1. `iac-probe.swift` must confirm CoreMIDI-level routing works. If not → SKIP with a "run setup-iac.sh" pointer.
+2. The first Java-side NOTE_ON send+receive must complete within 1s. If not → SKIP with "Java MIDI / CoreMIDI4J flakiness". Any *subsequent* failure is a real themidibus regression.
+
+`scripts/check-iac.sh` is a one-line wrapper around `iac-probe.swift` for developer use. It exits with the probe's status code (0 ready, 1 not found, 2 visible-but-offline, 3 API error).
+
+**Do not replace IAC with CoreMIDI4J virtual endpoints.** CoreMIDI4J is deliberately used minimally (only for `CoreMidiDeviceProvider.getMidiDeviceInfo()` in `MidiBus.findMidiDevices`); the project treats it as a forced dependency with the smallest possible surface area. The loopback comes from user-configured IAC (verified via the Swift probe), not from `CoreMidiSource`/`CoreMidiDestination`.

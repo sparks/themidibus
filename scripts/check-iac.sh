@@ -1,45 +1,17 @@
 #!/bin/bash
 #
-# Probes whether the macOS IAC Driver has at least one online port visible
-# to MidiBus. Intended for humans and for setup-iac.sh.
+# Probes whether the macOS IAC Driver is configured AND actively forwarding
+# MIDI messages. Delegates to scripts/iac-probe.swift, which uses CoreMIDI
+# directly — this keeps the probe orthogonal to Java MIDI (which is flaky
+# and can fail to see IAC even when CoreMIDI-level routing works fine).
 #
-# Exit codes:
-#   0 - IAC ready (both input and output names containing "IAC" are present)
-#   1 - not ready; run scripts/setup-iac.sh
-#
-# Reuses MidiBusTest.main --check-iac to avoid duplicating device probing.
+# Exit codes (from iac-probe.swift):
+#   0 - IAC round-trip successful (ready for `ant test`)
+#   1 - no IAC device found in CoreMIDI
+#   2 - IAC found but not forwarding (Device is online probably off)
+#   3 - CoreMIDI API call failed
 
 set -e
 
 cd "$(dirname "$0")/.."
-
-if [[ ! -f library/themidibus.jar ]]; then
-    echo "check-iac.sh: library/themidibus.jar not found. Run 'ant jar' first."
-    exit 2
-fi
-
-if [[ -z "$PROCESSING_CORE_DIR" ]]; then
-    echo "check-iac.sh: PROCESSING_CORE_DIR is not set. See README.md."
-    exit 2
-fi
-
-# Compile the test class if not already built (e.g. after a clean).
-# We use a stable bin-test dir kept out of version control.
-mkdir -p bin-test
-if [[ ! -f bin-test/themidibus/MidiBusTest.class ]] || [[ test/themidibus/MidiBusTest.java -nt bin-test/themidibus/MidiBusTest.class ]]; then
-    JAVAC="${PROCESSING_JAVAC:-javac}"
-    "$JAVAC" \
-        -cp "library/themidibus.jar:$PROCESSING_CORE_DIR/*:lib/*" \
-        -d bin-test \
-        test/themidibus/MidiBusTest.java
-fi
-
-# Run with --check-iac. Java under fork inherits env vars; use java from Processing's JDK.
-JAVA="$(dirname "${PROCESSING_JAVAC:-java}")/java"
-if [[ ! -x "$JAVA" ]]; then
-    JAVA=java
-fi
-
-exec "$JAVA" \
-    -cp "library/themidibus.jar:$PROCESSING_CORE_DIR/*:lib/*:bin-test" \
-    themidibus.MidiBusTest --check-iac
+exec swift scripts/iac-probe.swift
