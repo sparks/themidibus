@@ -1,5 +1,9 @@
 -Version 010
 	Bug Fixes:
+		-Remove stale custom delay() shim from all four example sketches. The shim
+		 was added for Processing 2.0 (which removed delay()) but conflicts with
+		 PApplet.delay() restored in Processing 3+, causing a "Missing ';'" syntax
+		 error in Processing 4's preprocessor.
 		-Fix outbound MIDI messages not being delivered on macOS when using CoreMIDI4J.
 		 Previous versions passed System.currentTimeMillis() to Receiver.send() as a
 		 timestamp, which is incorrect - the value is interpreted as microseconds
