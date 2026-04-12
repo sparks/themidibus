@@ -47,6 +47,14 @@
 	<target name="jar" depends="compile">
 		<mkdir dir="library"/>
 		<jar destfile="library/${ant.project.name}.jar" basedir="${build.dir}"/>
+		<!-- Processing loads every *.jar in a library's library/ dir onto its
+		     runtime classpath, so runtime deps from lib/ must be copied across.
+		     lib/ is build-time only; library/ is what ships to users. -->
+		<copy todir="library">
+			<fileset dir="lib">
+				<include name="**/*.jar"/>
+			</fileset>
+		</copy>
 	</target>
 
 	<target name="doc">
