@@ -2,7 +2,7 @@
 # deploy.sh — build and publish a themidibus release to S3
 
 S3_BUCKET="s3://smallbutdigital.com/releases/themidibus"
-AWS_PROFILE="smallbutdigital"
+AWS_PROFILE="${MIDIBUS_SBD_AWS_PROFILE:?ERROR: MIDIBUS_SBD_AWS_PROFILE is not set}"
 
 # Extract version from library.properties
 VERSION=$(grep '^version' library.properties | sed 's/[^0-9]//g')
