@@ -21,7 +21,7 @@
 	<property name="src.dir" value="src"/>
 	<property name="output.dir" value="output"/>
 	<property name="build.dir" value="${output.dir}/bin"/>
-	<property name="library.dir" value="${output.dir}/library"/>
+	<property name="library.dir" value="library"/>
 	<property name="ref.dir" value="${output.dir}/reference"/>
 	<property name="test.src.dir" value="test"/>
 	<property name="test.build.dir" value="${output.dir}/bin-test"/>
@@ -37,6 +37,7 @@
 
 	<target name="clean">
 		<delete dir="${output.dir}"/>
+		<delete dir="${library.dir}"/>
 	</target>
 
 	<target name="compile">
@@ -68,7 +69,8 @@
 		<delete dir="${build.dir}"/>
 		<zip destfile="${output.dir}/${ant.project.name}.zip">
 			<zipfileset dir="." prefix="${ant.project.name}" includes="CHANGELOG.txt, LGPL3-LICENSE.txt, README.md, library.properties, examples/**/*, src/**/*" excludes="**/*.DS_Store"/>
-			<zipfileset dir="${output.dir}" prefix="${ant.project.name}" includes="library/**/*, reference/**/*" excludes="**/*.DS_Store"/>
+			<zipfileset dir="." prefix="${ant.project.name}" includes="library/**/*" excludes="**/*.DS_Store"/>
+			<zipfileset dir="${output.dir}" prefix="${ant.project.name}" includes="reference/**/*" excludes="**/*.DS_Store"/>
 		</zip>
 	</target>
 
