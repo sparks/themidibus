@@ -108,8 +108,3 @@ void controllerChange(int channel, int number, int value, long timestamp, String
     println("This came from IncomingB or IncomingC");
   }
 }
-
-void delay(int time) {
-  int current = millis();
-  while (millis () < current+time) Thread.yield();
-}

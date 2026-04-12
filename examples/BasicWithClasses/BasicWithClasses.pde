@@ -71,8 +71,3 @@ void controllerChange(ControlChange change) {
   println("Number:"+change.number());
   println("Value:"+change.value());
 }
-
-void delay(int time) {
-  int current = millis();
-  while (millis () < current+time) Thread.yield();
-}
