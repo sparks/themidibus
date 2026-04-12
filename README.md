@@ -21,6 +21,10 @@ The MidiBus is very straight forwards to use. A good place to start is the inclu
 
 Please do not hesitate to contact me with any questions, comments or bug reports.
 
+# Caveats, Problems with SysEx, Alternate MIDI for java
+
+The Apple MIDI subsystem has a number of problems. Most notably it doesn't seem to support MIDI messages with a status byte `>= 0xF0` such as SysEx messages. You can use [MMJ](http://www.humatic.de/htools/mmj.htm) as an alternate subsystem. To do so, download mmj and add both `mmj.jar` and `libmmj.jnilib` to the midibus `library` subdirectory. You will also need to disable timestamps in your MidiBus instance otherwise MMJ won't work properly. You can do this by calling `mybus.sendTimestamp(false)`
+
 # Building from source
 
 The MidiBus is built with [Ant](https://ant.apache.org/). The build classpath pulls `processing.core.PApplet` out of your local [Processing](http://www.processing.org/) install, and compilation uses the `javac` that ships inside Processing's bundled JDK.
@@ -59,6 +63,22 @@ Once the env vars are set:
 - `ant clean` — delete `bin/`.
 
 Heads up: the JDK folder name in `PROCESSING_JAVAC` (e.g. `jdk-17.0.14+7`) bakes in a specific Processing version. When Processing updates, that folder name changes and the build breaks with "executable not found" — re-run `set -Ux PROCESSING_JAVAC <new path>` with the updated folder name.
+
+# Deploying
+
+`scripts/deploy.sh` builds a release and uploads it to S3. It requires the AWS profile name in an environment variable:
+
+```fish
+set -Ux MIDIBUS_SBD_AWS_PROFILE smallbutdigital
+```
+
+Then from the project root:
+
+```
+./scripts/deploy.sh
+```
+
+The script reads the version from `library.properties`, checks that the version doesn't already exist on S3, runs `ant clean && ant zip`, and uploads both the versioned (`-010`) and `-latest` files.
 
 # Testing
 
@@ -129,7 +149,3 @@ To verify setup without running the full suite:
 This opens an IAC Driver loopback through both back-ends and tests short messages and SysEx round-trip on each, printing a results table and a verdict. Requires IAC Driver online (run `./scripts/setup-iac.sh` first). Expected output as of macOS 14 / JDK 17: Apple native delivers short messages but fails the SysEx loopback, CoreMIDI4J delivers both — CoreMIDI4J stays.
 
 Note that a loopback test cannot distinguish which direction (send vs receive) is broken. The test suite's Layer 9 (`test/themidibus/MidiBusTest.java`) pairs Apple-native with a Swift/CoreMIDI helper (`scripts/sysex-test.swift`) to isolate the direction. Current finding: Apple-native **receives** SysEx fine but **sends** are silently dropped — so sketches that only need to read inbound SysEx can safely use `MidiBus.bypassCoreMidi4J(true)`, while any sketch that needs to push SysEx to hardware requires CoreMIDI4J.
-
-# Caveats, Problems with SysEx, Alternate MIDI for java
-
-The Apple MIDI subsystem has a number of problems. Most notably it doesn't seem to support MIDI messages with a status byte `>= 0xF0` such as SysEx messages. You can use [MMJ](http://www.humatic.de/htools/mmj.htm) as an alternate subsystem. To do so, download mmj and add both `mmj.jar` and `libmmj.jnilib` to the midibus `library` subdirectory. You will also need to disable timestamps in your MidiBus instance otherwise MMJ won't work properly. You can do this by calling `mybus.sendTimestamp(false)`

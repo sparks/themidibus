@@ -1,130 +1,52 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Project overview
 
-[The MidiBus](http://smallbutdigital.com/projects/themidibus/) is a minimal MIDI library for [Processing](http://www.processing.org/) that wraps `javax.sound.midi` with a simpler, Processing-friendly API. It is a library (distributed as a JAR + examples + javadoc zip), not an application — there is no no runtime entry point. It is distributed inside processing via the library manager.
+[The MidiBus](http://smallbutdigital.com/projects/themidibus/) is a minimal MIDI library for [Processing](http://www.processing.org/) that wraps `javax.sound.midi` with a simpler, Processing-friendly API. It is a library (JAR + examples + javadoc), not an application. Distributed via the Processing Library Manager.
 
-## Build commands (Ant)
+## Build (Ant)
 
-The build system is Ant (`build.xml`). There is no Maven/Gradle, no test runner, and no linter configured.
+- `ant jar` — compile and produce `library/themidibus.jar`
+- `ant main` — default; jar then clean
+- `ant doc` — Javadoc into `output/reference/`
+- `ant zip` — jar + doc, package release into `output/themidibus.zip`
+- `ant test` — build jar, run headless test suite
+- `ant clean` — delete `output/` and `library/`
 
-- `ant jar` — compile `src/` to `bin/` and produce `library/themidibus.jar` (the distributable JAR).
-- `ant main` — default target; same as `jar` followed by `clean` (removes `bin/`).
-- `ant doc` — generate Javadoc into `reference/`.
-- `ant zip` — build jar + doc and package the full release as `themidibus.zip` (suitable for Processing Library Manager upload).
-- `ant test` — build jar, compile `test/` to `bin-test/`, run the headless smoke test, delete `bin-test/`. See "Testing" below.
-- `ant clean` — delete `bin/`.
+Requires two env vars (build aborts without them):
+- `$PROCESSING_CORE_DIR` — Processing's `core/library/` dir (provides `core.jar`)
+- `$PROCESSING_JAVAC` — `javac` from Processing's bundled JDK
 
-### Build dependencies and paths (important)
+Build classpath also includes `lib/coremidi4j-1.6.jar`. The `library/` dir (gitignored) is the distributable output; `lib/` is build-time deps.
 
-`build.xml` needs two paths from a local Processing install, supplied via environment variables. **There are no hardcoded fallbacks** — the build aborts at initialization with a clear `<fail>` message if either is unset.
+## Key files
 
-- `$PROCESSING_CORE_DIR` → `processing.core.dir`: Processing's `core/library/` directory, which holds `core.jar` (`processing.core.PApplet`) for the compile classpath.
-- `$PROCESSING_JAVAC` → `processing.javac`: the `javac` executable inside Processing's bundled JDK. Compilation is pinned to this JDK, not the system default, because Processing sketches must be compiled against the same JDK Processing itself runs.
-
-Both abort conditions use top-level `<fail>` tasks with `<condition><not><isset .../></not></condition>` — top-level Ant tasks run during project initialization, so any target (`jar`, `doc`, `zip`, `clean`) triggers the check. See the top of `build.xml`.
-
-If a build fails:
-- "PROCESSING_CORE_DIR is not set" / "PROCESSING_JAVAC is not set" → the user hasn't exported the env vars; point them at README.md's "Building from source" section.
-- `javac` errors about a missing executable → the JDK folder name (e.g. `jdk-17.0.14+7`) has changed because Processing was updated; `$PROCESSING_JAVAC` needs to be re-set to the new folder name.
-- `core.jar` not found on classpath → `$PROCESSING_CORE_DIR` points somewhere that no longer has `core/library/core.jar`.
-
-Historical note: earlier versions of `build.xml` had two properties, `core.dir` and `core-lib.dir`, both pointing at the same path and feeding two redundant `<fileset>` entries. These were consolidated into a single `processing.core.dir` at the same time the env-var mechanism was introduced.
-
-The classpath also pulls every JAR under `./lib/`. Currently this is `coremidi4j-1.6.jar` (provides `uk.co.xfactorylibrarians.coremidi4j.CoreMidiDeviceProvider`, used to enumerate MIDI devices on macOS with SysEx support — see "macOS / CoreMIDI4J" below). The JAR must be present for compilation. Note that `lib/` is not ignored, `library/` is which is used in making the final build and zip.
-
-The `javac` task uses `sourcepath=""` and `<exclude name="**/PApplet.java"/>`. The excluded `src/themidibus/PApplet.java` is a **documentation-only stub** (see `src/themidibus/PApplet.java`) that exists solely so Javadoc can describe the callback methods (`noteOn`, `noteOff`, `controllerChange`, `rawMidi`, `midiMessage`) that users override on their Processing sketch. At compile time the real `processing.core.PApplet` from `core.jar` is used instead. Do not remove the exclude, and do not add real logic to the stub.
+- `src/themidibus/PApplet.java` — **documentation-only stub**, excluded from compilation. Do not add logic or remove the exclude.
+- `library.properties` — version for Processing Library Manager. Bump `version` (int) and `prettyVersion` (string) for releases.
+- `scripts/deploy.sh` — builds and uploads release to S3. Requires `$MIDIBUS_SBD_AWS_PROFILE`.
 
 ## Architecture
 
-### The callback model — why reflection is everywhere
+### Reflection callback model
 
-The library's central design is that a Processing sketch (a `PApplet` subclass) can define methods like `noteOn(int, int, int)` or `noteOn(Note)` or `noteOn(int, int, int, long, String)`, and the MidiBus will invoke whichever overloads exist — *without the user subclassing or implementing an interface*. This matches Processing's "just define `draw()`" idiom.
+Sketches define methods like `noteOn(int, int, int)` and the MidiBus invokes them via reflection (no interface needed). `registerParent()` probes for all overloads; `notifyParent()` invokes non-null ones.
 
-This is implemented in `MidiBus.registerParent(Object)` (`src/themidibus/MidiBus.java:1208`), which uses `Class.getMethod(...)` reflection to probe the parent for every supported overload and caches the resulting `java.lang.reflect.Method` references in fields named `method_note_on`, `method_note_on_with_bus_name`, `method_note_on_wcla` (with-class-argument), etc. When MIDI arrives, `notifyParent(...)` (line 1067) invokes whichever method references are non-null. This is why the `parent` constructor argument is typed `Object`, not `PApplet` — it is only duck-typed via reflection, so the library works outside Processing too.
+**Adding a callback overload requires syncing 5 places:** (1) field in MidiBus, (2) lookup in `registerParent`, (3) invoke in `notifyParent`, (4) stub in `PApplet.java`, (5) `TestParent` in `MidiBusTest.java`.
 
-**Implication for changes:** adding a new callback overload requires adding (1) the field, (2) the lookup in `registerParent`, (3) the invoke in `notifyParent`, (4) a documentation stub in `src/themidibus/PApplet.java`, and (5) the corresponding declaration + counter on `TestParent` inside `test/themidibus/MidiBusTest.java`. All five must stay in sync — the test suite's Layer 2 will silently fail to exercise a new overload if step 5 is skipped.
+### MidiBus I/O model
 
-### MidiBus is two buses in one
+Each `MidiBus` fans out sends to **all** attached outputs and merges **all** attached inputs. Use multiple `MidiBus` instances + `bus_name` overloads to distinguish devices.
 
-A `MidiBus` instance aggregates an arbitrary set of input devices and an arbitrary set of output devices. Outgoing messages are fanned out to **all** attached outputs; incoming messages from **all** attached inputs are merged. You cannot tell which input a received message came from, nor target a specific output. For independent device sets, users instantiate multiple `MidiBus` objects and disambiguate in callbacks via the `bus_name` parameter (the `..._with_bus_name` overloads exist for this).
+### CoreMIDI4J
 
-Device attachment state lives in two `Vector<...>` fields, `input_devices` and `output_devices`, holding private inner classes `InputDeviceContainer` / `OutputDeviceContainer` (bottom of `MidiBus.java`). Each input container owns a `Transmitter` wired to an `MReceiver` (also a private inner class, `MidiBus.java:1720`) which normalizes `NOTE_ON` with velocity 0 into `NOTE_OFF` before dispatching to listeners and parent.
+Only import is `CoreMidiDeviceProvider.getMidiDeviceInfo()` in `MidiBus.findMidiDevices()` — one line. Needed because Apple's Java MIDI cannot **send** SysEx (receiving works). `bypassCoreMidi4J(true)` opts out with warnings. Do not remove the warnings — they're load-bearing UX.
 
-### Device enumeration (static, cached)
+### Listener interfaces
 
-`MidiBus` keeps a static `available_devices` array populated by `findMidiDevices()` (`MidiBus.java:1552`), which calls `CoreMidiDeviceProvider.getMidiDeviceInfo()` from CoreMIDI4J rather than `MidiSystem.getMidiDeviceInfo()` directly. This cache is populated lazily on first access and can be refreshed by calling `MidiBus.findMidiDevices()` again. `list()`, `availableInputs()`, `availableOutputs()`, and `unavailableDevices()` all read from this cache. This is primarily done because the midi implementation for java on mac is very brittle and buggy. Often calling it multiple times will cause undefined behaviours or problems.
-
-### Listener interface hierarchy
-
-Alongside the reflection-based parent callbacks, the library also offers a conventional listener API via `addMidiListener(MidiListener)`. The marker interface `MidiListener` is sub-typed by:
-
-- `RawMidiListener` — `rawMidi(byte[])`
-- `StandardMidiListener` — `midiMessage(MidiMessage)`
-- `SimpleMidiListener` — `noteOn`/`noteOff`/`controllerChange` with primitive args
-- `ObjectMidiListener` — same as Simple but with `Note` / `ControlChange` value objects
-
-`notifyListeners()` (`MidiBus.java:1022`) walks the listener vector and dispatches based on `instanceof`. `Note` and `ControlChange` are plain value classes in the same package.
-
-### macOS / CoreMIDI4J
-
-The Apple-native Java MIDI subsystem historically has not supported SysEx and messages with status byte ≥ `0xF0`. Also more recently it sometimes just doesn't work at all. This library works around that by depending on CoreMIDI4J (`lib/coremidi4j-1.6.jar`) for device enumeration. The older workaround (MMJ) is still mentioned in README.md and in `package-info.java`, and `sendTimestamps(false)` is the compatibility hook for that case — do not remove it even though CoreMIDI4J is now the default path.
-
-**The SysEx deficiency in Apple's native stack is still real as of macOS 14 / JDK 17, BUT it's asymmetric: only SENDING SysEx is broken; RECEIVING works.** Direction-isolated probe: Layer 9 of the test suite pairs raw Apple-native `com.sun.media.sound.MidiInDevice`/`MidiOutDevice` with a Swift/CoreMIDI helper (`scripts/sysex-test.swift`) on opposite ends, one direction at a time. Swift is known-working (proved by `iac-probe.swift`), so whichever half of the loopback is broken is the half under test. Findings:
-- **Apple-native RECEIVE short**: works (sanity)
-- **Apple-native RECEIVE sysex**: **works** (this is a surprise — the historical "Apple's Java MIDI doesn't do SysEx" reputation was only half right)
-- **Apple-native SEND sysex**: **BROKEN** — outbound SysEx is silently dropped
-
-So the CoreMIDI4J dependency cannot be dropped without regressing *outbound* SysEx (patch pushes to hardware, MMC commands, etc.), but users who only need inbound SysEx (reading dumps from a synth, passive MMC reception, listening for controller events) could run in `bypassCoreMidi4J` mode without losing functionality. The warning text that fires when bypass is enabled reflects this asymmetry — don't simplify it back to "SysEx is dropped", that's pessimistic and wrong for the receive case.
-
-Rerun `./scripts/compare-midi-backends.sh` (source: `scripts/CompareMidiBackends.java`) after any macOS or JDK upgrade to verify the answer hasn't changed. The script requires IAC online (see Testing section) and prints a results table plus a verdict line — if Apple native ever starts delivering SysEx, the verdict will say "CoreMIDI4J dependency may no longer be needed" instead of the usual "still required."
-
-**How minimal the dependency actually is.** The ONLY CoreMIDI4J type imported anywhere in `src/` is `CoreMidiDeviceProvider`, and its only use is a single static method call in `MidiBus.findMidiDevices()`. `CoreMidiDeviceProvider.getMidiDeviceInfo()` is not "just the CoreMIDI4J devices" — it returns a curated full device list where CoreMIDI4J entries replace Apple's broken wrappers for CoreMIDI devices while non-CoreMIDI devices (Gervill, Real Time Sequencer) pass through unchanged. That's why Gervill still shows up in `availableOutputs()`. The Receiver/Transmitter objects used for actual I/O come back through standard `javax.sound.midi.MidiSystem.getMidiDevice(...)` — no direct references to `CoreMidiReceiver`/`CoreMidiTransmitter`/etc. anywhere. If CoreMIDI4J ever needs to be swapped for a replacement, the blast radius is one line.
-
-**Escape hatch: `MidiBus.bypassCoreMidi4J(true)`.** There's an explicit opt-out that routes `findMidiDevices()` back to `MidiSystem.getMidiDeviceInfo()` (the Apple-native list) instead of `CoreMidiDeviceProvider.getMidiDeviceInfo()`. This is for users who have a specific reason to avoid CoreMIDI4J and who do not need SysEx. It MUST be set before any `MidiBus` constructor fires (the device list is cached in `available_devices` at construction time). The setter prints a loud warning to stderr when enabled, and the warning is re-printed from each `MidiBus` constructor and from every SysEx send path (`sendMessage(SysexMessage)` and `sendMessage(byte[])` when the payload starts with `0xF0`/`0xF7`) while bypass is active. Layer 8 of the test suite exercises this path end-to-end, including stderr capture to verify the warning text reaches the user. Do not remove the warnings — they are load-bearing UX because a silently-dropped SysEx is otherwise impossible to diagnose.
-
-**Future JDK native-access restrictions.** Running under JDK 17 produces this warning on startup:
-```
-WARNING: A restricted method in java.lang.System has been called
-WARNING: java.lang.System::load has been called by uk.co.xfactorylibrarians.coremidi4j.Loader
-WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
-WARNING: Restricted methods will be blocked in a future release unless native access is enabled
-```
-This is just a warning today; a future JDK will block `System.load()` unless the sketch opts in. If that breaks CoreMIDI4J, the upgrade path is bumping `lib/coremidi4j-*.jar` to a newer version (1.6 dates from 2020; check upstream before assuming it hasn't been addressed). Nothing in themidibus's code needs to change for that.
-
-## Release artifacts
-
-`library/themidibus.jar` is the built JAR; it is gitignored but produced by `ant jar`. `library.properties` (read by Processing's Library Manager) holds the version — bump both `version` (int) and `prettyVersion` (string) there for releases, and add a `CHANGELOG.txt` entry. The `ant zip` target produces the file users download via the "themidibus-latest.zip" URL referenced in README.md.
+`MidiListener` (marker) -> `RawMidiListener`, `StandardMidiListener`, `SimpleMidiListener`, `ObjectMidiListener`. Dispatched in `notifyListeners()`.
 
 ## Testing
 
-`ant test` runs a headless smoke suite in `test/themidibus/MidiBusTest.java` that mirrors the operations in all four `examples/*.pde` sketches. The test lives in package `themidibus` so it can call the package-private dispatch entry points `notifyListeners` (`src/themidibus/MidiBus.java:1022`) and `notifyParent` (`src/themidibus/MidiBus.java:1067`) directly — this is how Layers 2–4 exercise the reflection/listener dispatch layer without real MIDI hardware.
+`ant test` runs `test/themidibus/MidiBusTest.java`. Layers 1-5 are pure/headless. Layer 6 uses Gervill. Layer 7+ use IAC Driver (run `scripts/setup-iac.sh` to enable). Skippable layers report SKIP, not failure.
 
-Seven layers:
-1. Value classes (`Note`, `ControlChange`) — pure.
-2. Reflection callback dispatch via `notifyParent` — uses the fat `TestParent` that declares every callback overload `registerParent` probes for, with per-overload counters.
-3. Listener dispatch via `notifyListeners` — covers the full `MidiListener` subinterface hierarchy (which none of the examples exercise).
-4. Multi-bus isolation with distinct `bus_name`s.
-5. Device enumeration — static methods.
-6. Real send pipeline against Gervill (Java Sound Synthesizer). Skipped if Gervill isn't present.
-7. IAC Driver round-trip loopback. Skipped if IAC isn't visible OR if IAC is visible but not forwarding (the "Device is online" checkbox is unchecked). Layer 7 is the only test that covers the velocity-0 `NOTE_ON` → `NOTE_OFF` rewrite inside `MReceiver.send` at `src/themidibus/MidiBus.java:1732`, since `MReceiver` is a private inner class and that rewrite can only be reached via a real device reception path.
-
-Layers that can't run are reported as `SKIP` in the summary, not failures — `ant test` still exits 0 if every runnable layer passes. The overall suite uses a tiny inline assertion helper (no JUnit) and prints a per-layer `N/M` pass count plus a list of failures.
-
-### IAC Driver setup (for Layer 7)
-
-`scripts/setup-iac.sh` opens Audio MIDI Setup and walks the user through enabling the IAC Driver. It does not GUI-script the config — Audio MIDI Setup has no usable AppleScript dictionary for MIDI Studio and GUI scripting the icon grid is brittle across macOS versions. The script is a humane wrapper: open app, print steps, wait on Enter, re-probe.
-
-### Why the IAC probe is Swift, not Java
-
-`scripts/iac-probe.swift` is a small pure-CoreMIDI program (no Java, no themidibus, no CoreMIDI4J). Layer 7 shells out to it via `ProcessBuilder` to decide whether IAC is actually routing before running any Java-side assertions. The reason is that Java MIDI on macOS is flaky: CoreMIDI4J can list IAC endpoints that are routing correctly at the CoreMIDI level while the Java-side receive path silently drops messages. If the precondition check were written in Java, a false negative would hide real setup issues ("IAC is fine, your Java layer is broken") and a false positive would flood the test summary with spurious assertion failures.
-
-So Layer 7 uses a **two-tier precondition**:
-1. `iac-probe.swift` must confirm CoreMIDI-level routing works. If not → SKIP with a "run setup-iac.sh" pointer.
-2. The first Java-side NOTE_ON send+receive must complete within 1s. If not → SKIP with "Java MIDI / CoreMIDI4J flakiness". Any *subsequent* failure is a real themidibus regression.
-
-`scripts/check-iac.sh` is a one-line wrapper around `iac-probe.swift` for developer use. It exits with the probe's status code (0 ready, 1 not found, 2 visible-but-offline, 3 API error).
-
-**Do not replace IAC with CoreMIDI4J virtual endpoints.** CoreMIDI4J is deliberately used minimally (only for `CoreMidiDeviceProvider.getMidiDeviceInfo()` in `MidiBus.findMidiDevices`); the project treats it as a forced dependency with the smallest possible surface area. The loopback comes from user-configured IAC (verified via the Swift probe), not from `CoreMidiSource`/`CoreMidiDestination`.
+The IAC probe is Swift (`scripts/iac-probe.swift`), not Java, to avoid false results from Java MIDI flakiness.
