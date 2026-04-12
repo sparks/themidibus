@@ -21,6 +21,8 @@
 	<property name="src.dir" value="src"/>
 	<property name="build.dir" value="bin"/>
 	<property name="ref.dir" value="reference"/>
+	<property name="test.src.dir" value="test"/>
+	<property name="test.build.dir" value="bin-test"/>
 
 	<path id="classpath">
 		<fileset dir="${processing.core.dir}">
@@ -57,6 +59,24 @@
 		<zip destfile="${ant.project.name}.zip">
 			<zipfileset dir="." excludes="**/*.DS_Store, .gitignore, **/.git, **/.git/**/*, TODO.txt" prefix="${ant.project.name}"/>
 		</zip>
+	</target>
+
+	<target name="test" depends="jar">
+		<mkdir dir="${test.build.dir}"/>
+		<javac srcdir="${test.src.dir}" destdir="${test.build.dir}" fork="yes" executable="${processing.javac}" includeantruntime="false">
+			<classpath>
+				<path refid="classpath"/>
+				<pathelement location="library/${ant.project.name}.jar"/>
+			</classpath>
+		</javac>
+		<java classname="themidibus.MidiBusTest" fork="true" failonerror="true">
+			<classpath>
+				<path refid="classpath"/>
+				<pathelement location="library/${ant.project.name}.jar"/>
+				<pathelement location="${test.build.dir}"/>
+			</classpath>
+		</java>
+		<delete dir="${test.build.dir}"/>
 	</target>
 
 	<target name="main" depends="jar">

@@ -14,6 +14,7 @@ The build system is Ant (`build.xml`). There is no Maven/Gradle, no test runner,
 - `ant main` — default target; same as `jar` followed by `clean` (removes `bin/`).
 - `ant doc` — generate Javadoc into `reference/`.
 - `ant zip` — build jar + doc and package the full release as `themidibus.zip` (suitable for Processing Library Manager upload).
+- `ant test` — build jar, compile `test/` to `bin-test/`, run the headless smoke test, delete `bin-test/`. See "Testing" below.
 - `ant clean` — delete `bin/`.
 
 ### Build dependencies and paths (important)
@@ -44,7 +45,7 @@ The library's central design is that a Processing sketch (a `PApplet` subclass) 
 
 This is implemented in `MidiBus.registerParent(Object)` (`src/themidibus/MidiBus.java:1208`), which uses `Class.getMethod(...)` reflection to probe the parent for every supported overload and caches the resulting `java.lang.reflect.Method` references in fields named `method_note_on`, `method_note_on_with_bus_name`, `method_note_on_wcla` (with-class-argument), etc. When MIDI arrives, `notifyParent(...)` (line 1067) invokes whichever method references are non-null. This is why the `parent` constructor argument is typed `Object`, not `PApplet` — it is only duck-typed via reflection, so the library works outside Processing too.
 
-**Implication for changes:** adding a new callback overload requires adding (1) the field, (2) the lookup in `registerParent`, (3) the invoke in `notifyParent`, and (4) a documentation stub in `src/themidibus/PApplet.java`. All four must stay in sync.
+**Implication for changes:** adding a new callback overload requires adding (1) the field, (2) the lookup in `registerParent`, (3) the invoke in `notifyParent`, (4) a documentation stub in `src/themidibus/PApplet.java`, and (5) the corresponding declaration + counter on `TestParent` inside `test/themidibus/MidiBusTest.java`. All five must stay in sync — the test suite's Layer 2 will silently fail to exercise a new overload if step 5 is skipped.
 
 ### MidiBus is two buses in one
 
@@ -74,3 +75,26 @@ The Apple-native Java MIDI subsystem historically has not supported SysEx and me
 ## Release artifacts
 
 `library/themidibus.jar` is the built JAR; it is gitignored but produced by `ant jar`. `library.properties` (read by Processing's Library Manager) holds the version — bump both `version` (int) and `prettyVersion` (string) there for releases, and add a `CHANGELOG.txt` entry. The `ant zip` target produces the file users download via the "themidibus-latest.zip" URL referenced in README.md.
+
+## Testing
+
+`ant test` runs a headless smoke suite in `test/themidibus/MidiBusTest.java` that mirrors the operations in all four `examples/*.pde` sketches. The test lives in package `themidibus` so it can call the package-private dispatch entry points `notifyListeners` (`src/themidibus/MidiBus.java:1022`) and `notifyParent` (`src/themidibus/MidiBus.java:1067`) directly — this is how Layers 2–4 exercise the reflection/listener dispatch layer without real MIDI hardware.
+
+Seven layers:
+1. Value classes (`Note`, `ControlChange`) — pure.
+2. Reflection callback dispatch via `notifyParent` — uses the fat `TestParent` that declares every callback overload `registerParent` probes for, with per-overload counters.
+3. Listener dispatch via `notifyListeners` — covers the full `MidiListener` subinterface hierarchy (which none of the examples exercise).
+4. Multi-bus isolation with distinct `bus_name`s.
+5. Device enumeration — static methods.
+6. Real send pipeline against Gervill (Java Sound Synthesizer). Skipped if Gervill isn't present.
+7. IAC Driver round-trip loopback. Skipped if IAC isn't visible OR if IAC is visible but not forwarding (the "Device is online" checkbox is unchecked). Layer 7 is the only test that covers the velocity-0 `NOTE_ON` → `NOTE_OFF` rewrite inside `MReceiver.send` at `src/themidibus/MidiBus.java:1732`, since `MReceiver` is a private inner class and that rewrite can only be reached via a real device reception path.
+
+Layers that can't run are reported as `SKIP` in the summary, not failures — `ant test` still exits 0 if every runnable layer passes. The overall suite uses a tiny inline assertion helper (no JUnit) and prints a per-layer `N/M` pass count plus a list of failures.
+
+### IAC Driver setup (for Layer 7)
+
+`scripts/setup-iac.sh` opens Audio MIDI Setup and walks the user through enabling the IAC Driver. It does not GUI-script the config — Audio MIDI Setup has no usable AppleScript dictionary for MIDI Studio and GUI scripting the icon grid is brittle across macOS versions. The script is a humane wrapper: open app, print steps, wait on Enter, re-probe.
+
+`scripts/check-iac.sh` is the probe the setup script uses — it reruns `MidiBusTest --check-iac`, which does a live loopback round-trip (send NOTE_ON through IAC, wait up to 300ms for the callback). Name presence alone is not enough because IAC can be visible but offline. Use `check-iac.sh` directly if you want to verify your setup without running the full suite.
+
+**Do not replace IAC with CoreMIDI4J virtual endpoints.** CoreMIDI4J is deliberately used minimally (only for `CoreMidiDeviceProvider.getMidiDeviceInfo()` in `MidiBus.findMidiDevices`); the project treats it as a forced dependency with the smallest possible surface area. The loopback comes from user-configured IAC, not from `CoreMidiSource`/`CoreMidiDestination`.
