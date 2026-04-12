@@ -572,15 +572,17 @@ public class MidiBusTest {
 
 		try {
 			// Second-tier precondition: confirm Java-side receive actually works before
-			// asserting anything. If the Swift probe just said "IAC routes" but the Java
-			// layer still can't see the message, that's the known "Java MIDI is flaky"
-			// scenario — skip the rest of this layer with a diagnostic rather than
-			// flooding the summary with spurious failures.
+			// asserting anything. If the Swift probe says IAC routes but Java-side
+			// receive doesn't, something is broken in themidibus or CoreMIDI4J.
+			// Historically this masked the Receiver.send() wrong-timestamp bug (fixed
+			// by passing -1 instead of System.currentTimeMillis()); keep the skip as
+			// a safety net in case a similar latent bug resurfaces, so developers
+			// get a precise diagnostic rather than a wall of failed assertions.
 			parent.resetWithLatch();
 			bus.sendNoteOn(0, 64, 127);
 			if (!parent.latch.await(1000, TimeUnit.MILLISECONDS)) {
 				bus.close();
-				skip("CoreMIDI confirms IAC routes but Java receiver did not see the message within 1000ms - Java MIDI / CoreMIDI4J flakiness, not a themidibus regression per se");
+				skip("CoreMIDI confirms IAC routes but Java receiver saw nothing within 1000ms - probable themidibus send-path or CoreMIDI4J receive-path regression");
 			}
 			// First message made it through. Now count it and run the full assertions.
 			assertEq(1, parent.noteOnBasicCount, "IAC NOTE_ON: basic callback");

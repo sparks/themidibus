@@ -861,8 +861,16 @@ public class MidiBus {
 	 * @see #sendControllerChange(ControlChange change)
 	*/
 	public synchronized void sendMessage(MidiMessage message) {
+		// Receiver.send()'s timestamp is in microseconds relative to when the
+		// device was opened (starting at 0), NOT wall-clock. Per the javadoc,
+		// -1 means "send immediately" and is the correct value when we don't
+		// want to schedule the message for a specific time. Passing
+		// System.currentTimeMillis() (~1.7 quadrillion) was a latent bug that
+		// Apple's native MidiOutDevice silently tolerated but CoreMIDI4J's
+		// CoreMidiReceiver correctly interprets as ~20 days in the future,
+		// causing the message to never be delivered.
 		for (OutputDeviceContainer container : output_devices) {
-			if (sendTimestamps) container.receiver.send(message, System.currentTimeMillis());
+			if (sendTimestamps) container.receiver.send(message, -1);
 			else container.receiver.send(message, 0);
 		}
 	}

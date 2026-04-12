@@ -1,3 +1,18 @@
+-Version 010
+	Bug Fixes:
+		-Fix outbound MIDI messages not being delivered on macOS when using CoreMIDI4J.
+		 Previous versions passed System.currentTimeMillis() to Receiver.send() as a
+		 timestamp, which is incorrect - the value is interpreted as microseconds
+		 relative to device open (per the javax.sound.midi.Receiver javadoc).
+		 Apple's legacy native MidiOutDevice tolerated this; CoreMIDI4J's strict
+		 CoreMidiReceiver correctly interpreted it as ~20 days in the future,
+		 silently dropping every message. Now passes -1 ("send immediately").
+	Changes:
+		-Added Ant test target and headless smoke test suite that mirrors the
+		 example sketches (see ant test, test/themidibus/MidiBusTest.java).
+		-Externalized Processing paths in build.xml to PROCESSING_CORE_DIR and
+		 PROCESSING_JAVAC environment variables.
+
 -Version 009
 	Changes:
 		-Fix a NullPointer happening on boot in Processing 4 beta
