@@ -68,6 +68,7 @@ public class MidiBusTest {
 		runLayer("Layer 5 (device enumeration)",        MidiBusTest::layer5_deviceEnumeration);
 		runLayer("Layer 6 (Gervill send pipeline)",     MidiBusTest::layer6_gervillSendPipeline);
 		runLayer("Layer 7 (IAC round-trip loopback)",   MidiBusTest::layer7_iacLoopback);
+		runLayer("Layer 8 (bypassCoreMidi4J escape)",   MidiBusTest::layer8_bypassFlag);
 
 		System.out.println();
 		System.out.println("=== Summary ===");
@@ -619,6 +620,108 @@ public class MidiBusTest {
 			bus.close();
 		}
 		layerPassCount++; // close without throwing
+	}
+
+	/* ========================================================= */
+	/* Layer 8 - bypassCoreMidi4J escape hatch                    */
+	/* ========================================================= */
+
+	static void layer8_bypassFlag() throws Exception {
+		// Save state so we can restore it at the end regardless of failure.
+		boolean initialFlag = MidiBus.bypassCoreMidi4J();
+		PrintStream originalErr = System.err;
+		try {
+			// Default state.
+			assertEq(false, initialFlag, "bypassCoreMidi4J default is false");
+
+			// Enabling prints a warning to stderr and flips the getter.
+			ByteArrayOutputStream enableErr = new ByteArrayOutputStream();
+			System.setErr(new PrintStream(enableErr));
+			MidiBus.bypassCoreMidi4J(true);
+			System.setErr(originalErr);
+			assertEq(true, MidiBus.bypassCoreMidi4J(), "getter reflects enable");
+			assertTrue(enableErr.toString().contains("bypassCoreMidi4J"),
+					"setter warning printed to stderr");
+			assertTrue(enableErr.toString().contains("SysEx"),
+					"setter warning mentions SysEx limitation");
+
+			// Constructor fires the warning while bypass is active.
+			ByteArrayOutputStream ctorErr = new ByteArrayOutputStream();
+			System.setErr(new PrintStream(ctorErr));
+			MidiBus bus = new MidiBus(null, "bypass_bus");
+			System.setErr(originalErr);
+			assertTrue(ctorErr.toString().contains("MidiBus constructor"),
+					"constructor fires bypass warning with constructor context");
+
+			// sendMessage(SysexMessage) fires the warning. Use a bus with no
+			// outputs so the send is a no-op but the warning path still runs.
+			ByteArrayOutputStream sysexErr = new ByteArrayOutputStream();
+			System.setErr(new PrintStream(sysexErr));
+			SysexMessage sx = new SysexMessage();
+			sx.setMessage(new byte[] { (byte)0xF0, 0x01, (byte)0xF7 }, 3);
+			bus.sendMessage(sx);
+			System.setErr(originalErr);
+			assertTrue(sysexErr.toString().contains("sendMessage(SysexMessage)"),
+					"sendMessage(SysexMessage) fires bypass warning");
+
+			// sendMessage(byte[] sysex) fires the warning with the byte[] context.
+			ByteArrayOutputStream sysexBytesErr = new ByteArrayOutputStream();
+			System.setErr(new PrintStream(sysexBytesErr));
+			bus.sendMessage(new byte[] { (byte)0xF0, 0x02, (byte)0xF7 });
+			System.setErr(originalErr);
+			assertTrue(sysexBytesErr.toString().contains("sendMessage(byte[]) with SysEx payload"),
+					"sendMessage(byte[]) with SysEx fires bypass warning");
+
+			// Non-SysEx sendMessage(MidiMessage) does NOT fire the warning.
+			ByteArrayOutputStream shortErr = new ByteArrayOutputStream();
+			System.setErr(new PrintStream(shortErr));
+			ShortMessage nonSysex = new ShortMessage();
+			nonSysex.setMessage(ShortMessage.NOTE_ON, 0, 64, 127);
+			bus.sendMessage(nonSysex);
+			System.setErr(originalErr);
+			assertTrue(shortErr.toString().isEmpty(),
+					"sendMessage(ShortMessage) does NOT fire bypass warning");
+
+			// findMidiDevices actually switches data sources: Apple-native
+			// exposes plain "Bus 1"/"Bus 2" names and MidiInDevice/MidiOutDevice
+			// classes, which CoreMIDI4J's curated list does not.
+			MidiBus.findMidiDevices();
+			String[] inputsBypass = MidiBus.availableInputs();
+			boolean sawNativeIacName = false;
+			for (String s : inputsBypass) {
+				if ("Bus 1".equals(s) || "Bus 2".equals(s)) { sawNativeIacName = true; break; }
+			}
+			if (IAC_INPUT_NAME != null) {
+				// Only assert this if IAC is configured — otherwise Apple native
+				// has nothing IAC-related and the check is moot.
+				assertTrue(sawNativeIacName,
+						"findMidiDevices with bypass=true surfaces Apple-native 'Bus N' names");
+			}
+
+			// Disabling prints NOTHING and flips the getter back.
+			ByteArrayOutputStream disableErr = new ByteArrayOutputStream();
+			System.setErr(new PrintStream(disableErr));
+			MidiBus.bypassCoreMidi4J(false);
+			System.setErr(originalErr);
+			assertEq(false, MidiBus.bypassCoreMidi4J(), "getter reflects disable");
+			assertTrue(disableErr.toString().isEmpty(),
+					"disabling bypass does not print a warning");
+
+			// findMidiDevices goes back to CoreMIDI4J source.
+			MidiBus.findMidiDevices();
+			String[] inputsCMJ = MidiBus.availableInputs();
+			boolean sawCMJIacName = false;
+			for (String s : inputsCMJ) {
+				if (s.startsWith("CoreMIDI4J - IAC")) { sawCMJIacName = true; break; }
+			}
+			if (IAC_INPUT_NAME != null) {
+				assertTrue(sawCMJIacName,
+						"findMidiDevices with bypass=false surfaces CoreMIDI4J names");
+			}
+		} finally {
+			System.setErr(originalErr);
+			MidiBus.bypassCoreMidi4J = initialFlag;
+		}
 	}
 
 	/* ========================================================= */

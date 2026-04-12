@@ -49,6 +49,14 @@ public class MidiBus {
 		
 	static MidiDevice.Info[] available_devices;
 
+	/**
+	 * When true, MidiBus uses the built-in Java MIDI device list
+	 * (MidiSystem.getMidiDeviceInfo()) instead of the CoreMIDI4J-curated list.
+	 * Escape hatch for users who want to bypass CoreMIDI4J at their own risk.
+	 * Default is false. See {@link #bypassCoreMidi4J(boolean)} for limitations.
+	*/
+	static boolean bypassCoreMidi4J = false;
+
 	String bus_name;
 		
 	Vector<InputDeviceContainer> input_devices;
@@ -270,6 +278,8 @@ public class MidiBus {
 	 * If two MidiBus object were to have the same name, this would be bad, but not fatal, so there's no point in spending too much time worrying about it.
 	*/
 	private void init(Object parent, String bus_name) {
+		if (bypassCoreMidi4J) printBypassCoreMidi4JWarning("MidiBus constructor");
+
 		/* -- */
 
 		if (bus_name == null) {
@@ -719,6 +729,7 @@ public class MidiBus {
 					System.err.println("\nThe MidiBus Warning: Message not sent, invalid MIDI data");
 				}
 			} else if ((int)((byte)data[0] & 0xFF) == SysexMessage.SYSTEM_EXCLUSIVE || (int)((byte)data[0] & 0xFF) == SysexMessage.SPECIAL_SYSTEM_EXCLUSIVE) {
+				if (bypassCoreMidi4J) printBypassCoreMidi4JWarning("sendMessage(byte[]) with SysEx payload");
 				SysexMessage message = new SysexMessage();
 				try {
 					message.setMessage(data, data.length);
@@ -861,6 +872,9 @@ public class MidiBus {
 	 * @see #sendControllerChange(ControlChange change)
 	*/
 	public synchronized void sendMessage(MidiMessage message) {
+		if (bypassCoreMidi4J && message instanceof SysexMessage) {
+			printBypassCoreMidi4JWarning("sendMessage(SysexMessage)");
+		}
 		// Receiver.send()'s timestamp is in microseconds relative to when the
 		// device was opened (starting at 0), NOT wall-clock. Per the javadoc,
 		// -1 means "send immediately" and is the correct value when we don't
@@ -1383,6 +1397,51 @@ public class MidiBus {
 	public void sendTimestamps(boolean sendTimestamps) {
 		this.sendTimestamps = sendTimestamps;
 	}
+
+	/**
+	 * Returns whether MidiBus is configured to bypass CoreMIDI4J and use the
+	 * built-in Java MIDI implementation directly. Default is false.
+	 *
+	 * @return true if bypassing CoreMIDI4J.
+	 * @see #bypassCoreMidi4J(boolean)
+	*/
+	public static boolean bypassCoreMidi4J() {
+		return bypassCoreMidi4J;
+	}
+
+	/**
+	 * Enables or disables bypassing CoreMIDI4J in favour of the built-in Java
+	 * MIDI implementation (javax.sound.midi via MidiSystem).
+	 * <p>
+	 * This is an escape hatch with a <b>known limitation</b>: Apple's native
+	 * Java MIDI implementation on macOS does NOT correctly deliver SysEx
+	 * messages - they will be silently dropped. Short messages (noteOn,
+	 * noteOff, controllerChange, etc.) work normally. Only enable this if you
+	 * have a specific reason to avoid CoreMIDI4J and you do not need SysEx.
+	 * <p>
+	 * This method MUST be called <i>before</i> constructing any MidiBus
+	 * instance for the change to take effect, because the device list is
+	 * built during the constructor.
+	 * <p>
+	 * A warning is printed to stderr when this method is called with
+	 * {@code true}, when a MidiBus constructor fires while bypass is active,
+	 * and when any SysEx send method is invoked while bypass is active.
+	 *
+	 * @param bypass true to bypass CoreMIDI4J, false (the default) to use it.
+	 * @see #bypassCoreMidi4J()
+	*/
+	public static void bypassCoreMidi4J(boolean bypass) {
+		MidiBus.bypassCoreMidi4J = bypass;
+		if (bypass) printBypassCoreMidi4JWarning("bypassCoreMidi4J(true) called");
+	}
+
+	/**
+	 * Prints the bypassCoreMidi4J warning to stderr. Called from the setter,
+	 * from MidiBus constructors (via init), and from SysEx send paths.
+	*/
+	static void printBypassCoreMidi4JWarning(String context) {
+		System.err.println("\nThe MidiBus Warning [bypassCoreMidi4J, " + context + "]: Using the built-in Java MIDI implementation. On macOS, this path does NOT correctly deliver SysEx messages (they will be silently dropped). Short messages still work. Call MidiBus.bypassCoreMidi4J(false) before constructing a MidiBus to return to the CoreMIDI4J-backed path.");
+	}
 	
 	/**
 	 * Returns the name of this MidiBus.
@@ -1558,8 +1617,11 @@ public class MidiBus {
 	 *
 	*/
 	static public void findMidiDevices() {
-		// if (MidiBus.available_devices != null) return;
-		MidiBus.available_devices = CoreMidiDeviceProvider.getMidiDeviceInfo();
+		if (bypassCoreMidi4J) {
+			MidiBus.available_devices = MidiSystem.getMidiDeviceInfo();
+		} else {
+			MidiBus.available_devices = CoreMidiDeviceProvider.getMidiDeviceInfo();
+		}
 	}
 	
 	/**

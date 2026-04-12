@@ -12,6 +12,11 @@
 		 example sketches (see ant test, test/themidibus/MidiBusTest.java).
 		-Externalized Processing paths in build.xml to PROCESSING_CORE_DIR and
 		 PROCESSING_JAVAC environment variables.
+		-Added MidiBus.bypassCoreMidi4J(boolean) escape hatch for users who want
+		 to fall back to the built-in Java MIDI implementation. Must be called
+		 before any MidiBus constructor. Prints a loud warning to stderr when
+		 enabled, repeated on every constructor and every SysEx send path,
+		 because Apple's native Java MIDI silently drops SysEx messages.
 
 -Version 009
 	Changes:
