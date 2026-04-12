@@ -31,11 +31,16 @@ package themidibus;
 
 public class ControlChange {
 
+	/** The MIDI channel. */
 	public int channel;
+	/** The controller number. */
 	public int number;
+	/** The controller value. */
 	public int value;
 
+	/** The timestamp of the MIDI message. */
 	public long timestamp;
+	/** The name of the MidiBus which received the message. */
 	public String bus_name;
 
 	/**

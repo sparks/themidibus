@@ -46,13 +46,19 @@ public class Note {
 		"B"
 	};
 
+	/** The MIDI channel. */
 	public int channel;
+	/** The pitch of the note. */
 	public int pitch;
+	/** The velocity of the note. */
 	public int velocity;
 
+	/** The tick count of the MIDI message. */
 	public long ticks;
 
+	/** The timestamp of the MIDI message. */
 	public long timestamp;
+	/** The name of the MidiBus which received the message. */
 	public String bus_name;
 
 	/**
