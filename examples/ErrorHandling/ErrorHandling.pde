@@ -27,8 +27,8 @@ void setup() {
 
   // Now add a real output device. If this fails too, we'll know about it.
   try {
-    myBus.addOutput("Java Sound Synthesizer");
-    println("Successfully added output: Java Sound Synthesizer");
+    myBus.addOutput("Gervill");
+    println("Successfully added output: Gervill");
   } catch (RuntimeException e) {
     println("Caught error adding output: " + e.getMessage());
   }
