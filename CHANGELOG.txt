@@ -15,8 +15,11 @@
 		-Added MidiBus.bypassCoreMidi4J(boolean) escape hatch for users who want
 		 to fall back to the built-in Java MIDI implementation. Must be called
 		 before any MidiBus constructor. Prints a loud warning to stderr when
-		 enabled, repeated on every constructor and every SysEx send path,
-		 because Apple's native Java MIDI silently drops SysEx messages.
+		 enabled, repeated on every constructor and every SysEx send path.
+		 The warning is direction-specific: as of macOS 14 / JDK 17, Apple's
+		 native stack RECEIVES SysEx correctly but silently drops outbound
+		 SysEx. Sketches that only read inbound SysEx can safely use bypass
+		 mode; sketches that need to push SysEx to hardware cannot.
 
 -Version 009
 	Changes:

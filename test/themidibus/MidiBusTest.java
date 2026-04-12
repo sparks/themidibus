@@ -19,9 +19,13 @@
 
 package themidibus;
 
+import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiMessage;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.SysexMessage;
+import javax.sound.midi.Transmitter;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -33,6 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MidiBusTest {
 
@@ -69,6 +74,7 @@ public class MidiBusTest {
 		runLayer("Layer 6 (Gervill send pipeline)",     MidiBusTest::layer6_gervillSendPipeline);
 		runLayer("Layer 7 (IAC round-trip loopback)",   MidiBusTest::layer7_iacLoopback);
 		runLayer("Layer 8 (bypassCoreMidi4J escape)",   MidiBusTest::layer8_bypassFlag);
+		runLayer("Layer 9 (Apple-native SysEx direction)", MidiBusTest::layer9_appleSysexDirectionality);
 
 		System.out.println();
 		System.out.println("=== Summary ===");
@@ -721,6 +727,225 @@ public class MidiBusTest {
 		} finally {
 			System.setErr(originalErr);
 			MidiBus.bypassCoreMidi4J = initialFlag;
+		}
+	}
+
+	/* ========================================================= */
+	/* Layer 9 - Apple-native SysEx direction isolation           */
+	/* ========================================================= */
+	//
+	// Loopback tests show Apple-native javax.sound.midi drops SysEx, but
+	// loopback doesn't tell us which half (send or receive) is broken.
+	// Pair the Apple-native stack with Swift (known-working via the CoreMIDI
+	// helper) on opposite ends, one direction at a time.
+	//
+	// Precondition: IAC loopback must actually be routing (verified via the
+	// Swift iac-probe); and an Apple-native IAC MidiInDevice/MidiOutDevice
+	// pair must be present. Otherwise SKIP.
+	//
+	// This layer is for documentation-of-current-state more than regression
+	// catching: its assertions pin the currently-observed Apple-native
+	// asymmetry. As of macOS 14 / JDK 17, Apple-native can RECEIVE SysEx
+	// correctly (surprise finding; the historical "no SysEx" reputation was
+	// only half right) but still cannot SEND SysEx - outbound SysEx is
+	// silently dropped. The send direction is why loopback fails.
+	//
+	// If Apple fixes the send direction (or regresses the receive direction)
+	// in a future JDK or macOS release, these assertions will fail loudly.
+	// That's the signal to update the bypassCoreMidi4J warning in
+	// MidiBus.java and relax/tighten the test.
+
+	static void layer9_appleSysexDirectionality() throws Exception {
+		if (!java.nio.file.Paths.get("scripts/sysex-test.swift").toFile().exists()) {
+			skip("scripts/sysex-test.swift not found");
+		}
+
+		// IAC must actually route, else both sub-tests are meaningless.
+		int probeExit = runSwiftIacProbe();
+		if (probeExit != 0) {
+			skip("IAC loopback not routing (swift probe exit=" + probeExit + ") - run scripts/setup-iac.sh");
+		}
+
+		// Find Apple-native IAC endpoints via raw javax.sound.midi. Filter by
+		// implementation class name - CoreMIDI4J wraps the same physical port,
+		// but under a different class, and we want to exercise Apple's
+		// implementation specifically.
+		MidiDevice.Info appleIn = null, appleOut = null;
+		for (MidiDevice.Info info : MidiSystem.getMidiDeviceInfo()) {
+			try {
+				MidiDevice d = MidiSystem.getMidiDevice(info);
+				String cls = d.getClass().getName();
+				if (!cls.startsWith("com.sun.media.sound.Midi")) continue;
+				String name = info.getName();
+				if (!(name.startsWith("Bus ") || name.contains("IAC"))) continue;
+				if (appleIn == null && d.getMaxTransmitters() != 0) appleIn = info;
+				if (appleOut == null && d.getMaxReceivers() != 0) appleOut = info;
+			} catch (Exception ignore) {}
+		}
+		if (appleIn == null || appleOut == null) {
+			skip("no Apple-native IAC endpoints found");
+		}
+		System.out.println("    Apple-native IAC input:  " + appleIn.getName());
+		System.out.println("    Apple-native IAC output: " + appleOut.getName());
+
+		boolean appleReceivesSysex = testAppleNativeReceive(appleIn);
+		boolean appleReceivesShort = lastAppleNativeShortReceived;
+		boolean appleSendsSysex    = testAppleNativeSend(appleOut);
+
+		System.out.println("    Apple-native RECEIVE short:  " + (appleReceivesShort ? "works"   : "BROKEN"));
+		System.out.println("    Apple-native RECEIVE sysex:  " + (appleReceivesSysex ? "works"   : "BROKEN"));
+		System.out.println("    Apple-native SEND    sysex:  " + (appleSendsSysex    ? "works"   : "BROKEN"));
+
+		// Control: Apple-native short-message receive sanity check. If THIS
+		// fails, the entire test is meaningless because the Apple-native
+		// receive path isn't even running. Assert it works, so a failure here
+		// is a clear signal that something more fundamental is wrong.
+		assertTrue(appleReceivesShort,
+				"Apple-native receives short messages (sanity)");
+
+		// Pin current findings. These assertions document the observed state
+		// on macOS 14 / JDK 17. If they fail, Apple (or CoreMIDI4J, or the
+		// JDK) has changed something - investigate and update the
+		// bypassCoreMidi4J warning text in MidiBus.java accordingly.
+		assertEq(true, appleReceivesSysex,
+				"Apple-native RECEIVE sysex works (state pin)");
+		assertEq(false, appleSendsSysex,
+				"Apple-native SEND sysex is BROKEN (state pin)");
+	}
+
+	/** Cross-method state for Layer 9's short-message sanity check. */
+	static boolean lastAppleNativeShortReceived;
+
+	/**
+	 * Opens an Apple-native IAC input, asks the Swift helper to send a SysEx
+	 * and a short message, waits, and reports whether each was received.
+	 * Returns true if SysEx was seen. Records short-message receipt in
+	 * lastAppleNativeShortReceived so the caller can sanity-check that the
+	 * receive path was running at all.
+	 */
+	static boolean testAppleNativeReceive(MidiDevice.Info inInfo) throws Exception {
+		lastAppleNativeShortReceived = false;
+		MidiDevice in = MidiSystem.getMidiDevice(inInfo);
+		in.open();
+		AtomicBoolean sawSysex = new AtomicBoolean(false);
+		AtomicBoolean sawShort = new AtomicBoolean(false);
+		Transmitter tx = in.getTransmitter();
+		tx.setReceiver(new Receiver() {
+			@Override public void send(MidiMessage m, long ts) {
+				if (m instanceof SysexMessage) sawSysex.set(true);
+				else sawShort.set(true);
+			}
+			@Override public void close() {}
+		});
+		try {
+			Thread.sleep(100); // let the stack settle before we ask Swift to send
+
+			// Ask Swift to send a short NOTE_ON via a short secondary trip
+			// through CoreMIDI. We do this by running the Swift probe in
+			// "send" mode which sends SysEx; but we also want a short message
+			// sanity check. The simplest way is to also send a short message
+			// ourselves via CoreMIDI4J, which we KNOW works, to confirm the
+			// Apple-native receive side sees something at all. We reuse
+			// CoreMIDI4J's IAC output for that.
+			MidiDevice.Info cmjOut = null;
+			for (MidiDevice.Info info : MidiSystem.getMidiDeviceInfo()) {
+				MidiDevice d = MidiSystem.getMidiDevice(info);
+				if (d.getClass().getName().startsWith("uk.co.xfactorylibrarians.coremidi4j")
+						&& info.getName().contains("IAC")
+						&& d.getMaxReceivers() != 0) {
+					cmjOut = info;
+					break;
+				}
+			}
+			if (cmjOut != null) {
+				MidiDevice cmj = MidiSystem.getMidiDevice(cmjOut);
+				if (!cmj.isOpen()) cmj.open();
+				Receiver cmjRx = cmj.getReceiver();
+				ShortMessage noteOn = new ShortMessage();
+				noteOn.setMessage(ShortMessage.NOTE_ON, 0, 64, 100);
+				cmjRx.send(noteOn, -1);
+				Thread.sleep(200);
+				cmjRx.close();
+				cmj.close();
+			}
+			lastAppleNativeShortReceived = sawShort.get();
+
+			// Now the actual test: Swift sends SysEx, Apple-native listens.
+			Process p = new ProcessBuilder("swift", "scripts/sysex-test.swift", "send")
+					.redirectErrorStream(true)
+					.start();
+			p.waitFor(5, TimeUnit.SECONDS);
+			Thread.sleep(500); // allow CoreMIDI delivery
+			return sawSysex.get();
+		} finally {
+			try { tx.close(); } catch (Exception ignore) {}
+			try { in.close(); } catch (Exception ignore) {}
+		}
+	}
+
+	/**
+	 * Opens an Apple-native IAC output, launches the Swift helper in
+	 * "listen" mode as a child process, waits for it to print READY, sends
+	 * a SysEx through the Apple-native output, and returns true if the
+	 * Swift helper reports having received it.
+	 */
+	static boolean testAppleNativeSend(MidiDevice.Info outInfo) throws Exception {
+		Process listen = new ProcessBuilder("swift", "scripts/sysex-test.swift", "listen")
+				.redirectErrorStream(true)
+				.start();
+		MidiDevice out = null;
+		Receiver outRx = null;
+		try {
+			// Wait for READY up to 5s.
+			BufferedReader br = new BufferedReader(new InputStreamReader(listen.getInputStream()));
+			boolean ready = false;
+			long deadline = System.currentTimeMillis() + 5000;
+			while (System.currentTimeMillis() < deadline) {
+				if (!br.ready()) {
+					if (!listen.isAlive()) break;
+					Thread.sleep(20);
+					continue;
+				}
+				String line = br.readLine();
+				if (line == null) break;
+				System.out.println("      [swift listen] " + line);
+				if ("READY".equals(line)) { ready = true; break; }
+			}
+			if (!ready) {
+				listen.destroyForcibly();
+				System.out.println("      swift listener did not signal READY");
+				return false;
+			}
+
+			// Give Swift a tiny moment after READY; CoreMIDI source connection
+			// is wired up before READY is printed, but an extra 50ms is cheap
+			// insurance against any post-print setup.
+			Thread.sleep(50);
+
+			out = MidiSystem.getMidiDevice(outInfo);
+			out.open();
+			outRx = out.getReceiver();
+			SysexMessage sx = new SysexMessage();
+			sx.setMessage(new byte[] { (byte)0xF0, 0x7D, 0x01, 0x02, 0x03, (byte)0xF7 }, 6);
+			outRx.send(sx, -1);
+
+			// Drain the rest of Swift's stdout while waiting for it to exit,
+			// so the log has the full trace and the pipe can't stall.
+			boolean exited = listen.waitFor(5, TimeUnit.SECONDS);
+			while (br.ready()) {
+				String line = br.readLine();
+				if (line == null) break;
+				System.out.println("      [swift listen] " + line);
+			}
+			if (!exited) {
+				listen.destroyForcibly();
+				return false;
+			}
+			return listen.exitValue() == 0;
+		} finally {
+			try { if (outRx != null) outRx.close(); } catch (Exception ignore) {}
+			try { if (out != null && out.isOpen()) out.close(); } catch (Exception ignore) {}
+			if (listen.isAlive()) listen.destroyForcibly();
 		}
 	}
 

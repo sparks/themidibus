@@ -126,7 +126,9 @@ To verify setup without running the full suite:
 ./scripts/compare-midi-backends.sh
 ```
 
-This opens an IAC Driver loopback through both back-ends and tests short messages and SysEx round-trip on each, printing a results table and a verdict. Requires IAC Driver online (run `./scripts/setup-iac.sh` first). Expected output as of macOS 14 / JDK 17: Apple native delivers short messages but drops SysEx, CoreMIDI4J delivers both — CoreMIDI4J stays.
+This opens an IAC Driver loopback through both back-ends and tests short messages and SysEx round-trip on each, printing a results table and a verdict. Requires IAC Driver online (run `./scripts/setup-iac.sh` first). Expected output as of macOS 14 / JDK 17: Apple native delivers short messages but fails the SysEx loopback, CoreMIDI4J delivers both — CoreMIDI4J stays.
+
+Note that a loopback test cannot distinguish which direction (send vs receive) is broken. The test suite's Layer 9 (`test/themidibus/MidiBusTest.java`) pairs Apple-native with a Swift/CoreMIDI helper (`scripts/sysex-test.swift`) to isolate the direction. Current finding: Apple-native **receives** SysEx fine but **sends** are silently dropped — so sketches that only need to read inbound SysEx can safely use `MidiBus.bypassCoreMidi4J(true)`, while any sketch that needs to push SysEx to hardware requires CoreMIDI4J.
 
 # Caveats, Problems with SysEx, Alternate MIDI for java
 

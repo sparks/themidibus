@@ -1440,7 +1440,7 @@ public class MidiBus {
 	 * from MidiBus constructors (via init), and from SysEx send paths.
 	*/
 	static void printBypassCoreMidi4JWarning(String context) {
-		System.err.println("\nThe MidiBus Warning [bypassCoreMidi4J, " + context + "]: Using the built-in Java MIDI implementation. On macOS, this path does NOT correctly deliver SysEx messages (they will be silently dropped). Short messages still work. Call MidiBus.bypassCoreMidi4J(false) before constructing a MidiBus to return to the CoreMIDI4J-backed path.");
+		System.err.println("\nThe MidiBus Warning [bypassCoreMidi4J, " + context + "]: Using the built-in Java MIDI implementation. On macOS, this path cannot SEND SysEx messages - outbound SysEx is silently dropped. RECEIVING SysEx does work, so sketches that only read inbound SysEx (controller dumps, MMC, etc.) are fine. Short messages work in both directions. Call MidiBus.bypassCoreMidi4J(false) to return to the CoreMIDI4J-backed path, which handles both directions for all message types.");
 	}
 	
 	/**
