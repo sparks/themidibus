@@ -47,6 +47,6 @@ Only import is `CoreMidiDeviceProvider.getMidiDeviceInfo()` in `MidiBus.findMidi
 
 ## Testing
 
-`ant test` runs `test/themidibus/MidiBusTest.java`. Layers 1-5 are pure/headless. Layer 6 uses Gervill. Layer 7+ use IAC Driver (run `scripts/setup-iac.sh` to enable). Skippable layers report SKIP, not failure.
+`ant test` runs `test/themidibus/MidiBusTest.java`. Layers 1-5 are pure/headless. Layer 6 uses Gervill. Layers 7 and 9 use IAC Driver (run `scripts/setup-iac.sh` to enable). Layer 8 tests bypassCoreMidi4J. Layer 10 tests throwErrors. Skippable layers report SKIP, not failure.
 
 The IAC probe is Swift (`scripts/iac-probe.swift`), not Java, to avoid false results from Java MIDI flakiness.

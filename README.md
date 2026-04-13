@@ -94,7 +94,7 @@ ant test
 
 ## What gets tested
 
-The suite is organized into seven layers (see `test/themidibus/MidiBusTest.java`). Layers 1–5 run anywhere, with no hardware or setup:
+The suite is organized into ten layers (see `test/themidibus/MidiBusTest.java`). Layers 1–5 run anywhere, with no hardware or setup:
 
 1. **Value classes** — `Note` / `ControlChange` constructors, accessors, setters.
 2. **Reflection callback dispatch** — verifies `MidiBus.registerParent` caches all the overloads and `notifyParent` dispatches to every non-null one (noteOn/noteOff/CC in plain, `_with_bus_name`, and `Note`/`ControlChange`-object forms, plus `rawMidi` and `midiMessage`).
@@ -150,6 +150,6 @@ To verify setup without running the full suite:
 ./scripts/compare-midi-backends.sh
 ```
 
-This opens an IAC Driver loopback through both back-ends and tests short messages and SysEx round-trip on each, printing a results table and a verdict. Requires IAC Driver online (run `./scripts/setup-iac.sh` first). Expected output as of macOS 14 / JDK 17: Apple native delivers short messages but fails the SysEx loopback, CoreMIDI4J delivers both — CoreMIDI4J stays.
+This tests all common MIDI message types in both send and receive directions through both back-ends, printing a per-type results table and a verdict. Requires IAC Driver online (run `./scripts/setup-iac.sh` first). Expected output as of macOS 14 / JDK 17: Apple native handles all channel messages correctly but silently drops outbound SysEx; CoreMIDI4J delivers everything — CoreMIDI4J stays.
 
-Note that a loopback test cannot distinguish which direction (send vs receive) is broken. The test suite's Layer 9 (`test/themidibus/MidiBusTest.java`) pairs Apple-native with a Swift/CoreMIDI helper (`scripts/sysex-test.swift`) to isolate the direction. Current finding: Apple-native **receives** SysEx fine but **sends** are silently dropped — so sketches that only need to read inbound SysEx can safely use `MidiBus.bypassCoreMidi4J(true)`, while any sketch that needs to push SysEx to hardware requires CoreMIDI4J.
+The test suite's Layer 9 (`test/themidibus/MidiBusTest.java`) pairs Apple-native with a Swift/CoreMIDI helper (`scripts/midi-test.swift`) to isolate which direction is broken for each message type. Current finding: Apple-native **receives** SysEx fine but **sends** are silently dropped — so sketches that only need to read inbound SysEx can safely use `MidiBus.bypassCoreMidi4J(true)`, while any sketch that needs to push SysEx to hardware requires CoreMIDI4J.

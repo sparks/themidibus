@@ -453,10 +453,12 @@ public class MidiBus {
 	 * @see #attachedInputs()
 	*/
 	public synchronized boolean removeInput(String device_name) {
-		for (InputDeviceContainer container : input_devices) {
+		java.util.Iterator<InputDeviceContainer> it = input_devices.iterator();
+		while (it.hasNext()) {
+			InputDeviceContainer container = it.next();
 			if (container.info.getName().equals(device_name)) {
-				input_devices.remove(container);
-		
+				it.remove();
+
 				container.transmitter.close();
 				container.receiver.close();
 
@@ -590,10 +592,12 @@ public class MidiBus {
 	 * @see #attachedOutputs()
 	*/
 	public synchronized boolean removeOutput(String device_name) {
-		for (OutputDeviceContainer container : output_devices) {
+		java.util.Iterator<OutputDeviceContainer> it = output_devices.iterator();
+		while (it.hasNext()) {
+			OutputDeviceContainer container = it.next();
 			if (container.info.getName().equals(device_name)) {
-				output_devices.remove(container);
-			
+				it.remove();
+
 				container.receiver.close();
 
 				return true;
@@ -1017,7 +1021,7 @@ public class MidiBus {
 	 * @see #sendControllerChange(ControlChange change)
 	*/
 	public void sendNoteOff(Note note) {
-		sendNoteOff(note.channel, note.pitch(), note.velocity());
+		sendNoteOff(note.channel(), note.pitch(), note.velocity());
 	}
 	
 	/**
@@ -1133,7 +1137,7 @@ public class MidiBus {
 				try {
 					method_note_on.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF) });
 				} catch(Exception e) {
-					System.err.println("\nThe MidiBus Warning: Disabling noteOn(int channel, int pitch, int velocity) because an unkown exception was thrown and caught");
+					System.err.println("\nThe MidiBus Warning: Disabling noteOn(int channel, int pitch, int velocity) because an unknown exception was thrown and caught");
 					e.printStackTrace();
 					method_note_on = null;
 				}
@@ -1143,7 +1147,7 @@ public class MidiBus {
 				try {
 					method_note_on_with_bus_name.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp, bus_name });
 				} catch(Exception e) {
-					System.err.println("\nThe MidiBus Warning: Disabling noteOn(int channel, int pitch, int velocity, String bus_name) with bus_name because an unkown exception was thrown and caught");
+					System.err.println("\nThe MidiBus Warning: Disabling noteOn(int channel, int pitch, int velocity, String bus_name) with bus_name because an unknown exception was thrown and caught");
 					e.printStackTrace();
 					method_note_on_with_bus_name = null;
 				}
@@ -1152,7 +1156,7 @@ public class MidiBus {
 				try {
 					method_note_on_wcla.invoke(parent, new Note((int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp, bus_name));
 				} catch(Exception e) {
-					System.err.println("\nThe MidiBus Warning: Disabling noteOn(Note note) because an unkown exception was thrown and caught");
+					System.err.println("\nThe MidiBus Warning: Disabling noteOn(Note note) because an unknown exception was thrown and caught");
 					e.printStackTrace();
 					method_note_on_wcla = null;
 				}
@@ -1162,7 +1166,7 @@ public class MidiBus {
 				try {
 					method_note_off.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF) });
 				} catch(Exception e) {
-					System.err.println("\nThe MidiBus Warning: Disabling noteOff(int channel, int pitch, int velocity) because an unkown exception was thrown and caught");
+					System.err.println("\nThe MidiBus Warning: Disabling noteOff(int channel, int pitch, int velocity) because an unknown exception was thrown and caught");
 					e.printStackTrace();
 					method_note_off = null;
 				}
@@ -1171,7 +1175,7 @@ public class MidiBus {
 				try {
 					method_note_off_with_bus_name.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp, bus_name });
 				} catch(Exception e) {
-					System.err.println("\nThe MidiBus Warning: Disabling noteOff(int channel, int pitch, int velocity, String bus_name) with bus_name because an unkown exception was thrown and caught");
+					System.err.println("\nThe MidiBus Warning: Disabling noteOff(int channel, int pitch, int velocity, String bus_name) with bus_name because an unknown exception was thrown and caught");
 					e.printStackTrace();
 					method_note_off_with_bus_name = null;
 				}
@@ -1180,7 +1184,7 @@ public class MidiBus {
 				try {
 					method_note_off_wcla.invoke(parent, new Note((int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp, bus_name));
 				} catch(Exception e) {
-					System.err.println("\nThe MidiBus Warning: Disabling noteOff(Note note) because an unkown exception was thrown and caught");
+					System.err.println("\nThe MidiBus Warning: Disabling noteOff(Note note) because an unknown exception was thrown and caught");
 					e.printStackTrace();
 					method_note_off_wcla = null;
 				}
@@ -1190,7 +1194,7 @@ public class MidiBus {
 				try {
 					method_controller_change.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF) });
 				} catch(Exception e) {
-					System.err.println("\nThe MidiBus Warning: Disabling controllerChange(int channel, int number, int value) because an unkown exception was thrown and caught");
+					System.err.println("\nThe MidiBus Warning: Disabling controllerChange(int channel, int number, int value) because an unknown exception was thrown and caught");
 					e.printStackTrace();
 					method_controller_change = null;
 				}
@@ -1199,7 +1203,7 @@ public class MidiBus {
 				try {
 					method_controller_change_with_bus_name.invoke(parent, new Object[] { (int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp, bus_name });
 				} catch(Exception e) {
-					System.err.println("\nThe MidiBus Warning: Disabling controllerChange(int channel, int number, int value, String bus_name) with bus_name because an unkown exception was thrown and caught");
+					System.err.println("\nThe MidiBus Warning: Disabling controllerChange(int channel, int number, int value, String bus_name) with bus_name because an unknown exception was thrown and caught");
 					e.printStackTrace();
 					method_controller_change_with_bus_name = null;
 				}
@@ -1208,7 +1212,7 @@ public class MidiBus {
 				try {
 					method_controller_change_wcla.invoke(parent, new ControlChange((int)(data[0] & 0x0F), (int)(data[1] & 0xFF), (int)(data[2] & 0xFF), timeStamp, bus_name));
 				} catch(Exception e) {
-					System.err.println("\nThe MidiBus Warning: Disabling noteOff(Note note) because an unkown exception was thrown and caught");
+					System.err.println("\nThe MidiBus Warning: Disabling controllerChange(ControlChange change) because an unknown exception was thrown and caught");
 					e.printStackTrace();
 					method_controller_change_wcla = null;
 				}
@@ -1219,7 +1223,7 @@ public class MidiBus {
 			try {
 				method_raw_midi.invoke(parent, new Object[] { data });
 			} catch(Exception e) {
-				System.err.println("\nThe MidiBus Warning: Disabling rawMidi(byte[] data) because an unkown exception was thrown and caught");
+				System.err.println("\nThe MidiBus Warning: Disabling rawMidi(byte[] data) because an unknown exception was thrown and caught");
 				e.printStackTrace();
 				method_raw_midi = null;
 			}
@@ -1228,7 +1232,7 @@ public class MidiBus {
 			try {
 				method_raw_midi_with_bus_name.invoke(parent, new Object[] { data, timeStamp, bus_name });
 			} catch(Exception e) {
-				System.err.println("\nThe MidiBus Warning: Disabling rawMidi(byte[] data, String bus_name) with bus_name because an unkown exception was thrown and caught");
+				System.err.println("\nThe MidiBus Warning: Disabling rawMidi(byte[] data, String bus_name) with bus_name because an unknown exception was thrown and caught");
 				e.printStackTrace();
 				method_raw_midi_with_bus_name = null;
 			}
@@ -1238,7 +1242,7 @@ public class MidiBus {
 			try {
 				method_midi_message.invoke(parent, new Object[] { message });
 			} catch(Exception e) {
-				System.err.println("\nThe MidiBus Warning: Disabling midiMessage(MidiMessage message) because an unkown exception was thrown and caught");
+				System.err.println("\nThe MidiBus Warning: Disabling midiMessage(MidiMessage message) because an unknown exception was thrown and caught");
 				e.printStackTrace();
 				method_midi_message = null;
 			}
@@ -1247,7 +1251,7 @@ public class MidiBus {
 			try {
 				method_midi_message_with_bus_name.invoke(parent, new Object[] { message, timeStamp, bus_name });
 			} catch(Exception e) {
-				System.err.println("\nThe MidiBus Warning: Disabling midiMessage(MidiMessage message, String bus_name) with bus_name because an unkown exception was thrown and caught");
+				System.err.println("\nThe MidiBus Warning: Disabling midiMessage(MidiMessage message, String bus_name) with bus_name because an unknown exception was thrown and caught");
 				e.printStackTrace();
 				method_midi_message_with_bus_name = null;
 			}
