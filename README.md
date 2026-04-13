@@ -1,3 +1,5 @@
+<img src="http://smallbutdigital.com/media/projects/themidibus/themidibus.png" alt="The MidiBus" align="right" width="200">
+
 The MidiBus is a MIDI library for [Processing](http://www.processing.org/) which provides a fast and easy way to send and receive MIDI data. <!--more-->The MidiBus is desgined primarily for real time MIDI applications. It's focused on MIDI I/O and keeps the frills to a minimum; currently it has no built in sequencer, file read/write, MIDI recording/playback.
 
 # Installation
