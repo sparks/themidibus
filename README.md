@@ -23,9 +23,11 @@ The MidiBus is very straight forwards to use. A good place to start is the inclu
 
 Please do not hesitate to contact me with any questions, comments or bug reports.
 
-# Caveats, Problems with SysEx, Alternate MIDI for java
+# Caveats, SysEx on macOS
 
-The Apple MIDI subsystem has a number of problems. Most notably it doesn't seem to support MIDI messages with a status byte `>= 0xF0` such as SysEx messages. You can use [MMJ](http://www.humatic.de/htools/mmj.htm) as an alternate subsystem. To do so, download mmj and add both `mmj.jar` and `libmmj.jnilib` to the midibus `library` subdirectory. You will also need to disable timestamps in your MidiBus instance otherwise MMJ won't work properly. You can do this by calling `mybus.sendTimestamp(false)`
+Apple's native Java MIDI implementation on macOS silently drops outbound SysEx messages (`>= 0xF0`). The MidiBus bundles [CoreMIDI4J](https://github.com/DerekCook/CoreMidi4J) to work around this — no extra setup is needed. SysEx send and receive both work out of the box.
+
+If you need to bypass CoreMIDI4J for any reason, you can call `MidiBus.bypassCoreMidi4J(true)`, but be aware that outbound SysEx will be silently dropped. Receiving SysEx still works in bypass mode. See `MAC-JAVA-ISSUES.md` for the full technical details.
 
 # Building from source
 
