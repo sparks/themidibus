@@ -11,6 +11,14 @@
 		 Apple's legacy native MidiOutDevice tolerated this; CoreMIDI4J's strict
 		 CoreMidiReceiver correctly interpreted it as ~20 days in the future,
 		 silently dropping every message. Now passes -1 ("send immediately").
+		-Fix sendTimestamps flag to actually produce valid timestamps. Previously
+		 both true and false resulted in "send immediately" (-1 vs 0, neither a
+		 meaningful timestamp). When enabled, sendTimestamps now queries
+		 MidiDevice.getMicrosecondPosition() for a correct device-relative
+		 microsecond timestamp. When disabled, passes -1 (no timestamp / send
+		 immediately). Default changed from true to false — most sketches want
+		 immediate delivery and don't need timestamps. Call
+		 mybus.sendTimestamps(true) to opt in to device-relative timestamps.
 	Changes:
 		-Added Ant test target and headless smoke test suite that mirrors the
 		 example sketches (see ant test, test/themidibus/MidiBusTest.java).
