@@ -1,7 +1,0 @@
-The recommended way to install the MidiBus is the [Processing Library Manager](http://wiki.processing.org/w/How_to_Install_a_Contributed_Library). This way Processing will automatically notify you when a new version is available.
-
-If you wish to install the MidiBus manually you can simply drag this folder into your libraries folder.
-
-For Processing 1.0+, your libraries folder is located in your Processing sketch folder.
-
-Otherwise, if you're still using Processing BETA, your libraries folder can be found in same folder as Processing itself.
