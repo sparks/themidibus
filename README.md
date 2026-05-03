@@ -31,4 +31,4 @@ If you need to bypass CoreMIDI4J for any reason, you can call `MidiBus.bypassCor
 
 # Building from source, etc
 
-See [DEVELOPER-NOTES.md]
+See [DEVELOPER-NOTES.md](./DEVELOPER-NOTES.md)
